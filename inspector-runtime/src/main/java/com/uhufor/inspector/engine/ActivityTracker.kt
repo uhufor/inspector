@@ -7,21 +7,29 @@ import java.lang.ref.WeakReference
 
 internal object ActivityTracker : Application.ActivityLifecycleCallbacks {
     private var topReference: WeakReference<Activity>? = null
-    val top: Activity? get() = topReference?.get()
+
+    val top: Activity?
+        get() = topReference?.get()
+
+    fun register(app: Application) {
+        app.registerActivityLifecycleCallbacks(this)
+    }
 
     override fun onActivityStarted(activity: Activity) {
-        topReference = WeakReference(activity)
+        updateTopActivity(activity)
     }
 
     override fun onActivityResumed(activity: Activity) {
-        topReference = WeakReference(activity)
+        updateTopActivity(activity)
     }
 
-    override fun onActivityPaused(activity: Activity) {}
-    override fun onActivityStopped(activity: Activity) {}
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-    override fun onActivityDestroyed(activity: Activity) {}
+    override fun onActivityPaused(activity: Activity) = Unit
+    override fun onActivityStopped(activity: Activity) = Unit
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+    override fun onActivityDestroyed(activity: Activity) = Unit
 
-    fun register(app: Application) = app.registerActivityLifecycleCallbacks(this)
+    private fun updateTopActivity(activity: Activity) {
+        topReference = WeakReference(activity)
+    }
 }
