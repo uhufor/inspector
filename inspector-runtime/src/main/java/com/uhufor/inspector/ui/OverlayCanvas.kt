@@ -109,18 +109,28 @@ internal class OverlayCanvas(
         val blue = 255 - Color.blue(color)
         return Color.rgb(red, green, blue)
     }
+    
+    private fun applyAlpha(color: Int, alpha: Float): Int {
+        return Color.argb(
+            (Color.alpha(color) * alpha).toInt(),
+            Color.red(color),
+            Color.green(color),
+            Color.blue(color)
+        )
+    }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         
         engine.allElements.forEach { element ->
-            val color = getColorForElement(element)
+            val originalColor = getColorForElement(element)
+            val colorWithAlpha = applyAlpha(originalColor, 0.5f)
             
             if (element.isClickable) {
-                paintClickableBorder.color = color
+                paintClickableBorder.color = colorWithAlpha
                 canvas.drawRect(element.bounds, paintClickableBorder)
             } else {
-                paintBorder.color = color
+                paintBorder.color = colorWithAlpha
                 canvas.drawRect(element.bounds, paintBorder)
             }
         }
