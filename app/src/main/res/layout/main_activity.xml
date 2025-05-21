@@ -18,9 +18,11 @@
         android:text="World" />
 
     <TextView
+        android:id="@+id/click"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
+        android:foreground="?attr/selectableItemBackground"
         android:paddingBottom="8dp"
         android:text="Click" />
 
@@ -53,17 +55,19 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
+            android:id="@+id/clickCenter"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:background="#11FF0000"
-            app:layout_constraintStart_toEndOf="@id/profile"
-            app:layout_constraintTop_toTopOf="@+id/profile"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:paddingHorizontal="8dp"
+            android:text="Center Text"
             app:layout_constraintBottom_toBottomOf="@id/profile"
             app:layout_constraintEnd_toEndOf="parent"
-            android:includeFontPadding="false"
-            android:gravity="center"
-            android:paddingHorizontal="8dp"
-            android:text="Center Text" />
+            app:layout_constraintStart_toEndOf="@id/profile"
+            app:layout_constraintTop_toTopOf="@+id/profile" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
