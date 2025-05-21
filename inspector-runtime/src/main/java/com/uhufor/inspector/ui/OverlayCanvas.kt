@@ -14,6 +14,7 @@ import com.uhufor.inspector.Config
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.util.UnitConverter
 
+@SuppressLint("ClickableViewAccessibility")
 internal class OverlayCanvas(
     app: Application,
     private val cfg: Config,
@@ -33,7 +34,6 @@ internal class OverlayCanvas(
 
     init {
         setBackgroundColor(Color.TRANSPARENT)
-        @SuppressLint("ClickableViewAccessibility")
         setOnTouchListener { _, ev ->
             if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
                 engine.handleTap(ev.rawX, ev.rawY)

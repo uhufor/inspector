@@ -5,7 +5,8 @@ import androidx.annotation.MainThread
 
 object Inspector {
 
-    @JvmField val config: Config = Config()
+    @JvmField
+    val config: Config = Config()
     private var installed = false
 
     @MainThread

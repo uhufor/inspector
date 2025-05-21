@@ -8,8 +8,8 @@ import android.graphics.RectF
 data class SelectionState(val bounds: RectF)
 
 internal class InspectorEngine(
-    private val app: Application,
-    private val invalidator: () -> Unit
+    app: Application,
+    private val invalidator: () -> Unit,
 ) {
 
     var selection: SelectionState? = null
@@ -35,5 +35,7 @@ internal class InspectorEngine(
 
     private fun topActivity(): Activity? = ActivityTracker.top
 
-    init { ActivityTracker.register(app) }
+    init {
+        ActivityTracker.register(app)
+    }
 }
