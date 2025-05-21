@@ -84,6 +84,13 @@ internal class OverlayCanvas(
             elementColors[Random.nextInt(elementColors.size)]
         }
     }
+    
+    private fun getComplementaryColor(color: Int): Int {
+        val red = 255 - Color.red(color)
+        val green = 255 - Color.green(color)
+        val blue = 255 - Color.blue(color)
+        return Color.rgb(red, green, blue)
+    }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
@@ -102,8 +109,11 @@ internal class OverlayCanvas(
         
         val sel = engine.selection ?: return
         
+        val originalColor = getColorForElement(sel)
+        val complementaryColor = getComplementaryColor(originalColor)
+        
         val selectedPaint = if (sel.isClickable) paintClickableBorder else paintBorder
-        selectedPaint.color = Color.WHITE
+        selectedPaint.color = complementaryColor
         canvas.drawRect(sel.bounds, selectedPaint)
         selectedPaint.color = Color.RED
         
@@ -111,7 +121,7 @@ internal class OverlayCanvas(
         val w = UnitConverter.format(sel.bounds.width(), dm, cfg.unitMode)
         val h = UnitConverter.format(sel.bounds.height(), dm, cfg.unitMode)
         
-        paintText.color = Color.WHITE
+        paintText.color = complementaryColor
         canvas.drawText("$w × $h", sel.bounds.left, sel.bounds.top - 8, paintText)
         paintText.color = Color.RED
     }
