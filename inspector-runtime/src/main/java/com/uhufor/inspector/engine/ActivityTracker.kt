@@ -1,21 +1,20 @@
 package com.uhufor.inspector.engine
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import java.lang.ref.WeakReference
 
-@SuppressLint("StaticFieldLeak")
 internal object ActivityTracker : Application.ActivityLifecycleCallbacks {
-    var top: Activity? = null
-        private set
+    private var topReference: WeakReference<Activity>? = null
+    val top: Activity? get() = topReference?.get()
 
     override fun onActivityStarted(activity: Activity) {
-        top = activity
+        topReference = WeakReference(activity)
     }
 
     override fun onActivityResumed(activity: Activity) {
-        top = activity
+        topReference = WeakReference(activity)
     }
 
     override fun onActivityPaused(activity: Activity) {}
