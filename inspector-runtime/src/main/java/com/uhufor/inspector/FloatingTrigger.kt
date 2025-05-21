@@ -22,6 +22,7 @@ import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.uhufor.inspector.ui.OverlayCanvas
+import com.uhufor.inspector.ui.OverlayCanvas.BackKeyListener
 import com.uhufor.inspector.util.dp
 
 @SuppressLint("StaticFieldLeak")
@@ -47,7 +48,15 @@ internal object FloatingTrigger {
         wm = app.getSystemService()!!
         cfg = config
 
-        overlay = OverlayCanvas(app, cfg)
+        overlay = OverlayCanvas(app, cfg).apply {
+            backKeyListener = object : BackKeyListener {
+                override fun onBackPressed() {
+                    if (overlayShown) {
+                        toggleOverlay()
+                    }
+                }
+            }
+        }
 
         fabContainer = buildFab(app)
 

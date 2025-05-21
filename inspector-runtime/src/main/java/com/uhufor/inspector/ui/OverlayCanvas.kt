@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -22,6 +23,12 @@ internal class OverlayCanvas(
     app: Application,
     private val cfg: Config,
 ) : View(app) {
+    
+    interface BackKeyListener {
+        fun onBackPressed()
+    }
+    
+    var backKeyListener: BackKeyListener? = null
 
     private val normalBorderWidth = 1.dp(context).toFloat()
     private val clickableBorderWidth = 2.dp(context).toFloat()
@@ -70,12 +77,23 @@ internal class OverlayCanvas(
 
     init {
         setBackgroundColor(Color.TRANSPARENT)
+        isFocusable = true
+        isFocusableInTouchMode = true
         setOnTouchListener { _, ev ->
             if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
                 engine.handleTap(ev.rawX, ev.rawY)
+                requestFocus()
                 true
             } else false
         }
+    }
+    
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            backKeyListener?.onBackPressed()
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
     }
 
     private fun getColorForElement(element: Any): Int {
@@ -130,8 +148,7 @@ internal class OverlayCanvas(
         WindowManager.LayoutParams.MATCH_PARENT,
         WindowManager.LayoutParams.MATCH_PARENT,
         WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
         PixelFormat.TRANSLUCENT
     ).apply { gravity = Gravity.START or Gravity.TOP }
