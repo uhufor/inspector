@@ -10,9 +10,11 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.WindowManager
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.appcompat.view.ContextThemeWrapper
@@ -22,7 +24,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.uhufor.inspector.ui.OverlayCanvas
 import com.uhufor.inspector.util.dp
 
-@SuppressLint("InflateParams", "StaticFieldLeak")
+@SuppressLint("StaticFieldLeak")
 internal object FloatingTrigger {
 
     private lateinit var wm: WindowManager
@@ -63,11 +65,11 @@ internal object FloatingTrigger {
         wm.addView(fabContainer, lp)
 
         cfg.densityString = "%.2fx".format(app.resources.displayMetrics.density)
-//        updateLabel()
+        updateLabel()
     }
 
-    @SuppressLint("StaticFieldLeak")
-    private fun buildFab(app: Application): View = FrameLayout(app).apply {
+    private fun buildFab(app: Application): View = LinearLayout(app).apply {
+        orientation = LinearLayout.VERTICAL
         val themedCtx = ContextThemeWrapper(
             app,
             androidx.appcompat.R.style.Theme_AppCompat_Light_NoActionBar
@@ -87,13 +89,20 @@ internal object FloatingTrigger {
             setBackgroundColor(Color.RED)
         }
         addView(fab, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-        addView(label, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT, Gravity.CENTER))
+        addView(label, FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT, Gravity.CENTER))
     }
 
     private fun toggleOverlay() {
-        if (overlayShown) wm.removeView(overlay)
-        else wm.addView(overlay, overlay.layoutParams())
+        val fabParams = fabContainer.layoutParams as WindowManager.LayoutParams
+        wm.removeView(fabContainer)
+
+        if (overlayShown) {
+            wm.removeView(overlay)
+        } else {
+            wm.addView(overlay, overlay.layoutParams())
+        }
         overlayShown = !overlayShown
+        wm.addView(fabContainer, fabParams)
     }
 
     private fun showMenu(anchor: View) {
@@ -104,7 +113,7 @@ internal object FloatingTrigger {
                 when (it.itemId) {
                     1 -> {
                         cfg.unitMode = if (cfg.unitMode == UnitMode.DP) UnitMode.PX else UnitMode.DP
-//                        updateLabel()
+                        updateLabel()
                         overlay.invalidate()
                     }
 
