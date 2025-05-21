@@ -97,9 +97,11 @@ internal object FloatingTrigger {
         wm.removeView(fabContainer)
 
         if (overlayShown) {
+            overlay.engine.clearScan()
             wm.removeView(overlay)
         } else {
             wm.addView(overlay, overlay.layoutParams())
+            overlay.engine.scanAllElements()
         }
         overlayShown = !overlayShown
         wm.addView(fabContainer, fabParams)
