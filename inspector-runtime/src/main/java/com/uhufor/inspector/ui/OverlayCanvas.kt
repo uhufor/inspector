@@ -2,10 +2,12 @@ package com.uhufor.inspector.ui
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PixelFormat
+import android.util.AttributeSet
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -23,16 +25,28 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 @SuppressLint("ClickableViewAccessibility")
-internal class OverlayCanvas(
-    app: Application,
-    private val cfg: Config,
-) : View(app) {
+internal class OverlayCanvas @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+    defStyleRes: Int = 0,
+) : View(context, attrs, defStyleAttr, defStyleRes) {
+
+    constructor(
+        app: Application,
+        cfg: Config,
+    ) : this(app) {
+        this.cfg = cfg
+    }
 
     interface BackKeyListener {
         fun onBackPressed()
     }
 
     var backKeyListener: BackKeyListener? = null
+
+    val engine = InspectorEngine(context) { postInvalidate() }
+    private lateinit var cfg: Config
 
     private val normalBorderWidth = 1.dp(context).toFloat()
     private val clickableBorderWidth = 2.dp(context).toFloat()
@@ -51,20 +65,23 @@ internal class OverlayCanvas(
     }
 
     private val paintText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 24f
+        textSize = TEXT_SIZE
         color = Color.RED
     }
 
     private val paintDistance = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 18f
+        textSize = DISTANCE_TEXT_SIZE
         color = Color.WHITE
     }
 
     private val paintDashedLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        strokeWidth = 2f
+        strokeWidth = DASHED_LINE_WIDTH
         style = Paint.Style.STROKE
         color = Color.WHITE
-        pathEffect = android.graphics.DashPathEffect(floatArrayOf(10f, 5f), 0f)
+        pathEffect = android.graphics.DashPathEffect(
+            floatArrayOf(DASH_PATTERN_ON, DASH_PATTERN_OFF),
+            DASH_PHASE
+        )
     }
 
     private val elementColors = listOf(
@@ -90,7 +107,6 @@ internal class OverlayCanvas(
         "#000000".toColorInt()
     )
 
-    val engine = InspectorEngine(app) { postInvalidate() }
 
     init {
         setBackgroundColor(Color.TRANSPARENT)
@@ -99,6 +115,7 @@ internal class OverlayCanvas(
         setOnTouchListener(::handleTouch)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun handleTouch(view: View, event: MotionEvent): Boolean {
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             engine.handleTap(event.rawX, event.rawY)
@@ -152,7 +169,7 @@ internal class OverlayCanvas(
         canvas.drawText(
             "$width × $height",
             selected.bounds.left,
-            selected.bounds.top - 8,
+            selected.bounds.top - DIMENSION_TEXT_OFFSET,
             paintText
         )
 
@@ -169,7 +186,7 @@ internal class OverlayCanvas(
         parentBounds: android.graphics.RectF,
     ) {
         val bgPaint = Paint().apply {
-            color = "#30000000".toColorInt()
+            color = DARK_BG_COLOR.toColorInt()
             style = Paint.Style.FILL
         }
 
@@ -249,20 +266,20 @@ internal class OverlayCanvas(
         val textX = (startX + endX) / 2 - textWidth / 2
 
         val textY = if (isHorizontal) {
-            (startY + endY) / 2 - 15
+            (startY + endY) / 2 - TEXT_VERTICAL_OFFSET_HORIZONTAL_LINE
         } else {
-            (startY + endY) / 2 + 5
+            (startY + endY) / 2 + TEXT_VERTICAL_OFFSET_VERTICAL_LINE
         }
 
         val textBgRect = android.graphics.RectF(
-            textX - 5,
-            textY - 20,
-            textX + textWidth + 5,
-            textY + 5
+            textX - TEXT_PADDING_HORIZONTAL,
+            textY - TEXT_PADDING_TOP,
+            textX + textWidth + TEXT_PADDING_HORIZONTAL,
+            textY + TEXT_PADDING_BOTTOM
         )
 
         val bgPaint = Paint().apply {
-            color = Color.argb(220, 0, 0, 0)
+            color = Color.argb(TEXT_BG_ALPHA, 0, 0, 0)
         }
 
         canvas.drawRect(textBgRect, bgPaint)
@@ -277,13 +294,12 @@ internal class OverlayCanvas(
         toY: Float,
         paint: Paint,
     ) {
-        val arrowSize = 10f
         val angle = atan2((toY - fromY).toDouble(), (toX - fromX).toDouble())
 
-        val arrowX1 = fromX + arrowSize * cos(angle - Math.PI / 6).toFloat()
-        val arrowY1 = fromY + arrowSize * sin(angle - Math.PI / 6).toFloat()
-        val arrowX2 = fromX + arrowSize * cos(angle + Math.PI / 6).toFloat()
-        val arrowY2 = fromY + arrowSize * sin(angle + Math.PI / 6).toFloat()
+        val arrowX1 = fromX + ARROW_SIZE * cos(angle - ARROW_ANGLE).toFloat()
+        val arrowY1 = fromY + ARROW_SIZE * sin(angle - ARROW_ANGLE).toFloat()
+        val arrowX2 = fromX + ARROW_SIZE * cos(angle + ARROW_ANGLE).toFloat()
+        val arrowY2 = fromY + ARROW_SIZE * sin(angle + ARROW_ANGLE).toFloat()
 
         canvas.drawLine(fromX, fromY, arrowX1, arrowY1, paint)
         canvas.drawLine(fromX, fromY, arrowX2, arrowY2, paint)
@@ -314,4 +330,24 @@ internal class OverlayCanvas(
         WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
         PixelFormat.TRANSLUCENT
     ).apply { gravity = Gravity.START or Gravity.TOP }
+
+    companion object {
+        private const val TEXT_SIZE = 24f
+        private const val DISTANCE_TEXT_SIZE = 18f
+        private const val DASHED_LINE_WIDTH = 2f
+        private const val ARROW_SIZE = 10f
+        private const val TEXT_PADDING_HORIZONTAL = 5f
+        private const val TEXT_PADDING_TOP = 20f
+        private const val TEXT_PADDING_BOTTOM = 5f
+        private const val TEXT_VERTICAL_OFFSET_HORIZONTAL_LINE = 15f
+        private const val TEXT_VERTICAL_OFFSET_VERTICAL_LINE = 5f
+        private const val DIMENSION_TEXT_OFFSET = 8f
+        private const val TEXT_BG_ALPHA = 220
+        private const val DARK_BG_COLOR = "#30000000"
+        private const val DASH_PATTERN_ON = 10f
+        private const val DASH_PATTERN_OFF = 5f
+        private const val DASH_PHASE = 0f
+        private const val ARROW_ANGLE = Math.PI / 6
+    }
+
 }

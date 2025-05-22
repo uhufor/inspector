@@ -2,6 +2,7 @@ package com.uhufor.inspector.engine
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.os.Bundle
 import java.lang.ref.WeakReference
 
@@ -11,8 +12,8 @@ internal object ActivityTracker : Application.ActivityLifecycleCallbacks {
     val top: Activity?
         get() = topReference?.get()
 
-    fun register(app: Application) {
-        app.registerActivityLifecycleCallbacks(this)
+    fun register(context: Context) {
+        (context.applicationContext as? Application)?.registerActivityLifecycleCallbacks(this)
     }
 
     override fun onActivityStarted(activity: Activity) {
