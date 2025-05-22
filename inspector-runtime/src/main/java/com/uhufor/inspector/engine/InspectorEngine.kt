@@ -8,7 +8,8 @@ import android.view.View
 
 data class SelectionState(
     val bounds: RectF,
-    val isClickable: Boolean = false
+    val isClickable: Boolean = false,
+    val parentBounds: RectF? = null
 )
 
 internal class InspectorEngine(
@@ -35,12 +36,20 @@ internal class InspectorEngine(
             return
         }
 
-        ViewHitTester.findLeaf(rootView, x.toInt(), y.toInt())?.let { view ->
+        ViewHitTester.findLeaf(rootView, x.toInt(), y.toInt())?.let { (view, parentView) ->
             val rect = Rect()
             view.getGlobalVisibleRect(rect)
+            
+            val parentRect = if (parentView != null) {
+                val parentBounds = Rect()
+                parentView.getGlobalVisibleRect(parentBounds)
+                RectF(parentBounds)
+            } else null
+            
             selection = SelectionState(
                 bounds = RectF(rect),
-                isClickable = view.isClickable || view.isLongClickable
+                isClickable = view.isClickable || view.isLongClickable,
+                parentBounds = parentRect
             )
             invalidate()
         }

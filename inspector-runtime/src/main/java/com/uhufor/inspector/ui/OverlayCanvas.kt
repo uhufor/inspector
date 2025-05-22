@@ -16,6 +16,10 @@ import com.uhufor.inspector.Config
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.util.UnitConverter
 import com.uhufor.inspector.util.dp
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.random.Random
 
 @SuppressLint("ClickableViewAccessibility")
@@ -51,6 +55,18 @@ internal class OverlayCanvas(
         color = Color.RED
     }
 
+    private val paintDistance = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = 18f
+        color = Color.WHITE
+    }
+
+    private val paintDashedLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        strokeWidth = 2f
+        style = Paint.Style.STROKE
+        color = Color.WHITE
+        pathEffect = android.graphics.DashPathEffect(floatArrayOf(10f, 5f), 0f)
+    }
+
     private val elementColors = listOf(
         "#F44336".toColorInt(),
         "#E91E63".toColorInt(),
@@ -83,7 +99,7 @@ internal class OverlayCanvas(
         setOnTouchListener(::handleTouch)
     }
 
-    private fun handleTouch(v: View, event: MotionEvent): Boolean {
+    private fun handleTouch(view: View, event: MotionEvent): Boolean {
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             engine.handleTap(event.rawX, event.rawY)
             requestFocus()
@@ -121,6 +137,10 @@ internal class OverlayCanvas(
         val color = getComplementaryColor(getColorForElement(selected))
         val paint = if (selected.isClickable) paintClickableBorder else paintBorder
 
+        selected.parentBounds?.let { parentBounds ->
+            drawDarkBackground(canvas, selected.bounds, parentBounds)
+        }
+
         paint.color = color
         canvas.drawRect(selected.bounds, paint)
 
@@ -135,7 +155,138 @@ internal class OverlayCanvas(
             selected.bounds.top - 8,
             paintText
         )
+
+        selected.parentBounds?.let { parentBounds ->
+            drawDistanceToBounds(canvas, selected.bounds, parentBounds)
+        }
+
         paintText.color = Color.RED
+    }
+
+    private fun drawDarkBackground(
+        canvas: Canvas,
+        childBounds: android.graphics.RectF,
+        parentBounds: android.graphics.RectF,
+    ) {
+        val bgPaint = Paint().apply {
+            color = "#30000000".toColorInt()
+            style = Paint.Style.FILL
+        }
+
+        val path = android.graphics.Path()
+        path.addRect(parentBounds, android.graphics.Path.Direction.CW)
+        path.addRect(childBounds, android.graphics.Path.Direction.CCW)
+        canvas.drawPath(path, bgPaint)
+    }
+
+    private fun drawDistanceToBounds(
+        canvas: Canvas,
+        childBounds: android.graphics.RectF,
+        parentBounds: android.graphics.RectF,
+    ) {
+        val dm = resources.displayMetrics
+
+        val leftDistance = childBounds.left - parentBounds.left
+        if (leftDistance > 0) {
+            val distanceText = UnitConverter.format(leftDistance, dm, cfg.unitMode)
+            drawDistanceLine(
+                canvas,
+                parentBounds.left, childBounds.top + childBounds.height() / 2,
+                childBounds.left, childBounds.top + childBounds.height() / 2,
+                distanceText
+            )
+        }
+
+        val rightDistance = parentBounds.right - childBounds.right
+        if (rightDistance > 0) {
+            val distanceText = UnitConverter.format(rightDistance, dm, cfg.unitMode)
+            drawDistanceLine(
+                canvas,
+                childBounds.right, childBounds.top + childBounds.height() / 2,
+                parentBounds.right, childBounds.top + childBounds.height() / 2,
+                distanceText
+            )
+        }
+
+        val topDistance = childBounds.top - parentBounds.top
+        if (topDistance > 0) {
+            val distanceText = UnitConverter.format(topDistance, dm, cfg.unitMode)
+            drawDistanceLine(
+                canvas,
+                childBounds.left + childBounds.width() / 2, parentBounds.top,
+                childBounds.left + childBounds.width() / 2, childBounds.top,
+                distanceText
+            )
+        }
+
+        val bottomDistance = parentBounds.bottom - childBounds.bottom
+        if (bottomDistance > 0) {
+            val distanceText = UnitConverter.format(bottomDistance, dm, cfg.unitMode)
+            drawDistanceLine(
+                canvas,
+                childBounds.left + childBounds.width() / 2, childBounds.bottom,
+                childBounds.left + childBounds.width() / 2, parentBounds.bottom,
+                distanceText
+            )
+        }
+    }
+
+    private fun drawDistanceLine(
+        canvas: Canvas,
+        startX: Float,
+        startY: Float,
+        endX: Float,
+        endY: Float,
+        distanceText: String,
+    ) {
+        canvas.drawLine(startX, startY, endX, endY, paintDashedLine)
+        drawArrow(canvas, startX, startY, endX, endY, paintDashedLine)
+        drawArrow(canvas, endX, endY, startX, startY, paintDashedLine)
+
+        val isHorizontal = abs(startY - endY) < abs(startX - endX)
+
+        val textWidth = paintDistance.measureText(distanceText)
+        val textX = (startX + endX) / 2 - textWidth / 2
+
+        val textY = if (isHorizontal) {
+            (startY + endY) / 2 - 15
+        } else {
+            (startY + endY) / 2 + 5
+        }
+
+        val textBgRect = android.graphics.RectF(
+            textX - 5,
+            textY - 20,
+            textX + textWidth + 5,
+            textY + 5
+        )
+
+        val bgPaint = Paint().apply {
+            color = Color.argb(220, 0, 0, 0)
+        }
+
+        canvas.drawRect(textBgRect, bgPaint)
+        canvas.drawText(distanceText, textX, textY, paintDistance)
+    }
+
+    private fun drawArrow(
+        canvas: Canvas,
+        fromX: Float,
+        fromY: Float,
+        toX: Float,
+        toY: Float,
+        paint: Paint,
+    ) {
+        val arrowSize = 10f
+        val angle = atan2((toY - fromY).toDouble(), (toX - fromX).toDouble())
+
+        val arrowX1 = fromX + arrowSize * cos(angle - Math.PI / 6).toFloat()
+        val arrowY1 = fromY + arrowSize * sin(angle - Math.PI / 6).toFloat()
+        val arrowX2 = fromX + arrowSize * cos(angle + Math.PI / 6).toFloat()
+        val arrowY2 = fromY + arrowSize * sin(angle + Math.PI / 6).toFloat()
+
+        canvas.drawLine(fromX, fromY, arrowX1, arrowY1, paint)
+        canvas.drawLine(fromX, fromY, arrowX2, arrowY2, paint)
     }
 
     private fun getColorForElement(element: Any) =

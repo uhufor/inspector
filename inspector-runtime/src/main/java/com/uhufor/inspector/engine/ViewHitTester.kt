@@ -9,10 +9,12 @@ internal object ViewHitTester {
     private const val MIN_VIEW_SIZE = 1
     private const val MIN_ALPHA = 0.01f
 
-    fun findLeaf(root: View, x: Int, y: Int): View? {
+    fun findLeaf(root: View, x: Int, y: Int): Pair<View, View?>? {
         val hits = mutableListOf<View>()
         depthFirstSearch(root, x, y, hits)
-        return hits.minByOrNull { it.width * it.height }
+        val leaf = hits.minByOrNull { it.width * it.height } ?: return null
+        val parent = if (leaf.parent is View) leaf.parent as View else null
+        return Pair(leaf, parent)
     }
 
     fun scanAllElements(root: View): List<SelectionState> {
@@ -54,10 +56,19 @@ internal object ViewHitTester {
         val rect = Rect()
         if (view.getGlobalVisibleRect(rect)) {
             if (rect.width() > 0 && rect.height() > 0) {
+                val parentRect = if (view.parent is View) {
+                    val parentView = view.parent as View
+                    val parentBounds = Rect()
+                    if (parentView.getGlobalVisibleRect(parentBounds) && parentBounds.width() > 0 && parentBounds.height() > 0) {
+                        RectF(parentBounds)
+                    } else null
+                } else null
+
                 elements.add(
                     SelectionState(
                         bounds = RectF(rect),
-                        isClickable = view.isClickable || view.isLongClickable
+                        isClickable = view.isClickable || view.isLongClickable,
+                        parentBounds = parentRect
                     )
                 )
             }
