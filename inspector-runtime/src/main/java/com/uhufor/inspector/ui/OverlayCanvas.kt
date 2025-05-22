@@ -1,7 +1,6 @@
 package com.uhufor.inspector.ui
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
@@ -15,6 +14,7 @@ import android.view.View
 import android.view.WindowManager
 import androidx.core.graphics.toColorInt
 import com.uhufor.inspector.Config
+import com.uhufor.inspector.configProvider
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.util.UnitConverter
 import com.uhufor.inspector.util.dp
@@ -32,25 +32,20 @@ internal class OverlayCanvas @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
 
-    constructor(
-        app: Application,
-        cfg: Config,
-    ) : this(app) {
-        this.cfg = cfg
-    }
-
     interface BackKeyListener {
         fun onBackPressed()
     }
 
     var backKeyListener: BackKeyListener? = null
 
-    val engine = InspectorEngine(context) { postInvalidate() }
-    private lateinit var cfg: Config
+    private val configProvider = context.configProvider()
+    private val cfg: Config
+        get() = configProvider.getConfig()
+
+    private val engine = InspectorEngine(context) { postInvalidate() }
 
     private val normalBorderWidth = 1.dp(context).toFloat()
     private val clickableBorderWidth = 2.dp(context).toFloat()
-    private val elementColorMap = mutableMapOf<Int, Int>()
 
     private val paintBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         strokeWidth = normalBorderWidth
@@ -84,29 +79,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
         )
     }
 
-    private val elementColors = listOf(
-        "#F44336".toColorInt(),
-        "#E91E63".toColorInt(),
-        "#9C27B0".toColorInt(),
-        "#673AB7".toColorInt(),
-        "#3F51B5".toColorInt(),
-        "#2196F3".toColorInt(),
-        "#03A9F4".toColorInt(),
-        "#00BCD4".toColorInt(),
-        "#009688".toColorInt(),
-        "#4CAF50".toColorInt(),
-        "#8BC34A".toColorInt(),
-        "#CDDC39".toColorInt(),
-        "#FFEB3B".toColorInt(),
-        "#FFC107".toColorInt(),
-        "#FF9800".toColorInt(),
-        "#FF5722".toColorInt(),
-        "#795548".toColorInt(),
-        "#9E9E9E".toColorInt(),
-        "#607D8B".toColorInt(),
-        "#000000".toColorInt()
-    )
 
+    private val elementColorMap = mutableMapOf<Int, Int>()
 
     init {
         setBackgroundColor(Color.TRANSPARENT)
@@ -307,7 +281,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     private fun getColorForElement(element: Any) =
         elementColorMap.getOrPut(element.hashCode()) {
-            elementColors[Random.nextInt(elementColors.size)]
+            ELEMENT_COLORS[Random.nextInt(ELEMENT_COLORS.size)]
         }
 
     private fun getComplementaryColor(color: Int) = Color.rgb(
@@ -331,6 +305,20 @@ internal class OverlayCanvas @JvmOverloads constructor(
         PixelFormat.TRANSLUCENT
     ).apply { gravity = Gravity.START or Gravity.TOP }
 
+    fun scanAllElements() {
+        engine.scanAllElements()
+    }
+
+    fun clearScan() {
+        engine.clearScan()
+    }
+
+//    fun handleTap(x: Float, y: Float) {
+//        engine.handleTap(x, y)
+//    }
+//    fun getSelection() = engine.selection
+//    fun getAllElements() = engine.allElements
+
     companion object {
         private const val TEXT_SIZE = 24f
         private const val DISTANCE_TEXT_SIZE = 18f
@@ -348,6 +336,28 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val DASH_PATTERN_OFF = 5f
         private const val DASH_PHASE = 0f
         private const val ARROW_ANGLE = Math.PI / 6
-    }
 
+        private val ELEMENT_COLORS = listOf(
+            "#F44336".toColorInt(),
+            "#E91E63".toColorInt(),
+            "#9C27B0".toColorInt(),
+            "#673AB7".toColorInt(),
+            "#3F51B5".toColorInt(),
+            "#2196F3".toColorInt(),
+            "#03A9F4".toColorInt(),
+            "#00BCD4".toColorInt(),
+            "#009688".toColorInt(),
+            "#4CAF50".toColorInt(),
+            "#8BC34A".toColorInt(),
+            "#CDDC39".toColorInt(),
+            "#FFEB3B".toColorInt(),
+            "#FFC107".toColorInt(),
+            "#FF9800".toColorInt(),
+            "#FF5722".toColorInt(),
+            "#795548".toColorInt(),
+            "#9E9E9E".toColorInt(),
+            "#607D8B".toColorInt(),
+            "#000000".toColorInt()
+        )
+    }
 }

@@ -13,7 +13,7 @@ object Inspector {
     fun install(app: Application) {
         if (installed) return
         installed = true
-        FloatingTrigger.install(app, config)
+        FloatingTrigger.install(app)
     }
 }
 
