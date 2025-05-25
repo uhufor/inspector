@@ -1,54 +1,16 @@
 package com.uhufor.inspector.engine
 
 import android.graphics.RectF
+import kotlin.math.abs
 
 object RelativeMeasurement {
 
-    fun calculateRelativePosition(primary: RectF, secondary: RectF): RelativePosition {
-        val isAbove = secondary.bottom <= primary.top
-        val isBelow = secondary.top >= primary.bottom
-        val isLeftOf = secondary.right <= primary.left
-        val isRightOf = secondary.left >= primary.right
-
-        return when {
-            isAbove && isLeftOf -> RelativePosition.TOP_LEFT
-            isAbove && isRightOf -> RelativePosition.TOP_RIGHT
-            isAbove -> RelativePosition.TOP
-            isBelow && isLeftOf -> RelativePosition.BOTTOM_LEFT
-            isBelow && isRightOf -> RelativePosition.BOTTOM_RIGHT
-            isBelow -> RelativePosition.BOTTOM
-            isLeftOf -> RelativePosition.LEFT
-            isRightOf -> RelativePosition.RIGHT
-            else -> {
-                // 겹치는 경우 중심점 기준으로 판단
-                val primaryCenterX = primary.left + primary.width() / 2
-                val primaryCenterY = primary.top + primary.height() / 2
-                val secondaryCenterX = secondary.left + secondary.width() / 2
-                val secondaryCenterY = secondary.top + secondary.height() / 2
-
-                when {
-                    secondaryCenterY < primaryCenterY && secondaryCenterX < primaryCenterX -> RelativePosition.TOP_LEFT
-                    secondaryCenterY < primaryCenterY && secondaryCenterX > primaryCenterX -> RelativePosition.TOP_RIGHT
-                    secondaryCenterY < primaryCenterY -> RelativePosition.TOP
-                    secondaryCenterY > primaryCenterY && secondaryCenterX < primaryCenterX -> RelativePosition.BOTTOM_LEFT
-                    secondaryCenterY > primaryCenterY && secondaryCenterX > primaryCenterX -> RelativePosition.BOTTOM_RIGHT
-                    secondaryCenterY > primaryCenterY -> RelativePosition.BOTTOM
-                    secondaryCenterX < primaryCenterX -> RelativePosition.LEFT
-                    else -> RelativePosition.RIGHT
-                }
-            }
-        }
-    }
-
     fun calculateDistances(
         primary: RectF,
-        secondary: RectF,
-        position: RelativePosition,
+        secondary: RectF
     ): List<Distance> {
         val distances = mutableListOf<Distance>()
-
         val horizontalOverlap = !(secondary.right < primary.left || secondary.left > primary.right)
-
         val verticalOverlap = !(secondary.bottom < primary.top || secondary.top > primary.bottom)
 
         if (horizontalOverlap && !verticalOverlap) {
@@ -83,7 +45,7 @@ object RelativeMeasurement {
                 }
             }
 
-            val leftDistance = Math.abs(primary.left - secondary.left)
+            val leftDistance = abs(primary.left - secondary.left)
             if (leftDistance > 0) {
                 val startX = if (primary.left < secondary.left) primary.left else secondary.left
                 val endX = if (primary.left < secondary.left) secondary.left else primary.left
@@ -105,7 +67,7 @@ object RelativeMeasurement {
                 )
             }
 
-            val rightDistance = Math.abs(primary.right - secondary.right)
+            val rightDistance = abs(primary.right - secondary.right)
             if (rightDistance > 0) {
                 val startX = if (primary.right < secondary.right) primary.right else secondary.right
                 val endX = if (primary.right < secondary.right) secondary.right else primary.right
@@ -159,7 +121,7 @@ object RelativeMeasurement {
                 }
             }
 
-            val topDistance = Math.abs(primary.top - secondary.top)
+            val topDistance = abs(primary.top - secondary.top)
             if (topDistance > 0) {
                 val startY = if (primary.top < secondary.top) primary.top else secondary.top
                 val endY = if (primary.top < secondary.top) secondary.top else primary.top
@@ -181,7 +143,7 @@ object RelativeMeasurement {
                 )
             }
 
-            val bottomDistance = Math.abs(primary.bottom - secondary.bottom)
+            val bottomDistance = abs(primary.bottom - secondary.bottom)
             if (bottomDistance > 0) {
                 val startY =
                     if (primary.bottom < secondary.bottom) primary.bottom else secondary.bottom

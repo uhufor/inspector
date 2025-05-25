@@ -126,7 +126,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
         )
     }
 
-
     private val elementColorMap = mutableMapOf<Int, Int>()
 
     private var touchStartTime = 0L
@@ -183,7 +182,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         super.onDraw(canvas)
         drawAllElements(canvas)
 
-        if (engine.measurementMode == MeasurementMode.RELATIVE) {
+        if (engine.measurementMode == MeasurementMode.Relative) {
             drawRelativeMeasurement(canvas)
         } else {
             drawSelectedElement(canvas)
@@ -260,7 +259,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
         if (secondary != null) {
             val darkBgPaint = Paint().apply {
-                color = Color.parseColor(DARK_BG_COLOR)
+                color = DARK_BG_COLOR.toColorInt()
                 style = Paint.Style.FILL
             }
 
@@ -434,7 +433,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
             paintDashedLine.color = when (distance.type) {
                 DistanceType.HORIZONTAL -> Color.YELLOW
                 DistanceType.VERTICAL -> Color.CYAN
-                else -> Color.WHITE
             }
 
             drawDistanceLine(

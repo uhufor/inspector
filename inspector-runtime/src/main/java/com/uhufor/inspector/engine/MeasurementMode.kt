@@ -1,6 +1,6 @@
 package com.uhufor.inspector.engine
 
-enum class MeasurementMode {
-    NORMAL,
-    RELATIVE
+sealed interface MeasurementMode {
+    data object Normal : MeasurementMode
+    data object Relative : MeasurementMode
 }

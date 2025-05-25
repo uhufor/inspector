@@ -26,7 +26,7 @@ internal class InspectorEngine(
     var secondarySelection: SelectionState? = null
         private set
 
-    var measurementMode: MeasurementMode = MeasurementMode.NORMAL
+    var measurementMode: MeasurementMode = MeasurementMode.Normal
         private set
 
     var allElements: List<SelectionState> = emptyList()
@@ -40,7 +40,7 @@ internal class InspectorEngine(
         val activity = topActivity() ?: return
         val rootView = activity.window.decorView
 
-        if (measurementMode == MeasurementMode.RELATIVE) {
+        if (measurementMode == MeasurementMode.Relative) {
             findElementAt(rootView, x.toInt(), y.toInt())?.let { selectionState ->
                 secondarySelection = selectionState
                 invalidate()
@@ -59,15 +59,15 @@ internal class InspectorEngine(
         val rootView = activity.window.decorView
 
         findElementAt(rootView, x.toInt(), y.toInt())?.let { selectionState ->
-            if (measurementMode == MeasurementMode.RELATIVE &&
+            if (measurementMode == MeasurementMode.Relative &&
                 primarySelection?.id == selectionState.id
             ) {
-                measurementMode = MeasurementMode.NORMAL
+                measurementMode = MeasurementMode.Normal
                 primarySelection = null
                 secondarySelection = null
                 selection = selectionState
             } else {
-                measurementMode = MeasurementMode.RELATIVE
+                measurementMode = MeasurementMode.Relative
                 primarySelection = selectionState
                 secondarySelection = null
                 selection = null
@@ -124,23 +124,15 @@ internal class InspectorEngine(
         selection = null
         primarySelection = null
         secondarySelection = null
-        measurementMode = MeasurementMode.NORMAL
+        measurementMode = MeasurementMode.Normal
         invalidate()
-    }
-
-    fun getRelativePosition(): RelativePosition? {
-        val primary = primarySelection?.bounds ?: return null
-        val secondary = secondarySelection?.bounds ?: return null
-
-        return RelativeMeasurement.calculateRelativePosition(primary, secondary)
     }
 
     fun getRelativeDistances(): List<Distance> {
         val primary = primarySelection?.bounds ?: return emptyList()
         val secondary = secondarySelection?.bounds ?: return emptyList()
-        val position = getRelativePosition() ?: return emptyList()
 
-        return RelativeMeasurement.calculateDistances(primary, secondary, position)
+        return RelativeMeasurement.calculateDistances(primary, secondary)
     }
 
     private fun topActivity(): Activity? = ActivityTracker.top
