@@ -4,11 +4,13 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Rect
 import android.graphics.RectF
+import android.view.View
 
 data class SelectionState(
     val bounds: RectF,
     val isClickable: Boolean = false,
     val parentBounds: RectF? = null,
+    val id: Int = 0,
 )
 
 internal class InspectorEngine(
@@ -16,6 +18,15 @@ internal class InspectorEngine(
     private val invalidator: () -> Unit,
 ) {
     var selection: SelectionState? = null
+        private set
+
+    var primarySelection: SelectionState? = null
+        private set
+
+    var secondarySelection: SelectionState? = null
+        private set
+
+    var measurementMode: MeasurementMode = MeasurementMode.NORMAL
         private set
 
     var allElements: List<SelectionState> = emptyList()
@@ -29,13 +40,52 @@ internal class InspectorEngine(
         val activity = topActivity() ?: return
         val rootView = activity.window.decorView
 
-        ComposeHitTester.hitTest(rootView, x.toInt(), y.toInt())?.let { (rect, isClickable) ->
-            selection = SelectionState(rect, isClickable)
-            invalidate()
+        if (measurementMode == MeasurementMode.RELATIVE) {
+            findElementAt(rootView, x.toInt(), y.toInt())?.let { selectionState ->
+                secondarySelection = selectionState
+                invalidate()
+            }
             return
         }
 
-        ViewHitTester.findLeaf(rootView, x.toInt(), y.toInt())?.let { (view, parentView) ->
+        findElementAt(rootView, x.toInt(), y.toInt())?.let { selectionState ->
+            selection = selectionState
+            invalidate()
+        }
+    }
+
+    fun handleLongPress(x: Float, y: Float) {
+        val activity = topActivity() ?: return
+        val rootView = activity.window.decorView
+
+        findElementAt(rootView, x.toInt(), y.toInt())?.let { selectionState ->
+            if (measurementMode == MeasurementMode.RELATIVE &&
+                primarySelection?.id == selectionState.id
+            ) {
+                measurementMode = MeasurementMode.NORMAL
+                primarySelection = null
+                secondarySelection = null
+                selection = selectionState
+            } else {
+                measurementMode = MeasurementMode.RELATIVE
+                primarySelection = selectionState
+                secondarySelection = null
+                selection = null
+            }
+            invalidate()
+        }
+    }
+
+    private fun findElementAt(rootView: View, x: Int, y: Int): SelectionState? {
+        ComposeHitTester.hitTest(rootView, x, y)?.let { (rect, isClickable) ->
+            return SelectionState(
+                bounds = rect,
+                isClickable = isClickable,
+                id = rect.hashCode()
+            )
+        }
+
+        ViewHitTester.findLeaf(rootView, x, y)?.let { (view, parentView) ->
             val rect = Rect()
             view.getGlobalVisibleRect(rect)
 
@@ -45,13 +95,15 @@ internal class InspectorEngine(
                 RectF(parentBounds)
             } else null
 
-            selection = SelectionState(
+            return SelectionState(
                 bounds = RectF(rect),
                 isClickable = view.isClickable || view.isLongClickable,
-                parentBounds = parentRect
+                parentBounds = parentRect,
+                id = view.hashCode()
             )
-            invalidate()
         }
+
+        return null
     }
 
     fun scanAllElements() {
@@ -70,7 +122,25 @@ internal class InspectorEngine(
     fun clearScan() {
         allElements = emptyList()
         selection = null
+        primarySelection = null
+        secondarySelection = null
+        measurementMode = MeasurementMode.NORMAL
         invalidate()
+    }
+
+    fun getRelativePosition(): RelativePosition? {
+        val primary = primarySelection?.bounds ?: return null
+        val secondary = secondarySelection?.bounds ?: return null
+
+        return RelativeMeasurement.calculateRelativePosition(primary, secondary)
+    }
+
+    fun getRelativeDistances(): List<Distance> {
+        val primary = primarySelection?.bounds ?: return emptyList()
+        val secondary = secondarySelection?.bounds ?: return emptyList()
+        val position = getRelativePosition() ?: return emptyList()
+
+        return RelativeMeasurement.calculateDistances(primary, secondary, position)
     }
 
     private fun topActivity(): Activity? = ActivityTracker.top

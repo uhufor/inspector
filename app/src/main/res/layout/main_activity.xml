@@ -26,6 +26,15 @@
         android:paddingBottom="8dp"
         android:text="Click" />
 
+    <TextView
+        android:id="@+id/center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:padding="8dp"
+        android:text="Center" />
+
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
