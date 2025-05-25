@@ -313,12 +313,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
         engine.clearScan()
     }
 
-//    fun handleTap(x: Float, y: Float) {
-//        engine.handleTap(x, y)
-//    }
-//    fun getSelection() = engine.selection
-//    fun getAllElements() = engine.allElements
-
     companion object {
         private const val TEXT_SIZE = 24f
         private const val DISTANCE_TEXT_SIZE = 18f
