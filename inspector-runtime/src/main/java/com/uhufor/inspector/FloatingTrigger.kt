@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.WindowManager
-import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
@@ -18,33 +17,29 @@ import androidx.core.content.getSystemService
 import com.uhufor.inspector.ui.OverlayCanvas
 import com.uhufor.inspector.ui.OverlayCanvas.BackKeyListener
 import com.uhufor.inspector.util.dp
+import java.lang.ref.WeakReference
 
-@SuppressLint("StaticFieldLeak")
-internal object FloatingTrigger {
-    private lateinit var windowManager: WindowManager
-    private lateinit var overlay: OverlayCanvas
-    private lateinit var configProvider: ConfigProvider
-    private lateinit var fabContainer: ViewGroup
+internal class FloatingTrigger(
+    context: Context,
+    private val configProvider: ConfigProvider,
+) {
+    private val windowManager: WeakReference<WindowManager?> =
+        WeakReference(context.getSystemService())
+
     private var overlayShown = false
-
-    fun install(context: Context) {
-        windowManager = context.getSystemService()!!
-
-        overlay = OverlayCanvas(context).apply {
-            backKeyListener = object : BackKeyListener {
-                override fun onBackPressed() {
-                    if (overlayShown) {
-                        toggleOverlay()
-                    }
+    private val overlay: OverlayCanvas = OverlayCanvas(context).apply {
+        backKeyListener = object : BackKeyListener {
+            override fun onBackPressed() {
+                if (overlayShown) {
+                    toggleOverlay()
                 }
             }
         }
+    }
 
-        configProvider = context.configProvider()
-        with(configProvider.getConfig()) {
-            densityString = "%.2fx".format(context.resources.displayMetrics.density)
-        }
+    private lateinit var fabContainer: ViewGroup
 
+    fun install(context: Context) {
         fabContainer = buildFab(context)
         val lp = WindowManager.LayoutParams(
             WRAP_CONTENT,
@@ -57,7 +52,7 @@ internal object FloatingTrigger {
             x = 16.dp(context)
             y = 96.dp(context)
         }
-        windowManager.addView(fabContainer, lp)
+        windowManager.get()?.addView(fabContainer, lp)
 
         updateLabel()
     }
@@ -78,23 +73,24 @@ internal object FloatingTrigger {
             textSize = 9F
             setTextColor(Color.RED)
         }
-        addView(button, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT, Gravity.CENTER))
-        addView(label, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT, Gravity.CENTER))
+        addView(button, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
+        addView(label, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
     }
 
     private fun toggleOverlay() {
         val fabParams = fabContainer.layoutParams as WindowManager.LayoutParams
-        windowManager.removeView(fabContainer)
+        windowManager.get()?.removeView(fabContainer)
 
         if (overlayShown) {
             overlay.clearScan()
-            windowManager.removeView(overlay)
+            windowManager.get()?.removeView(overlay)
         } else {
-            windowManager.addView(overlay, overlay.layoutParams())
+            windowManager.get()?.addView(overlay, overlay.layoutParams())
             overlay.scanAllElements()
         }
         overlayShown = !overlayShown
-        windowManager.addView(fabContainer, fabParams)
+
+        windowManager.get()?.addView(fabContainer, fabParams)
     }
 
     private fun showMenu(anchor: View) {

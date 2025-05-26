@@ -20,6 +20,9 @@ object Inspector {
         installed = true
 
         ActivityTracker.register(app)
-        FloatingTrigger.install(app)
+        FloatingTrigger(
+            context = app,
+            configProvider = app.configProvider()
+        ).install(app)
     }
 }
