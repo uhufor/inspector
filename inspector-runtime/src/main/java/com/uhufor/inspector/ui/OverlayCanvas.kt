@@ -472,7 +472,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
         WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
         PixelFormat.TRANSLUCENT
-    ).apply { gravity = Gravity.START or Gravity.TOP }
+    ).apply {
+        gravity = Gravity.START or Gravity.TOP
+        layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+    }
 
     fun handleTap(x: Float, y: Float) {
         engine.handleTap(x, y)
