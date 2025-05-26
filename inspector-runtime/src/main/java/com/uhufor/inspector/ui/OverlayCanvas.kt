@@ -89,7 +89,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
     private val cfg: Config
         get() = configProvider.getConfig()
 
-    private val engine = InspectorEngine(context) { postInvalidate() }
+    private val engine = InspectorEngine { postInvalidate() }
 
     private val normalBorderWidth = 1.dp(context).toFloat()
     private val clickableBorderWidth = 2.dp(context).toFloat()

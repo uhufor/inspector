@@ -1,4 +1,4 @@
-package com.uhufor.inspector.engine
+package com.uhufor.inspector.util
 
 import android.app.Activity
 import android.app.Application

@@ -1,10 +1,10 @@
 package com.uhufor.inspector.engine
 
 import android.app.Activity
-import android.content.Context
 import android.graphics.Rect
 import android.graphics.RectF
 import android.view.View
+import com.uhufor.inspector.util.ActivityTracker
 
 data class SelectionState(
     val bounds: RectF,
@@ -14,7 +14,7 @@ data class SelectionState(
 )
 
 internal class InspectorEngine(
-    context: Context,
+    private val topActivityProvider: () -> Activity? = { ActivityTracker.top },
     private val invalidator: () -> Unit,
 ) {
     var selection: SelectionState? = null
@@ -32,12 +32,8 @@ internal class InspectorEngine(
     var allElements: List<SelectionState> = emptyList()
         private set
 
-    init {
-        ActivityTracker.register(context)
-    }
-
     fun handleTap(x: Float, y: Float) {
-        val activity = topActivity() ?: return
+        val activity = topActivityProvider() ?: return
         val rootView = activity.window.decorView
 
         if (measurementMode == MeasurementMode.Relative) {
@@ -55,7 +51,7 @@ internal class InspectorEngine(
     }
 
     fun handleLongPress(x: Float, y: Float) {
-        val activity = topActivity() ?: return
+        val activity = topActivityProvider() ?: return
         val rootView = activity.window.decorView
 
         findElementAt(rootView, x.toInt(), y.toInt())?.let { selectionState ->
@@ -107,7 +103,7 @@ internal class InspectorEngine(
     }
 
     fun scanAllElements() {
-        val activity = topActivity() ?: return
+        val activity = topActivityProvider() ?: return
         val rootView = activity.window.decorView
 
         val elements = mutableListOf<SelectionState>()
@@ -134,8 +130,6 @@ internal class InspectorEngine(
 
         return RelativeMeasurement.calculateDistances(primary, secondary)
     }
-
-    private fun topActivity(): Activity? = ActivityTracker.top
 
     private fun invalidate() {
         invalidator()

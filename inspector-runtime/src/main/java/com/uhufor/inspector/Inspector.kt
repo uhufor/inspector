@@ -2,6 +2,7 @@ package com.uhufor.inspector
 
 import android.app.Application
 import androidx.annotation.MainThread
+import com.uhufor.inspector.util.ActivityTracker
 
 object Inspector {
 
@@ -13,6 +14,8 @@ object Inspector {
     fun install(app: Application) {
         if (installed) return
         installed = true
+
+        ActivityTracker.register(app)
         FloatingTrigger.install(app)
     }
 }
