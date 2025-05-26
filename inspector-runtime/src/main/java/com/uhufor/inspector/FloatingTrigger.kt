@@ -2,20 +2,16 @@ package com.uhufor.inspector
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Color
 import android.graphics.PixelFormat
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.WindowManager
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.PopupMenu
-import android.widget.TextView
 import androidx.core.content.getSystemService
 import com.uhufor.inspector.ui.OverlayCanvas
 import com.uhufor.inspector.ui.OverlayCanvas.BackKeyListener
+import com.uhufor.inspector.ui.TriggerButton
 import com.uhufor.inspector.util.dp
 import java.lang.ref.WeakReference
 
@@ -37,11 +33,18 @@ internal class FloatingTrigger(
         }
     }
 
-    private lateinit var fabContainer: ViewGroup
+    private lateinit var button: TriggerButton
 
     fun install(context: Context) {
-        fabContainer = buildFab(context)
-        val lp = WindowManager.LayoutParams(
+        button = TriggerButton(context).also {
+            it.setClickListener { toggleOverlay() }
+            it.setLongClickListener {
+                showMenu(it)
+                true
+            }
+        }
+
+        val layoutParams = WindowManager.LayoutParams(
             WRAP_CONTENT,
             WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
@@ -52,34 +55,13 @@ internal class FloatingTrigger(
             x = 16.dp(context)
             y = 96.dp(context)
         }
-        windowManager.get()?.addView(fabContainer, lp)
-
-        updateLabel()
-    }
-
-    private fun buildFab(context: Context): ViewGroup = LinearLayout(context).apply {
-        orientation = LinearLayout.VERTICAL
-
-        val button = ImageView(context).apply {
-            setImageResource(android.R.drawable.ic_menu_search)
-            setOnClickListener { toggleOverlay() }
-            setOnLongClickListener {
-                showMenu(this)
-                true
-            }
-        }
-        val label = TextView(context).apply {
-            id = View.generateViewId()
-            textSize = 9F
-            setTextColor(Color.RED)
-        }
-        addView(button, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-        addView(label, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
+        windowManager.get()?.addView(button, layoutParams)
+        updateButtonLabel()
     }
 
     private fun toggleOverlay() {
-        val fabParams = fabContainer.layoutParams as WindowManager.LayoutParams
-        windowManager.get()?.removeView(fabContainer)
+        val layoutParams = button.layoutParams as WindowManager.LayoutParams
+        windowManager.get()?.removeView(button)
 
         if (overlayShown) {
             overlay.clearScan()
@@ -90,7 +72,7 @@ internal class FloatingTrigger(
         }
         overlayShown = !overlayShown
 
-        windowManager.get()?.addView(fabContainer, fabParams)
+        windowManager.get()?.addView(button, layoutParams)
     }
 
     private fun showMenu(anchor: View) {
@@ -103,7 +85,7 @@ internal class FloatingTrigger(
                     1 -> {
                         config.unitMode =
                             if (config.unitMode == UnitMode.DP) UnitMode.PX else UnitMode.DP
-                        updateLabel()
+                        updateButtonLabel()
                         overlay.invalidate()
                     }
 
@@ -116,9 +98,8 @@ internal class FloatingTrigger(
     }
 
     @SuppressLint("SetTextI18n")
-    private fun updateLabel() {
-        val label = fabContainer.getChildAt(1) as TextView
+    private fun updateButtonLabel() {
         val config = configProvider.getConfig()
-        label.text = "${config.unitMode.name.lowercase()} (${config.densityString})"
+        button.setLabelText("${config.unitMode.name.lowercase()} (${config.densityString})")
     }
 }
