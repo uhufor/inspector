@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.InspectionSample"
         android:name=".InspectionApplication"
-        tools:targetApi="31">
+        tools:targetApi="35">
 
         <activity
             android:name=".MainActivity"

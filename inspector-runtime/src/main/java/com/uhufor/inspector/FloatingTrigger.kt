@@ -34,12 +34,17 @@ internal object FloatingTrigger {
 
     fun install(context: Context) {
         if (!Settings.canDrawOverlays(context)) {
-            context.startActivity(
-                Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    "package:${context.packageName}".toUri()
-                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            )
+            try {
+                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+                intent.data = "package:${context.packageName}".toUri()
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+            } catch (_: Exception) {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = "package:${context.packageName}".toUri()
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+            }
             return
         }
 

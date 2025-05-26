@@ -474,7 +474,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
         PixelFormat.TRANSLUCENT
     ).apply {
         gravity = Gravity.START or Gravity.TOP
-        layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        layoutInDisplayCutoutMode =
+            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
     }
 
     fun handleTap(x: Float, y: Float) {
