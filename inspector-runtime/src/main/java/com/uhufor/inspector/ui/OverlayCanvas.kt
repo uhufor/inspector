@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.util.AttributeSet
+import android.view.GestureDetector
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -23,9 +24,7 @@ import com.uhufor.inspector.util.dp
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
-import kotlin.math.pow
 import kotlin.math.sin
-import kotlin.math.sqrt
 import kotlin.random.Random
 
 @SuppressLint("ClickableViewAccessibility")
@@ -128,46 +127,27 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     private val elementColorMap = mutableMapOf<Int, Int>()
 
-    private var touchStartTime = 0L
-    private var touchStartX = 0f
-    private var touchStartY = 0f
-    private val longPressThreshold = 500L
-    private val touchSlop = 10f
-
-    init {
-        setBackgroundColor(Color.TRANSPARENT)
-        isFocusable = true
-        isFocusableInTouchMode = true
-        setOnTouchListener(::handleTouch)
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    private fun handleTouch(view: View, event: MotionEvent): Boolean {
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                touchStartTime = System.currentTimeMillis()
-                touchStartX = event.rawX
-                touchStartY = event.rawY
-                requestFocus()
+    private val gestureDetector = GestureDetector(
+        context,
+        object : GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                engine.handleTap(e.rawX, e.rawY)
                 return true
             }
 
-            MotionEvent.ACTION_UP -> {
-                val touchDuration = System.currentTimeMillis() - touchStartTime
-                val touchDistance = sqrt(
-                    (event.rawX - touchStartX).toDouble().pow(2.0) +
-                            (event.rawY - touchStartY).toDouble().pow(2.0)
-                )
-
-                if (touchDuration > longPressThreshold && touchDistance < touchSlop) {
-                    engine.handleLongPress(touchStartX, touchStartY)
-                } else if (touchDuration < longPressThreshold && touchDistance < touchSlop) {
-                    engine.handleTap(touchStartX, touchStartY)
-                }
-                return true
+            override fun onLongPress(e: MotionEvent) {
+                engine.handleLongPress(e.rawX, e.rawY)
             }
         }
-        return false
+    )
+
+    init {
+        isFocusable = true
+        isFocusableInTouchMode = true
+        setBackgroundColor(Color.TRANSPARENT)
+        setOnTouchListener { _, ev ->
+            gestureDetector.onTouchEvent(ev)
+        }
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
