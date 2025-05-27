@@ -14,9 +14,10 @@ import com.uhufor.inspector.util.dp
 import java.lang.ref.WeakReference
 
 internal class FloatingTrigger(
-    private val context: Context,
+    context: Context,
     private val inspector: Inspector,
 ) {
+    private val context: WeakReference<Context?> = WeakReference(context)
     private val windowManager: WeakReference<WindowManager?> =
         WeakReference(context.getSystemService())
 
@@ -26,7 +27,9 @@ internal class FloatingTrigger(
 
     fun install() {
         if (isInstalled) return
-        button = TriggerButton(context).also {
+        if (context.get() == null || windowManager.get() == null) return
+
+        button = TriggerButton(context.get()!!).also {
             it.setClickListener { inspector.toggleInspection() }
             it.setLongClickListener {
                 showMenu(it)
@@ -42,15 +45,17 @@ internal class FloatingTrigger(
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.END or Gravity.BOTTOM
-            x = 16.dp(context)
-            y = 96.dp(context)
+            x = 16.dp()
+            y = 96.dp()
         }
+
         try {
             windowManager.get()?.addView(button, this.layoutParams)
             isInstalled = true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             isInstalled = false
         }
+
         updateButtonLabel(inspector.isInspectionEnabled, inspector.getConfig().unitMode)
     }
 

@@ -46,8 +46,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
             ?.getConfig()
             ?: throw IllegalStateException("ConfigProvider must be set before accessing config.")
 
-    private val normalBorderWidth = 1.dp(context).toFloat()
-    private val clickableBorderWidth = 2.dp(context).toFloat()
+    private val normalBorderWidth = 1.dp().toFloat()
+    private val clickableBorderWidth = 2.dp().toFloat()
 
     private val paintBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         strokeWidth = normalBorderWidth

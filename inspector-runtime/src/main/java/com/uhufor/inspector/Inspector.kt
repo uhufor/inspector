@@ -1,6 +1,7 @@
 package com.uhufor.inspector
 
 import android.app.Application
+import android.content.Context
 import android.graphics.PixelFormat
 import android.view.Gravity
 import android.view.WindowManager
@@ -13,7 +14,7 @@ import com.uhufor.inspector.util.ActivityTracker
 import com.uhufor.inspector.util.checkPermission
 
 object Inspector : ConfigProvider {
-    private lateinit var applicationContext: Application
+    private lateinit var applicationContext: Context
     private var windowManager: WindowManager? = null
     private var overlayCanvas: OverlayCanvas? = null
     private var inspectorEngine: InspectorEngine? = null
@@ -30,14 +31,14 @@ object Inspector : ConfigProvider {
     @MainThread
     fun install(app: Application) {
         if (installed) return
-        applicationContext = app
+        applicationContext = app.applicationContext
 
-        if (!checkPermission(app)) {
+        if (!checkPermission(applicationContext)) {
             return
         }
 
-        windowManager = app.getSystemService()
-        ActivityTracker.register(app)
+        windowManager = applicationContext.getSystemService()
+        ActivityTracker.register(applicationContext)
         installed = true
     }
 
@@ -80,7 +81,7 @@ object Inspector : ConfigProvider {
         inspectorEngine?.scanAllElements()
         floatingTrigger?.bringToFront()
         isInspectionEnabled = true
-        floatingTrigger?.updateInspectorState(isInspectionEnabled, _config.unitMode)
+        floatingTrigger?.updateInspectorState(true, _config.unitMode)
     }
 
     @MainThread
@@ -94,7 +95,7 @@ object Inspector : ConfigProvider {
         inspectorEngine?.clearScan()
         inspectorEngine = null
         isInspectionEnabled = false
-        floatingTrigger?.updateInspectorState(isInspectionEnabled, _config.unitMode)
+        floatingTrigger?.updateInspectorState(false, _config.unitMode)
     }
 
     @MainThread
@@ -128,9 +129,14 @@ object Inspector : ConfigProvider {
     @MainThread
     fun showFloatingTrigger() {
         if (!installed) return
+
         if (floatingTrigger == null) {
-            floatingTrigger = FloatingTrigger(context = applicationContext, inspector = this)
+            floatingTrigger = FloatingTrigger(
+                context = applicationContext,
+                inspector = this
+            )
         }
+
         floatingTrigger?.install()
         floatingTrigger?.updateInspectorState(isInspectionEnabled, _config.unitMode)
     }
