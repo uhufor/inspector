@@ -5,14 +5,11 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.PixelFormat
 import android.util.AttributeSet
 import android.view.GestureDetector
-import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
-import android.view.WindowManager
 import androidx.core.graphics.toColorInt
 import com.uhufor.inspector.Config
 import com.uhufor.inspector.ConfigProvider
@@ -30,55 +27,10 @@ import kotlin.random.Random
 @SuppressLint("ClickableViewAccessibility")
 internal class OverlayCanvas @JvmOverloads constructor(
     context: Context,
-    private val configProvider: ConfigProvider,
-    private val engine: InspectorEngine,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-    defStyleRes: Int = 0
+    defStyleRes: Int = 0,
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
-
-    companion object {
-        private const val TEXT_SIZE = 24f
-        private const val DISTANCE_TEXT_SIZE = 18f
-        private const val DASHED_LINE_WIDTH = 2f
-        private const val DASH_PATTERN_ON = 10f
-        private const val DASH_PATTERN_OFF = 5f
-        private const val DASH_PHASE = 0f
-        private const val TEXT_PADDING_HORIZONTAL = 5f
-        private const val TEXT_PADDING_TOP = 20f
-        private const val TEXT_PADDING_BOTTOM = 5f
-        private const val TEXT_VERTICAL_OFFSET_HORIZONTAL_LINE = 15f
-        private const val TEXT_VERTICAL_OFFSET_VERTICAL_LINE = 5f
-        private const val ARROW_SIZE = 10f
-        private const val ARROW_ANGLE = Math.PI / 6
-        private const val TEXT_BG_ALPHA = 220
-        private const val DARK_BG_COLOR = "#30000000"
-        private const val MODE_RED_BG_COLOR = "#44FFAAAA"
-        private const val DIMENSION_TEXT_OFFSET = 8f
-
-        private val ELEMENT_COLORS = listOf(
-            "#F44336".toColorInt(),
-            "#E91E63".toColorInt(),
-            "#9C27B0".toColorInt(),
-            "#673AB7".toColorInt(),
-            "#3F51B5".toColorInt(),
-            "#2196F3".toColorInt(),
-            "#03A9F4".toColorInt(),
-            "#00BCD4".toColorInt(),
-            "#009688".toColorInt(),
-            "#4CAF50".toColorInt(),
-            "#8BC34A".toColorInt(),
-            "#CDDC39".toColorInt(),
-            "#FFEB3B".toColorInt(),
-            "#FFC107".toColorInt(),
-            "#FF9800".toColorInt(),
-            "#FF5722".toColorInt(),
-            "#795548".toColorInt(),
-            "#9E9E9E".toColorInt(),
-            "#607D8B".toColorInt(),
-            "#000000".toColorInt()
-        )
-    }
 
     interface BackKeyListener {
         fun onBackPressed()
@@ -86,8 +38,13 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     var backKeyListener: BackKeyListener? = null
 
+    private var internalConfigProvider: ConfigProvider? = null
+    private var internalEngine: InspectorEngine? = null
+
     private val cfg: Config
-        get() = configProvider.getConfig()
+        get() = internalConfigProvider
+            ?.getConfig()
+            ?: throw IllegalStateException("ConfigProvider must be set before accessing config.")
 
     private val normalBorderWidth = 1.dp(context).toFloat()
     private val clickableBorderWidth = 2.dp(context).toFloat()
@@ -129,13 +86,17 @@ internal class OverlayCanvas @JvmOverloads constructor(
     private val gestureDetector = GestureDetector(
         context,
         object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: MotionEvent): Boolean {
+                return true
+            }
+
             override fun onSingleTapUp(e: MotionEvent): Boolean {
-                engine.handleTap(e.rawX, e.rawY)
+                internalEngine?.handleTap(e.rawX, e.rawY)
                 return true
             }
 
             override fun onLongPress(e: MotionEvent) {
-                engine.handleLongPress(e.rawX, e.rawY)
+                internalEngine?.handleLongPress(e.rawX, e.rawY)
             }
         }
     )
@@ -147,6 +108,14 @@ internal class OverlayCanvas @JvmOverloads constructor(
         setOnTouchListener { _, ev ->
             gestureDetector.onTouchEvent(ev)
         }
+    }
+
+    fun setConfigProvider(provider: ConfigProvider) {
+        this.internalConfigProvider = provider
+    }
+
+    fun setEngine(engine: InspectorEngine) {
+        this.internalEngine = engine
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
@@ -161,15 +130,14 @@ internal class OverlayCanvas @JvmOverloads constructor(
         super.onDraw(canvas)
         drawAllElements(canvas)
 
-        if (engine.measurementMode == MeasurementMode.Relative) {
-            drawRelativeMeasurement(canvas)
-        } else {
-            drawSelectedElement(canvas)
+        when (internalEngine?.measurementMode) {
+            MeasurementMode.Relative -> drawRelativeMeasurement(canvas)
+            else -> drawSelectedElement(canvas)
         }
     }
 
     private fun drawAllElements(canvas: Canvas) {
-        engine.allElements.forEach { element ->
+        internalEngine?.allElements?.forEach { element ->
             val color = applyAlpha(getColorForElement(element), 0.5f)
             val paint = if (element.isClickable) paintClickableBorder else paintBorder
             paint.color = color
@@ -179,43 +147,53 @@ internal class OverlayCanvas @JvmOverloads constructor(
     }
 
     private fun drawSelectedElement(canvas: Canvas) {
-        val selected = engine.selection ?: return
-        val color = getComplementaryColor(getColorForElement(selected))
-        val paint = if (selected.isClickable) paintClickableBorder else paintBorder
+        val currentEngine = internalEngine ?: return
+        val selection = currentEngine.selection ?: return
 
-        selected.parentBounds?.let { parentBounds ->
-            drawDarkBackground(canvas, selected.bounds, parentBounds)
+        val color = getComplementaryColor(getColorForElement(selection))
+        val paint = if (selection.isClickable) paintClickableBorder else paintBorder
+
+        selection.parentBounds?.let { parentBounds ->
+            drawDarkBackground(canvas, selection.bounds, parentBounds)
         }
 
         paint.color = color
-        canvas.drawRect(selected.bounds, paint)
+        canvas.drawRect(selection.bounds, paint)
 
-        val dm = resources.displayMetrics
-        val width = UnitConverter.format(selected.bounds.width(), dm, cfg.unitMode)
-        val height = UnitConverter.format(selected.bounds.height(), dm, cfg.unitMode)
+        val dm = context.resources.displayMetrics
+        val widthText = UnitConverter.format(selection.bounds.width(), dm, cfg.unitMode)
+        val heightText = UnitConverter.format(selection.bounds.height(), dm, cfg.unitMode)
 
         paintText.color = color
         canvas.drawText(
-            "$width × $height",
-            selected.bounds.left,
-            selected.bounds.top - DIMENSION_TEXT_OFFSET,
+            widthText,
+            selection.bounds.left,
+            selection.bounds.top - TEXT_PADDING_TOP,
+            paintText
+        )
+        canvas.drawText(
+            heightText,
+            selection.bounds.left - paintText.measureText(heightText) - TEXT_PADDING_HORIZONTAL,
+            selection.bounds.bottom,
             paintText
         )
 
-        selected.parentBounds?.let { parentBounds ->
-            drawDistanceToBounds(canvas, selected.bounds, parentBounds)
+        selection.parentBounds?.let { parentBounds ->
+            drawDistanceToBounds(canvas, selection.bounds, parentBounds)
         }
 
         paintText.color = Color.RED
     }
 
     private fun drawRelativeMeasurement(canvas: Canvas) {
-        val primary = engine.primarySelection ?: return
-        val secondary = engine.secondarySelection
+        val currentEngine = internalEngine ?: return
+        val primary = currentEngine.primarySelection ?: return
+        val secondary = currentEngine.secondarySelection
 
         val primaryColor = getComplementaryColor(getColorForElement(primary))
-        val primaryPaint = if (primary.isClickable) paintClickableBorder else paintBorder
-        primaryPaint.color = primaryColor
+        val primaryPaint = if (primary.isClickable) paintClickableBorder.apply {
+            color = primaryColor
+        } else paintBorder.apply { color = primaryColor }
         canvas.drawRect(primary.bounds, primaryPaint)
 
         val primaryFillPaint = Paint().apply {
@@ -224,25 +202,24 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
         canvas.drawRect(primary.bounds, primaryFillPaint)
 
-        val dm = resources.displayMetrics
-        val primaryWidth = UnitConverter.format(primary.bounds.width(), dm, cfg.unitMode)
-        val primaryHeight = UnitConverter.format(primary.bounds.height(), dm, cfg.unitMode)
+        val dm = context.resources.displayMetrics
+        val primaryWidthText = UnitConverter.format(primary.bounds.width(), dm, cfg.unitMode)
+        val primaryHeightText = UnitConverter.format(primary.bounds.height(), dm, cfg.unitMode)
 
         paintText.color = primaryColor
         canvas.drawText(
-            "$primaryWidth × $primaryHeight",
+            "$primaryWidthText × $primaryHeightText",
             primary.bounds.left,
             primary.bounds.top - DIMENSION_TEXT_OFFSET,
             paintText
         )
 
         if (secondary != null) {
+            val screenRect = android.graphics.RectF(0f, 0f, width.toFloat(), height.toFloat())
             val darkBgPaint = Paint().apply {
                 color = DARK_BG_COLOR.toColorInt()
                 style = Paint.Style.FILL
             }
-
-            val screenRect = android.graphics.RectF(0f, 0f, width.toFloat(), height.toFloat())
             canvas.drawRect(screenRect, darkBgPaint)
 
             val clearPaint = Paint().apply {
@@ -256,8 +233,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
             canvas.drawRect(primary.bounds, primaryFillPaint)
 
             val secondaryColor = getComplementaryColor(getColorForElement(secondary))
-            val secondaryPaint = if (secondary.isClickable) paintClickableBorder else paintBorder
-            secondaryPaint.color = secondaryColor
+            val secondaryPaint = if (secondary.isClickable) paintClickableBorder.apply {
+                color = secondaryColor
+            } else paintBorder.apply { color = secondaryColor }
             canvas.drawRect(secondary.bounds, secondaryPaint)
 
             val secondaryWidth = UnitConverter.format(secondary.bounds.width(), dm, cfg.unitMode)
@@ -403,7 +381,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
     }
 
     private fun drawRelativeDistances(canvas: Canvas, dm: android.util.DisplayMetrics) {
-        val distances = engine.getRelativeDistances()
+        val distances = internalEngine?.getRelativeDistances() ?: return
         if (distances.isEmpty()) return
 
         distances.forEach { distance ->
@@ -445,25 +423,56 @@ internal class OverlayCanvas @JvmOverloads constructor(
         Color.blue(color)
     )
 
+    fun getSelection() = internalEngine?.selection
 
+    fun getPrimarySelection() = internalEngine?.primarySelection
 
-    // Removed: handleTap, handleLongPress, scanAllElements, clearScan
-    // These will be called directly on the Inspector.inspectorEngine instance
-    // or the engine instance passed to OverlayCanvas will be used by its drawing methods.
+    fun getSecondarySelection() = internalEngine?.secondarySelection
 
+    fun getMeasurementMode() = internalEngine?.measurementMode
 
+    fun getAllElements() = internalEngine?.allElements
 
+    companion object {
+        private const val TEXT_SIZE = 24f
+        private const val DISTANCE_TEXT_SIZE = 18f
+        private const val DASHED_LINE_WIDTH = 2f
+        private const val DASH_PATTERN_ON = 10f
+        private const val DASH_PATTERN_OFF = 5f
+        private const val DASH_PHASE = 0f
+        private const val TEXT_PADDING_HORIZONTAL = 5f
+        private const val TEXT_PADDING_TOP = 20f
+        private const val TEXT_PADDING_BOTTOM = 5f
+        private const val TEXT_VERTICAL_OFFSET_HORIZONTAL_LINE = 15f
+        private const val TEXT_VERTICAL_OFFSET_VERTICAL_LINE = 5f
+        private const val ARROW_SIZE = 10f
+        private const val ARROW_ANGLE = Math.PI / 6
+        private const val TEXT_BG_ALPHA = 220
+        private const val DARK_BG_COLOR = "#30000000"
+        private const val MODE_RED_BG_COLOR = "#44FFAAAA"
+        private const val DIMENSION_TEXT_OFFSET = 8f
 
-
-
-
-    fun getSelection() = engine.selection
-
-    fun getPrimarySelection() = engine.primarySelection
-
-    fun getSecondarySelection() = engine.secondarySelection
-
-    fun getMeasurementMode() = engine.measurementMode
-
-    fun getAllElements() = engine.allElements
+        private val ELEMENT_COLORS = listOf(
+            "#F44336".toColorInt(),
+            "#E91E63".toColorInt(),
+            "#9C27B0".toColorInt(),
+            "#673AB7".toColorInt(),
+            "#3F51B5".toColorInt(),
+            "#2196F3".toColorInt(),
+            "#03A9F4".toColorInt(),
+            "#00BCD4".toColorInt(),
+            "#009688".toColorInt(),
+            "#4CAF50".toColorInt(),
+            "#8BC34A".toColorInt(),
+            "#CDDC39".toColorInt(),
+            "#FFEB3B".toColorInt(),
+            "#FFC107".toColorInt(),
+            "#FF9800".toColorInt(),
+            "#FF5722".toColorInt(),
+            "#795548".toColorInt(),
+            "#9E9E9E".toColorInt(),
+            "#607D8B".toColorInt(),
+            "#000000".toColorInt()
+        )
+    }
 }

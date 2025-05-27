@@ -53,9 +53,9 @@ object Inspector : ConfigProvider {
 
         val canvas = OverlayCanvas(
             context = activity,
-            configProvider = this,
-            engine = engine
         ).apply {
+            setConfigProvider(this@Inspector)
+            setEngine(engine)
             backKeyListener = object : OverlayCanvas.BackKeyListener {
                 override fun onBackPressed() {
                     disableInspection()
