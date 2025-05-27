@@ -15,7 +15,7 @@ import android.view.View
 import android.view.WindowManager
 import androidx.core.graphics.toColorInt
 import com.uhufor.inspector.Config
-import com.uhufor.inspector.configProvider
+import com.uhufor.inspector.ConfigProvider
 import com.uhufor.inspector.engine.DistanceType
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.engine.MeasurementMode
@@ -30,9 +30,11 @@ import kotlin.random.Random
 @SuppressLint("ClickableViewAccessibility")
 internal class OverlayCanvas @JvmOverloads constructor(
     context: Context,
+    private val configProvider: ConfigProvider,
+    private val engine: InspectorEngine,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-    defStyleRes: Int = 0,
+    defStyleRes: Int = 0
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
 
     companion object {
@@ -84,11 +86,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     var backKeyListener: BackKeyListener? = null
 
-    private val configProvider = context.configProvider()
     private val cfg: Config
         get() = configProvider.getConfig()
-
-    private val engine = InspectorEngine { postInvalidate() }
 
     private val normalBorderWidth = 1.dp(context).toFloat()
     private val clickableBorderWidth = 2.dp(context).toFloat()
@@ -446,33 +445,17 @@ internal class OverlayCanvas @JvmOverloads constructor(
         Color.blue(color)
     )
 
-    fun layoutParams() = WindowManager.LayoutParams(
-        WindowManager.LayoutParams.MATCH_PARENT,
-        WindowManager.LayoutParams.MATCH_PARENT,
-        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-        PixelFormat.TRANSLUCENT
-    ).apply {
-        gravity = Gravity.START or Gravity.TOP
-        layoutInDisplayCutoutMode =
-            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-    }
 
-    fun handleTap(x: Float, y: Float) {
-        engine.handleTap(x, y)
-    }
 
-    fun handleLongPress(x: Float, y: Float) {
-        engine.handleLongPress(x, y)
-    }
+    // Removed: handleTap, handleLongPress, scanAllElements, clearScan
+    // These will be called directly on the Inspector.inspectorEngine instance
+    // or the engine instance passed to OverlayCanvas will be used by its drawing methods.
 
-    fun scanAllElements() {
-        engine.scanAllElements()
-    }
 
-    fun clearScan() {
-        engine.clearScan()
-    }
+
+
+
+
 
     fun getSelection() = engine.selection
 

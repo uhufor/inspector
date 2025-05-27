@@ -9,42 +9,32 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.WindowManager
 import android.widget.PopupMenu
 import androidx.core.content.getSystemService
-import com.uhufor.inspector.ui.OverlayCanvas
-import com.uhufor.inspector.ui.OverlayCanvas.BackKeyListener
 import com.uhufor.inspector.ui.TriggerButton
 import com.uhufor.inspector.util.dp
 import java.lang.ref.WeakReference
 
 internal class FloatingTrigger(
-    context: Context,
-    private val configProvider: ConfigProvider,
+    private val context: Context,
+    private val inspector: Inspector,
 ) {
     private val windowManager: WeakReference<WindowManager?> =
         WeakReference(context.getSystemService())
 
-    private var overlayShown = false
-    private val overlay: OverlayCanvas = OverlayCanvas(context).apply {
-        backKeyListener = object : BackKeyListener {
-            override fun onBackPressed() {
-                if (overlayShown) {
-                    toggleOverlay()
-                }
-            }
-        }
-    }
+    private var button: TriggerButton? = null
+    private var layoutParams: WindowManager.LayoutParams? = null
+    private var isInstalled = false
 
-    private lateinit var button: TriggerButton
-
-    fun install(context: Context) {
+    fun install() {
+        if (isInstalled) return
         button = TriggerButton(context).also {
-            it.setClickListener { toggleOverlay() }
+            it.setClickListener { inspector.toggleInspection() }
             it.setLongClickListener {
                 showMenu(it)
                 true
             }
         }
 
-        val layoutParams = WindowManager.LayoutParams(
+        this.layoutParams = WindowManager.LayoutParams(
             WRAP_CONTENT,
             WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
@@ -55,41 +45,57 @@ internal class FloatingTrigger(
             x = 16.dp(context)
             y = 96.dp(context)
         }
-        windowManager.get()?.addView(button, layoutParams)
-        updateButtonLabel()
+        try {
+            windowManager.get()?.addView(button, this.layoutParams)
+            isInstalled = true
+        } catch (e: Exception) {
+            isInstalled = false
+        }
+        updateButtonLabel(inspector.isInspectionEnabled, inspector.getConfig().unitMode)
     }
 
-    private fun toggleOverlay() {
-        val layoutParams = button.layoutParams as WindowManager.LayoutParams
-        windowManager.get()?.removeView(button)
-
-        if (overlayShown) {
-            overlay.clearScan()
-            windowManager.get()?.removeView(overlay)
-        } else {
-            windowManager.get()?.addView(overlay, overlay.layoutParams())
-            overlay.scanAllElements()
+    fun uninstall() {
+        if (!isInstalled) return
+        button?.let {
+            runCatching {
+                windowManager.get()?.removeView(it)
+            }
         }
-        overlayShown = !overlayShown
-
-        windowManager.get()?.addView(button, layoutParams)
+        button = null
+        isInstalled = false
     }
 
     private fun showMenu(anchor: View) {
-        val config = configProvider.getConfig()
+        val currentConfig = inspector.getConfig()
+        val isOverlayCurrentlyShown = inspector.isInspectionEnabled
+
         PopupMenu(anchor.context, anchor).apply {
-            menu.add(0, 1, 0, "Switch to ${if (config.unitMode == UnitMode.DP) "PX" else "DP"}")
-            menu.add(0, 2, 1, if (overlayShown) "Hide overlay" else "Show overlay")
+            menu.add(
+                0,
+                MENU_ID_SWITCH_UNIT,
+                0,
+                "Switch to ${if (currentConfig.unitMode == UnitMode.DP) "PX" else "DP"}"
+            )
+            menu.add(
+                0,
+                MENU_ID_TOGGLE_OVERLAY,
+                1,
+                if (isOverlayCurrentlyShown) "Hide overlay" else "Show overlay"
+            )
             setOnMenuItemClickListener {
                 when (it.itemId) {
-                    1 -> {
-                        config.unitMode =
-                            if (config.unitMode == UnitMode.DP) UnitMode.PX else UnitMode.DP
-                        updateButtonLabel()
-                        overlay.invalidate()
+                    MENU_ID_SWITCH_UNIT -> {
+                        val newMode = if (currentConfig.unitMode == UnitMode.DP) {
+                            UnitMode.PX
+                        } else {
+                            UnitMode.DP
+                        }
+                        inspector.setUnitMode(newMode)
                     }
 
-                    2 -> toggleOverlay()
+                    MENU_ID_TOGGLE_OVERLAY -> {
+                        inspector.toggleInspection()
+                    }
                 }
                 true
             }
@@ -98,8 +104,26 @@ internal class FloatingTrigger(
     }
 
     @SuppressLint("SetTextI18n")
-    private fun updateButtonLabel() {
-        val config = configProvider.getConfig()
-        button.setLabelText("${config.unitMode.name.lowercase()} (${config.densityString})")
+    fun updateButtonLabel(isOverlayEnabled: Boolean, unitMode: UnitMode) {
+        if (!isInstalled || button == null) return
+
+        button?.setLabelText("${unitMode.name.lowercase()} | ${if (isOverlayEnabled) "ON" else "OFF"}")
+    }
+
+    fun updateInspectorState(isOverlayEnabled: Boolean, unitMode: UnitMode) {
+        updateButtonLabel(isOverlayEnabled, unitMode)
+    }
+
+    fun bringToFront() {
+        if (!isInstalled || button == null || layoutParams == null) return
+        runCatching {
+            windowManager.get()?.removeView(button)
+            windowManager.get()?.addView(button, layoutParams)
+        }
+    }
+
+    companion object {
+        private const val MENU_ID_SWITCH_UNIT = 1
+        private const val MENU_ID_TOGGLE_OVERLAY = 2
     }
 }

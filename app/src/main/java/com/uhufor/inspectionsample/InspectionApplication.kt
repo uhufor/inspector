@@ -12,5 +12,9 @@ class InspectionApplication : Application() {
 
     private fun setupDebuggingTools() {
         Inspector.install(this)
+
+        // Inspector.enableInspection()
+
+        Inspector.showFloatingTrigger()
     }
 }

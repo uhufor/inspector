@@ -8,7 +8,9 @@ android {
     namespace = "com.uhufor.inspector"
 
     compileSdk = 35
-    defaultConfig { minSdk = 28 }
+    defaultConfig {
+        minSdk = 28
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
