@@ -1,0 +1,35 @@
+name: Publish Snapshot to Maven Central
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Set snapshot version
+        run: echo "maven_publish_version=0.0.1-SNAPSHOT" >> gradle.properties
+
+      - name: Set OSSRH Credentials
+        run: |
+          echo "maven_publish_username=${{ secrets.PORTAL_USERNAME }}" >> gradle.properties
+          echo "maven_publish_password=${{ secrets.PORTAL_PASSWORD }}" >> gradle.properties
+
+      - name: Publish all modules
+        run: ./gradlew publish --no-daemon
