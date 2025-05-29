@@ -1,4 +1,4 @@
-import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+import com.vanniktech.maven.publish.AndroidMultiVariantLibrary
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.uhufor"
-version = (project.findProperty("maven_publish_version") as String? ?: "0.0.1-SNAPSHOT")
+version = (project.findProperty("mavenPublishVersion") as String? ?: "0.0.1-SNAPSHOT")
 
 android {
     namespace = "com.uhufor.inspector"
@@ -45,8 +45,7 @@ mavenPublishing {
     )
 
     configure(
-        AndroidSingleVariantLibrary(
-            variant = "release",
+        AndroidMultiVariantLibrary(
             sourcesJar = true,
             publishJavadocJar = true,
         )

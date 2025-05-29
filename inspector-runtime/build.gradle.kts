@@ -1,4 +1,4 @@
-import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+import com.vanniktech.maven.publish.AndroidMultiVariantLibrary
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.github.uhufor"
-version = (project.findProperty("maven_publish_version") as String? ?: "0.0.1-SNAPSHOT")
+version = (project.findProperty("mavenPublishVersion") as String? ?: "0.0.1-SNAPSHOT")
 
 android {
     namespace = "com.uhufor.inspector"
@@ -22,7 +22,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -43,7 +42,6 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -64,8 +62,7 @@ mavenPublishing {
     )
 
     configure(
-        AndroidSingleVariantLibrary(
-            variant = "debug",
+        AndroidMultiVariantLibrary(
             sourcesJar = true,
             publishJavadocJar = true,
         )
