@@ -1,8 +1,11 @@
+import com.vanniktech.maven.publish.AndroidSingleVariantLibrary
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    `maven-publish`
+    id("com.vanniktech.maven.publish") version "0.32.0"
 }
 
 group = "io.github.uhufor"
@@ -37,12 +40,6 @@ android {
             )
         }
     }
-
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-        }
-    }
 }
 
 dependencies {
@@ -59,56 +56,47 @@ dependencies {
     implementation(libs.google.ui.material)
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            register<MavenPublication>("release") {
-                from(components["release"])
-                artifactId = project.name
+mavenPublishing {
+    coordinates(
+        groupId = "io.github.uhufor",
+        artifactId = project.name,
+        version = version.toString()
+    )
 
-                pom {
-                    name.set("Android UI Inspection - ${project.name}")
-                    description.set("Android UI inspection tool - ${project.name}.")
-                    url.set("https://github.com/uhufor/ui_inspection_sample")
+    configure(
+        AndroidSingleVariantLibrary(
+            variant = "release",
+            sourcesJar = true,
+            publishJavadocJar = true,
+        )
+    )
 
-                    licenses {
-                        license {
-                            name.set("The Apache License, Version 2.0")
-                            url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                        }
-                    }
-
-                    developers {
-                        developer {
-                            id.set("uhufor")
-                            name.set("김해중")
-                            email.set("haejung83@gmail.com")
-                        }
-                    }
-
-                    scm {
-                        url.set("https://github.com/uhufor/ui_inspection_sample")
-                        connection.set("scm:git:https://github.com/uhufor/ui_inspection_sample.git")
-                        developerConnection.set("scm:git:git@github.com:uhufor/ui_inspection_sample.git")
-                    }
-                }
+    pom {
+        name.set("Android UI Inspection - ${project.name}")
+        description.set("Android UI inspection tool - ${project.name}")
+        inceptionYear.set("2025")
+        url.set("https://github.com/uhufor/ui_inspection_sample")
+        licenses {
+            license {
+                name.set("The Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
             }
         }
-
-        repositories {
-            maven {
-                name = "Sonatype"
-                url = uri(
-                    if (version.toString().endsWith("SNAPSHOT"))
-                        "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-                    else
-                        "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-                )
-                credentials {
-                    username = project.findProperty("maven_publish_username") as String? ?: ""
-                    password = project.findProperty("maven_publish_password") as String? ?: ""
-                }
+        developers {
+            developer {
+                id.set("uhufor")
+                name.set("Uhufor")
+                url.set("https://github.com/uhufor/")
             }
+        }
+        scm {
+            url.set("https://github.com/uhufor/ui_inspection_sample")
+            connection.set("scm:git:https://github.com/uhufor/ui_inspection_sample.git")
+            developerConnection.set("scm:git:git@github.com:uhufor/ui_inspection_sample.git")
         }
     }
+
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
 }

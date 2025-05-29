@@ -7,6 +7,12 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.PORTAL_USERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.PORTAL_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_KEY_ID }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY }}
 
     permissions:
       contents: read
@@ -24,15 +30,10 @@ jobs:
           java-version: 17
           cache: gradle
 
-      - name: Set release version from tag
+      - name: Set Release Version
         run: |
           VERSION=${GITHUB_REF_NAME#v}
-          echo "maven_publish_version=$VERSION" >> gradle.properties
-
-      - name: Set OSSRH Credentials
-        run: |
-          echo "maven_publish_username=${{ secrets.PORTAL_USERNAME }}" >> gradle.properties
-          echo "maven_publish_password=${{ secrets.PORTAL_PASSWORD }}" >> gradle.properties
+          echo "mavenPublishVersion=$VERSION" >> gradle.properties
 
       - name: Publish all modules
-        run: ./gradlew publish --no-daemon
+        run: ./gradlew clean publishAndReleaseToMavenCentral --no-configuration-cache --no-daemon
