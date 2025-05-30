@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:ignore="HardcodedText">
+
+    <ImageView
+        android:id="@+id/profile_image"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/ic_profile_placeholder"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <ImageView
+        android:id="@+id/heart_icon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@drawable/ic_heart"
+        app:layout_constraintBottom_toBottomOf="@+id/profile_image"
+        app:layout_constraintEnd_toEndOf="@+id/profile_image" />
+
+    <TextView
+        android:id="@+id/profile_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:text="John Doe"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/profile_image"
+        app:layout_constraintTop_toTopOf="@+id/profile_image" />
+
+    <TextView
+        android:id="@+id/profile_age"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Age: 35"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/profile_name"
+        app:layout_constraintTop_toBottomOf="@+id/profile_name" />
+
+    <TextView
+        android:id="@+id/profile_address"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Address: 123 Main St, Anytown USA"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/profile_name"
+        app:layout_constraintTop_toBottomOf="@+id/profile_age" />
+
+    <TextView
+        android:id="@+id/profile_email"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Email: john.doe@example.com"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/profile_name"
+        app:layout_constraintTop_toBottomOf="@+id/profile_address" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

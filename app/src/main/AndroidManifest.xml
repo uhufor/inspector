@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
+        android:name=".InspectionApplication"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -13,20 +14,27 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.InspectionSample"
-        android:name=".InspectionApplication"
         tools:targetApi="35">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.InspectionSample">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+
+        <activity
+            android:name=".contact.ContactActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".contact.ContactComposeActivity"
+            android:exported="false" />
 
     </application>
 
