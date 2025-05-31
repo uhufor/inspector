@@ -73,10 +73,11 @@ internal class InspectorEngine(
     }
 
     private fun findElementAt(rootView: View, x: Int, y: Int): SelectionState? {
-        ComposeHitTester.hitTest(rootView, x, y)?.let { (rect, isClickable) ->
+        ComposeHitTester.hitTest(rootView, x, y)?.let { (rect, parentRect, isClickable) ->
             return SelectionState(
                 bounds = rect,
                 isClickable = isClickable,
+                parentBounds = parentRect,
                 id = rect.hashCode()
             )
         }
