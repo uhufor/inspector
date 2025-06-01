@@ -301,15 +301,13 @@ internal class OverlayCanvas @JvmOverloads constructor(
         childBounds: RectF,
         parentBounds: RectF,
     ) {
-        val bgPaint = Paint().apply {
-            color = DARK_BG_COLOR.toColorInt()
-            style = Paint.Style.FILL
+        val path = android.graphics.Path().apply {
+            addRect(parentBounds, android.graphics.Path.Direction.CW)
+            addRect(childBounds, android.graphics.Path.Direction.CCW)
         }
-
-        val path = android.graphics.Path()
-        path.addRect(parentBounds, android.graphics.Path.Direction.CW)
-        path.addRect(childBounds, android.graphics.Path.Direction.CCW)
-        canvas.drawPath(path, bgPaint)
+        paintBackground.withColor(DARK_BG_COLOR.toColorInt()) { paintColor ->
+            canvas.drawPath(path, paintColor)
+        }
     }
 
     private fun drawDistanceToBounds(
