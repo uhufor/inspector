@@ -2,19 +2,24 @@ package com.uhufor.inspector.engine
 
 import android.graphics.RectF
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 object RelativeMeasurement {
 
     fun calculateDistances(
         primary: RectF,
-        secondary: RectF
+        secondary: RectF,
     ): List<Distance> {
         val distances = mutableListOf<Distance>()
         val horizontalOverlap = !(secondary.right < primary.left || secondary.left > primary.right)
         val verticalOverlap = !(secondary.bottom < primary.top || secondary.top > primary.bottom)
 
         if (horizontalOverlap && !verticalOverlap) {
-            val verticalX = primary.left + primary.width() / 2
+            val verticalX = getHorizontalOverlap(primary, secondary)
+                ?.run { first + (second - first) / 2 }
+                ?: (primary.left + primary.width() / 2)
+
             if (secondary.top > primary.bottom) {
                 val distance = secondary.top - primary.bottom
                 if (distance > 0) {
@@ -90,7 +95,10 @@ object RelativeMeasurement {
             }
 
         } else if (verticalOverlap && !horizontalOverlap) {
-            val horizontalY = primary.top + primary.height() / 2
+            val horizontalY = getVerticalOverlap(primary, secondary)
+                ?.run { first + (second - first) / 2 }
+                ?: (primary.top + primary.height() / 2)
+
             if (secondary.left > primary.right) {
                 val distance = secondary.left - primary.right
                 if (distance > 0) {
@@ -167,7 +175,7 @@ object RelativeMeasurement {
                 )
             }
 
-        } else if (!horizontalOverlap && !verticalOverlap) {
+        } else {
             val horizontalY = primary.top + primary.height() / 2
             if (secondary.left > primary.right) {
                 distances.add(
@@ -218,8 +226,21 @@ object RelativeMeasurement {
                 )
             }
         }
-
         return distances
+    }
+
+    private fun getHorizontalOverlap(rect1: RectF, rect2: RectF): Pair<Float, Float>? {
+        val startX = max(rect1.left, rect2.left)
+        val endX = min(rect1.right, rect2.right)
+
+        return if (startX < endX) Pair(startX, endX) else null
+    }
+
+    private fun getVerticalOverlap(rect1: RectF, rect2: RectF): Pair<Float, Float>? {
+        val startY = max(rect1.top, rect2.top)
+        val endY = min(rect1.bottom, rect2.bottom)
+
+        return if (startY < endY) Pair(startY, endY) else null
     }
 }
 
