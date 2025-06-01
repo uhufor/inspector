@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.KeyEvent
@@ -62,13 +63,13 @@ internal class OverlayCanvas @JvmOverloads constructor(
     private val normalBorderWidth = 1.dp().toFloat()
     private val clickableBorderWidth = 2.dp().toFloat()
 
-    private val paintBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val paintNormalBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         strokeWidth = normalBorderWidth
         style = Paint.Style.STROKE
         color = Color.RED
     }
 
-    private val paintClickableBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val paintThickBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         strokeWidth = clickableBorderWidth
         style = Paint.Style.STROKE
         color = Color.RED
@@ -152,11 +153,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     private fun drawAllElements(canvas: Canvas) {
         internalEngine?.allElements?.forEach { element ->
-            val color = applyAlpha(getColorForElement(element), 0.5f)
-            val basePaint = if (element.isClickable) paintClickableBorder else paintBorder
-            basePaint.withColor(color) { paint ->
-                canvas.drawRect(element.bounds, paint)
-            }
+            val borderColor = applyAlpha(getColorForElement(element), 0.5f)
+            drawElementBorder(canvas, element.bounds, element.isClickable, borderColor)
         }
     }
 
@@ -165,25 +163,33 @@ internal class OverlayCanvas @JvmOverloads constructor(
         selection: SelectionState,
         elementBaseColor: Int,
     ) {
-        val selectionColor = getComplementaryColor(elementBaseColor)
-        val baseBorderPaint = if (selection.isClickable) paintClickableBorder else paintBorder
-        baseBorderPaint.withColor(selectionColor) { paint ->
-            canvas.drawRect(selection.bounds, paint)
+        val complementaryColor = getComplementaryColor(elementBaseColor)
+        drawElementBorder(canvas, selection.bounds, selection.isClickable, complementaryColor)
+        drawElementSizeInfo(canvas, selection.bounds, elementBaseColor, complementaryColor)
+    }
+
+    private fun drawElementBorder(
+        canvas: Canvas,
+        bounds: RectF,
+        useThickBorder: Boolean,
+        borderColor: Int,
+    ) {
+        val paintBorder = if (useThickBorder) paintThickBorder else paintNormalBorder
+        paintBorder.withColor(borderColor) { paint ->
+            canvas.drawRect(bounds, paint)
         }
+    }
 
-        val widthText = UnitConverter.format(selection.bounds.width(), displayMetrics, cfg.unitMode)
-        val heightText =
-            UnitConverter.format(selection.bounds.height(), displayMetrics, cfg.unitMode)
-        val sizeText = "$widthText x $heightText"
-
+    private fun drawElementSizeInfo(
+        canvas: Canvas,
+        bounds: RectF,
+        textColor: Int,
+        textBackgroundColor: Int,
+    ) {
+        val sizeText = getElementSizeText(bounds)
         val textWidth = paintText.measureText(sizeText)
-        var textDrawX = selection.bounds.left
-        val textDrawYBaseline = selection.bounds.top - DIMENSION_TEXT_OFFSET
-
-        val paintTextBackground = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            this.style = Paint.Style.FILL
-            this.color = selectionColor
-        }
+        var textDrawX = bounds.left
+        val textDrawYBaseline = bounds.top - DIMENSION_TEXT_OFFSET
 
         val fm = paintText.fontMetrics
         var bgLeft = textDrawX
@@ -209,11 +215,22 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
         val finalBgBottom = finalTextDrawYBaseline + fm.bottom
 
+        val paintTextBackground = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            this.style = Paint.Style.FILL
+            this.color = textBackgroundColor
+        }
         canvas.drawRect(bgLeft, finalBgTop, bgRight, finalBgBottom, paintTextBackground)
 
-        paintText.withColor(elementBaseColor) { paint ->
+        paintText.withColor(textColor) { paint ->
             canvas.drawText(sizeText, textDrawX, finalTextDrawYBaseline, paint)
         }
+    }
+
+    private fun getElementSizeText(bounds: RectF): String {
+        val widthText = UnitConverter.format(bounds.width(), displayMetrics, cfg.unitMode)
+        val heightText =
+            UnitConverter.format(bounds.height(), displayMetrics, cfg.unitMode)
+        return "$widthText x $heightText"
     }
 
     private fun drawSelectedElement(canvas: Canvas) {
