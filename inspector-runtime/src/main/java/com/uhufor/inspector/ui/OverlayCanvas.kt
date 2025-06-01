@@ -131,8 +131,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
         drawAllElements(canvas)
 
         when (internalEngine?.measurementMode) {
+            MeasurementMode.Normal -> drawSelectedElement(canvas)
             MeasurementMode.Relative -> drawRelativeMeasurement(canvas)
-            else -> drawSelectedElement(canvas)
+            else -> Unit
         }
     }
 
@@ -150,33 +151,60 @@ internal class OverlayCanvas @JvmOverloads constructor(
         val currentEngine = internalEngine ?: return
         val selection = currentEngine.selection ?: return
 
-        val color = getComplementaryColor(getColorForElement(selection))
-        val paint = if (selection.isClickable) paintClickableBorder else paintBorder
-
         selection.parentBounds?.let { parentBounds ->
             drawDarkBackground(canvas, selection.bounds, parentBounds)
         }
 
-        paint.color = color
+        val elementColor = getColorForElement(selection)
+        val selectionColor = getComplementaryColor(elementColor)
+
+        val paint = if (selection.isClickable) paintClickableBorder else paintBorder
+        paint.color = selectionColor
         canvas.drawRect(selection.bounds, paint)
 
         val dm = context.resources.displayMetrics
         val widthText = UnitConverter.format(selection.bounds.width(), dm, cfg.unitMode)
         val heightText = UnitConverter.format(selection.bounds.height(), dm, cfg.unitMode)
+        val sizeText = "$widthText x $heightText"
 
-        paintText.color = color
-        canvas.drawText(
-            widthText,
-            selection.bounds.left,
-            selection.bounds.top - TEXT_PADDING_TOP,
-            paintText
-        )
-        canvas.drawText(
-            heightText,
-            selection.bounds.left - paintText.measureText(heightText) - TEXT_PADDING_HORIZONTAL,
-            selection.bounds.bottom,
-            paintText
-        )
+        paintText.color = elementColor
+
+        val textWidth = paintText.measureText(sizeText)
+
+        var textDrawX = selection.bounds.left
+        val textDrawYBaseline = selection.bounds.top - DIMENSION_TEXT_OFFSET
+
+        val paintTextBackground = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            this.style = Paint.Style.FILL
+            this.color = selectionColor
+        }
+
+        val fm = paintText.fontMetrics
+        var bgLeft = textDrawX
+        val bgTopInitial = textDrawYBaseline + fm.top
+        var bgRight = textDrawX + textWidth
+        var finalBgTop = bgTopInitial
+        var finalTextDrawYBaseline = textDrawYBaseline
+
+        if (bgLeft < 0f) {
+            textDrawX = 0f
+            bgLeft = 0f
+            bgRight = textWidth
+        } else if (bgLeft + textWidth > getWidth()) {
+            textDrawX = getWidth() - textWidth
+            bgLeft = textDrawX
+            bgRight = getWidth().toFloat()
+        }
+
+        if (bgTopInitial < 0f) {
+            val vShift = -bgTopInitial
+            finalBgTop = 0f
+            finalTextDrawYBaseline += vShift
+        }
+        val finalBgBottom = finalTextDrawYBaseline + fm.bottom
+
+        canvas.drawRect(bgLeft, finalBgTop, bgRight, finalBgBottom, paintTextBackground)
+        canvas.drawText(sizeText, textDrawX, finalTextDrawYBaseline, paintText)
 
         selection.parentBounds?.let { parentBounds ->
             drawDistanceToBounds(canvas, selection.bounds, parentBounds)
@@ -472,7 +500,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
             "#795548".toColorInt(),
             "#9E9E9E".toColorInt(),
             "#607D8B".toColorInt(),
-            "#000000".toColorInt()
         )
     }
 }

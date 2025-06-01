@@ -90,7 +90,8 @@ internal object ComposeHitTester {
                                 bounds.bottom
                             ),
                             isClickable = isNodeClickable(node),
-                            parentBounds = parentBounds
+                            parentBounds = parentBounds,
+                            id = bounds.hashCode()
                         )
                     }
             }
