@@ -14,7 +14,6 @@ import android.view.View
 import androidx.core.graphics.toColorInt
 import com.uhufor.inspector.Config
 import com.uhufor.inspector.ConfigProvider
-import com.uhufor.inspector.engine.DistanceType
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.engine.MeasurementMode
 import com.uhufor.inspector.engine.SelectionState
@@ -420,24 +419,15 @@ internal class OverlayCanvas @JvmOverloads constructor(
         if (distances.isEmpty()) return
 
         distances.forEach { distance ->
-            val distanceText = UnitConverter.format(distance.value, dm, cfg.unitMode)
-
-            paintDistanceLine.color = when (distance.type) {
-                DistanceType.HORIZONTAL -> Color.YELLOW
-                DistanceType.VERTICAL -> Color.CYAN
-            }
-
             drawDistanceLine(
                 canvas,
                 distance.startX,
                 distance.startY,
                 distance.endX,
                 distance.endY,
-                distanceText
+                UnitConverter.format(distance.value, dm, cfg.unitMode)
             )
         }
-
-        paintDistanceLine.color = Color.WHITE
     }
 
     private fun getColorForElement(element: Any) =
