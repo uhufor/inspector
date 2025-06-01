@@ -75,17 +75,22 @@ internal class OverlayCanvas @JvmOverloads constructor(
         color = Color.RED
     }
 
+    private val paintTextBackground = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        color = Color.RED
+    }
+
     private val paintText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = TEXT_SIZE
         color = Color.RED
     }
 
-    private val paintDistance = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val paintDistanceText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = DISTANCE_TEXT_SIZE
         color = Color.WHITE
     }
 
-    private val paintDashedLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val paintDistanceLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         strokeWidth = DASHED_LINE_WIDTH
         style = Paint.Style.STROKE
         color = Color.WHITE
@@ -215,12 +220,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
         val finalBgBottom = finalTextDrawYBaseline + fm.bottom
 
-        val paintTextBackground = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            this.style = Paint.Style.FILL
-            this.color = textBackgroundColor
+        paintTextBackground.withColor(textBackgroundColor) { paint ->
+            canvas.drawRect(bgLeft, finalBgTop, bgRight, finalBgBottom, paint)
         }
-        canvas.drawRect(bgLeft, finalBgTop, bgRight, finalBgBottom, paintTextBackground)
-
         paintText.withColor(textColor) { paint ->
             canvas.drawText(sizeText, textDrawX, finalTextDrawYBaseline, paint)
         }
@@ -241,8 +243,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
             drawDarkBackground(canvas, selection.bounds, parentBounds)
         }
 
-        val elementBaseColor = getColorForElement(selection)
-        drawElementInfo(canvas, selection, elementBaseColor)
+        val elementColor = getColorForElement(selection)
+        drawElementInfo(canvas, selection, elementColor)
 
         selection.parentBounds?.let { parentBounds ->
             drawDistanceToBounds(canvas, selection.bounds, parentBounds)
@@ -265,7 +267,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
         val secondary = currentEngine.secondarySelection
         if (secondary != null) {
-            val screenRect = android.graphics.RectF(0f, 0f, width.toFloat(), height.toFloat())
+            val screenRect = RectF(0f, 0f, width.toFloat(), height.toFloat())
             val darkBgPaint = Paint().apply {
                 color = DARK_BG_COLOR.toColorInt()
                 style = Paint.Style.FILL
@@ -291,8 +293,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     private fun drawDarkBackground(
         canvas: Canvas,
-        childBounds: android.graphics.RectF,
-        parentBounds: android.graphics.RectF,
+        childBounds: RectF,
+        parentBounds: RectF,
     ) {
         val bgPaint = Paint().apply {
             color = DARK_BG_COLOR.toColorInt()
@@ -307,8 +309,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     private fun drawDistanceToBounds(
         canvas: Canvas,
-        childBounds: android.graphics.RectF,
-        parentBounds: android.graphics.RectF,
+        childBounds: RectF,
+        parentBounds: RectF,
     ) {
         val dm = resources.displayMetrics
 
@@ -365,13 +367,13 @@ internal class OverlayCanvas @JvmOverloads constructor(
         endY: Float,
         distanceText: String,
     ) {
-        canvas.drawLine(startX, startY, endX, endY, paintDashedLine)
-        drawArrow(canvas, startX, startY, endX, endY, paintDashedLine)
-        drawArrow(canvas, endX, endY, startX, startY, paintDashedLine)
+        canvas.drawLine(startX, startY, endX, endY, paintDistanceLine)
+        drawArrow(canvas, startX, startY, endX, endY, paintDistanceLine)
+        drawArrow(canvas, endX, endY, startX, startY, paintDistanceLine)
 
         val isHorizontal = abs(startY - endY) < abs(startX - endX)
 
-        val textWidth = paintDistance.measureText(distanceText)
+        val textWidth = paintDistanceText.measureText(distanceText)
         val textX = (startX + endX) / 2 - textWidth / 2
 
         val textY = if (isHorizontal) {
@@ -380,7 +382,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
             (startY + endY) / 2 + TEXT_VERTICAL_OFFSET_VERTICAL_LINE
         }
 
-        val textBgRect = android.graphics.RectF(
+        val textBgRect = RectF(
             textX - TEXT_PADDING_HORIZONTAL,
             textY - TEXT_PADDING_TOP,
             textX + textWidth + TEXT_PADDING_HORIZONTAL,
@@ -392,7 +394,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
 
         canvas.drawRect(textBgRect, bgPaint)
-        canvas.drawText(distanceText, textX, textY, paintDistance)
+        canvas.drawText(distanceText, textX, textY, paintDistanceText)
     }
 
     private fun drawArrow(
@@ -421,7 +423,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         distances.forEach { distance ->
             val distanceText = UnitConverter.format(distance.value, dm, cfg.unitMode)
 
-            paintDashedLine.color = when (distance.type) {
+            paintDistanceLine.color = when (distance.type) {
                 DistanceType.HORIZONTAL -> Color.YELLOW
                 DistanceType.VERTICAL -> Color.CYAN
             }
@@ -436,7 +438,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
             )
         }
 
-        paintDashedLine.color = Color.WHITE
+        paintDistanceLine.color = Color.WHITE
     }
 
     private fun getColorForElement(element: Any) =
