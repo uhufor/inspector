@@ -355,7 +355,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
             textY + TEXT_PADDING_BOTTOM
         )
 
-        paintBackground.withColor(Color.argb(TEXT_BG_ALPHA, 0, 0, 0)) { paintColor ->
+        paintBackground.withColor(BG_COLOR_DEEP_DARK.toColorInt()) { paintColor ->
             canvas.drawRect(textBgRect, paintColor)
         }
         canvas.drawText(distanceText, textX, textY, paintDistanceText)
@@ -460,7 +460,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     companion object {
         private const val TEXT_SIZE = 24f
-        private const val DISTANCE_TEXT_SIZE = 18f
+        private const val DISTANCE_TEXT_SIZE = 22f
         private const val DASHED_LINE_WIDTH = 2f
         private const val DASH_PATTERN_ON = 10f
         private const val DASH_PATTERN_OFF = 5f
@@ -472,9 +472,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val TEXT_VERTICAL_OFFSET_VERTICAL_LINE = 5f
         private const val ARROW_SIZE = 10f
         private const val ARROW_ANGLE = Math.PI / 6
-        private const val TEXT_BG_ALPHA = 220
-        private const val BG_COLOR_DARK = "#30000000"
-        private const val BG_COLOR_RED = "#44FFAAAA"
+        private const val BG_COLOR_DEEP_DARK = "#DC000000"
+        private const val BG_COLOR_DARK = "#50000000"
+        private const val BG_COLOR_RED = "#60FFAAAA"
         private const val DIMENSION_TEXT_OFFSET = 8f
 
         private val ELEMENT_COLORS = listOf(
