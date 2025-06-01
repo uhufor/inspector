@@ -392,11 +392,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
             textY + TEXT_PADDING_BOTTOM
         )
 
-        val bgPaint = Paint().apply {
-            color = Color.argb(TEXT_BG_ALPHA, 0, 0, 0)
+        paintBackground.withColor(Color.argb(TEXT_BG_ALPHA, 0, 0, 0)) { paintColor ->
+            canvas.drawRect(textBgRect, paintColor)
         }
-
-        canvas.drawRect(textBgRect, bgPaint)
         canvas.drawText(distanceText, textX, textY, paintDistanceText)
     }
 
