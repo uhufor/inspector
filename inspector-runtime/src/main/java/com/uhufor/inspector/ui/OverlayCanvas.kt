@@ -25,6 +25,16 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
+private fun Paint.withColor(color: Int, block: (Paint) -> Unit) {
+    val originalColor = this.color
+    try {
+        this.color = color
+        block(this)
+    } finally {
+        this.color = originalColor
+    }
+}
+
 @SuppressLint("ClickableViewAccessibility")
 internal class OverlayCanvas @JvmOverloads constructor(
     context: Context,
@@ -143,10 +153,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
     private fun drawAllElements(canvas: Canvas) {
         internalEngine?.allElements?.forEach { element ->
             val color = applyAlpha(getColorForElement(element), 0.5f)
-            val paint = if (element.isClickable) paintClickableBorder else paintBorder
-            paint.color = color
-            canvas.drawRect(element.bounds, paint)
-            paint.color = Color.RED
+            val basePaint = if (element.isClickable) paintClickableBorder else paintBorder
+            basePaint.withColor(color) { paint ->
+                canvas.drawRect(element.bounds, paint)
+            }
         }
     }
 
@@ -156,17 +166,15 @@ internal class OverlayCanvas @JvmOverloads constructor(
         elementBaseColor: Int,
     ) {
         val selectionColor = getComplementaryColor(elementBaseColor)
-
-        val borderPaint = if (selection.isClickable) paintClickableBorder else paintBorder
-        borderPaint.color = selectionColor
-        canvas.drawRect(selection.bounds, borderPaint)
+        val baseBorderPaint = if (selection.isClickable) paintClickableBorder else paintBorder
+        baseBorderPaint.withColor(selectionColor) { paint ->
+            canvas.drawRect(selection.bounds, paint)
+        }
 
         val widthText = UnitConverter.format(selection.bounds.width(), displayMetrics, cfg.unitMode)
         val heightText =
             UnitConverter.format(selection.bounds.height(), displayMetrics, cfg.unitMode)
         val sizeText = "$widthText x $heightText"
-
-        paintText.color = elementBaseColor
 
         val textWidth = paintText.measureText(sizeText)
         var textDrawX = selection.bounds.left
@@ -202,7 +210,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         val finalBgBottom = finalTextDrawYBaseline + fm.bottom
 
         canvas.drawRect(bgLeft, finalBgTop, bgRight, finalBgBottom, paintTextBackground)
-        canvas.drawText(sizeText, textDrawX, finalTextDrawYBaseline, paintText)
+
+        paintText.withColor(elementBaseColor) { paint ->
+            canvas.drawText(sizeText, textDrawX, finalTextDrawYBaseline, paint)
+        }
     }
 
     private fun drawSelectedElement(canvas: Canvas) {
@@ -219,8 +230,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
         selection.parentBounds?.let { parentBounds ->
             drawDistanceToBounds(canvas, selection.bounds, parentBounds)
         }
-
-        paintText.color = Color.RED
     }
 
     private fun drawRelativeMeasurement(canvas: Canvas) {
@@ -261,8 +270,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
             drawRelativeDistances(canvas, displayMetrics)
         }
-
-        paintText.color = Color.RED
     }
 
     private fun drawDarkBackground(
