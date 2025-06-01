@@ -103,6 +103,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         )
     }
 
+    private val paintPorterDuffClear = Paint().apply {
+        xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR)
+    }
+
     private val elementColorMap = mutableMapOf<Int, Int>()
 
     private val gestureDetector = GestureDetector(
@@ -262,31 +266,25 @@ internal class OverlayCanvas @JvmOverloads constructor(
         val primary = currentEngine.primarySelection ?: return
         val primaryElementColor = getColorForElement(primary)
 
-        val primaryFillPaint = Paint().apply {
-            color = MODE_RED_BG_COLOR.toColorInt()
-            style = Paint.Style.FILL
-        }
-        canvas.drawRect(primary.bounds, primaryFillPaint)
-
-        drawElementInfo(canvas, primary, primaryElementColor)
-
         val secondary = currentEngine.secondarySelection
-        if (secondary != null) {
-            val screenRect = RectF(0f, 0f, width.toFloat(), height.toFloat())
-            val darkBgPaint = Paint().apply {
-                color = DARK_BG_COLOR.toColorInt()
-                style = Paint.Style.FILL
+        if (secondary == null) {
+            // have primary only
+            paintBackground.withColor(BG_COLOR_RED.toColorInt()) { paintColor ->
+                canvas.drawRect(primary.bounds, paintColor)
             }
-            canvas.drawRect(screenRect, darkBgPaint)
-
-            val clearPaint = Paint().apply {
-                xfermode =
-                    android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR)
+            drawElementInfo(canvas, primary, primaryElementColor)
+        } else {
+            // have primary and secondary both
+            paintBackground.withColor(BG_COLOR_DARK.toColorInt()) { paintColor ->
+                canvas.drawRect(RectF(0f, 0f, width.toFloat(), height.toFloat()), paintColor)
             }
-            canvas.drawRect(primary.bounds, clearPaint)
-            canvas.drawRect(secondary.bounds, clearPaint)
 
-            canvas.drawRect(primary.bounds, primaryFillPaint)
+            canvas.drawRect(primary.bounds, paintPorterDuffClear)
+            canvas.drawRect(secondary.bounds, paintPorterDuffClear)
+
+            paintBackground.withColor(BG_COLOR_RED.toColorInt()) { paintColor ->
+                canvas.drawRect(primary.bounds, paintColor)
+            }
             drawElementInfo(canvas, primary, primaryElementColor)
 
             val secondaryElementColor = getColorForElement(secondary)
@@ -305,7 +303,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
             addRect(parentBounds, android.graphics.Path.Direction.CW)
             addRect(childBounds, android.graphics.Path.Direction.CCW)
         }
-        paintBackground.withColor(DARK_BG_COLOR.toColorInt()) { paintColor ->
+        paintBackground.withColor(BG_COLOR_DARK.toColorInt()) { paintColor ->
             canvas.drawPath(path, paintColor)
         }
     }
@@ -485,8 +483,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val ARROW_SIZE = 10f
         private const val ARROW_ANGLE = Math.PI / 6
         private const val TEXT_BG_ALPHA = 220
-        private const val DARK_BG_COLOR = "#30000000"
-        private const val MODE_RED_BG_COLOR = "#44FFAAAA"
+        private const val BG_COLOR_DARK = "#30000000"
+        private const val BG_COLOR_RED = "#44FFAAAA"
         private const val DIMENSION_TEXT_OFFSET = 8f
 
         private val ELEMENT_COLORS = listOf(
