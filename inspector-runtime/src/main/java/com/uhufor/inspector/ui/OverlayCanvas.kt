@@ -16,6 +16,7 @@ import com.uhufor.inspector.ConfigProvider
 import com.uhufor.inspector.engine.DistanceType
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.engine.MeasurementMode
+import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.util.UnitConverter
 import com.uhufor.inspector.util.dp
 import kotlin.math.abs
@@ -215,15 +216,23 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     private fun drawRelativeMeasurement(canvas: Canvas) {
         val currentEngine = internalEngine ?: return
-        val primary = currentEngine.primarySelection ?: return
-        val secondary = currentEngine.secondarySelection
 
-        val primaryColor = getComplementaryColor(getColorForElement(primary))
-        val primaryPaint = if (primary.isClickable) paintClickableBorder.apply {
-            color = primaryColor
-        } else paintBorder.apply { color = primaryColor }
+        // Primary
+        val primary = currentEngine.primarySelection ?: return
+
+        // Get colors for primary
+        val primaryElementColor = getColorForElement(primary)
+        val primarySelectionColor = getComplementaryColor(primaryElementColor)
+
+        // Draw border for primary element
+        val primaryPaint = if (primary.isClickable) {
+            paintClickableBorder.apply { color = primarySelectionColor }
+        } else {
+            paintBorder.apply { color = primarySelectionColor }
+        }
         canvas.drawRect(primary.bounds, primaryPaint)
 
+        // Draw fill colors for primary element
         val primaryFillPaint = Paint().apply {
             color = MODE_RED_BG_COLOR.toColorInt()
             style = Paint.Style.FILL
@@ -233,15 +242,22 @@ internal class OverlayCanvas @JvmOverloads constructor(
         val dm = context.resources.displayMetrics
         val primaryWidthText = UnitConverter.format(primary.bounds.width(), dm, cfg.unitMode)
         val primaryHeightText = UnitConverter.format(primary.bounds.height(), dm, cfg.unitMode)
+        val primarySizeText = "$primaryWidthText × $primaryHeightText"
 
-        paintText.color = primaryColor
+        paintText.color = primaryElementColor
+        // Draw primary background for text
+        drawSizeTextBackground(canvas, primarySizeText, primary, primarySelectionColor)
+
+        // Draw primary text
         canvas.drawText(
-            "$primaryWidthText × $primaryHeightText",
+            primarySizeText,
             primary.bounds.left,
             primary.bounds.top - DIMENSION_TEXT_OFFSET,
             paintText
         )
 
+        // Secondary
+        val secondary = currentEngine.secondarySelection
         if (secondary != null) {
             val screenRect = android.graphics.RectF(0f, 0f, width.toFloat(), height.toFloat())
             val darkBgPaint = Paint().apply {
@@ -260,18 +276,27 @@ internal class OverlayCanvas @JvmOverloads constructor(
             canvas.drawRect(primary.bounds, primaryPaint)
             canvas.drawRect(primary.bounds, primaryFillPaint)
 
-            val secondaryColor = getComplementaryColor(getColorForElement(secondary))
+            // Get colors for secondary
+            val secondaryElementColor = getColorForElement(secondary)
+            val secondarySelectionColor = getComplementaryColor(secondaryElementColor)
+
             val secondaryPaint = if (secondary.isClickable) paintClickableBorder.apply {
-                color = secondaryColor
-            } else paintBorder.apply { color = secondaryColor }
+                color = secondarySelectionColor
+            } else paintBorder.apply { color = secondarySelectionColor }
             canvas.drawRect(secondary.bounds, secondaryPaint)
 
             val secondaryWidth = UnitConverter.format(secondary.bounds.width(), dm, cfg.unitMode)
             val secondaryHeight = UnitConverter.format(secondary.bounds.height(), dm, cfg.unitMode)
+            val secondarySizeText = "$secondaryWidth × $secondaryHeight"
 
-            paintText.color = secondaryColor
+            paintText.color = secondaryElementColor
+
+            // Draw secondary background for text
+            drawSizeTextBackground(canvas, secondarySizeText, secondary, secondarySelectionColor)
+
+            // Draw secondary text
             canvas.drawText(
-                "$secondaryWidth × $secondaryHeight",
+                secondarySizeText,
                 secondary.bounds.left,
                 secondary.bounds.top - DIMENSION_TEXT_OFFSET,
                 paintText
@@ -281,6 +306,49 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
 
         paintText.color = Color.RED
+    }
+
+    private fun drawSizeTextBackground(
+        canvas: Canvas,
+        sizeText: String,
+        selectionState: SelectionState,
+        selectionColor: Int,
+    ) {
+        val textWidth = paintText.measureText(sizeText)
+
+        var textDrawX = selectionState.bounds.left
+        val textDrawYBaseline = selectionState.bounds.top - DIMENSION_TEXT_OFFSET
+
+        val paintTextBackground = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            this.style = Paint.Style.FILL
+            this.color = selectionColor
+        }
+
+        val fm = paintText.fontMetrics
+        var bgLeft = textDrawX
+        val bgTopInitial = textDrawYBaseline + fm.top
+        var bgRight = textDrawX + textWidth
+        var finalBgTop = bgTopInitial
+        var finalTextDrawYBaseline = textDrawYBaseline
+
+        if (bgLeft < 0f) {
+            textDrawX = 0f
+            bgLeft = 0f
+            bgRight = textWidth
+        } else if (bgLeft + textWidth > getWidth()) {
+            textDrawX = getWidth() - textWidth
+            bgLeft = textDrawX
+            bgRight = getWidth().toFloat()
+        }
+
+        if (bgTopInitial < 0f) {
+            val vShift = -bgTopInitial
+            finalBgTop = 0f
+            finalTextDrawYBaseline += vShift
+        }
+        val finalBgBottom = finalTextDrawYBaseline + fm.bottom
+
+        canvas.drawRect(bgLeft, finalBgTop, bgRight, finalBgBottom, paintTextBackground)
     }
 
     private fun drawDarkBackground(
