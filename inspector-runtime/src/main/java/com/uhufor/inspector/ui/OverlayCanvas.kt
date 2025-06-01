@@ -36,6 +36,16 @@ private fun Paint.withColor(color: Int, block: (Paint) -> Unit) {
     }
 }
 
+private fun Paint.withBorderWidth(width: Float, block: (Paint) -> Unit) {
+    val originalWidth = this.strokeWidth
+    try {
+        this.strokeWidth = width
+        block(this)
+    } finally {
+        this.strokeWidth = originalWidth
+    }
+}
+
 @SuppressLint("ClickableViewAccessibility")
 internal class OverlayCanvas @JvmOverloads constructor(
     context: Context,
@@ -60,19 +70,12 @@ internal class OverlayCanvas @JvmOverloads constructor(
             ?.getConfig()
             ?: throw IllegalStateException("ConfigProvider must be set before accessing config.")
 
-    private val normalBorderWidth = 1.dp().toFloat()
-    private val clickableBorderWidth = 2.dp().toFloat()
+    private val thinBorderWidth = 1.dp().toFloat()
+    private val thickBorderWidth = 2.dp().toFloat()
 
-    private val paintNormalBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        strokeWidth = normalBorderWidth
+    private val paintBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        color = Color.RED
-    }
-
-    private val paintThickBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        strokeWidth = clickableBorderWidth
-        style = Paint.Style.STROKE
-        color = Color.RED
+        color = Color.CYAN
     }
 
     private val paintTextBackground = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -179,9 +182,11 @@ internal class OverlayCanvas @JvmOverloads constructor(
         useThickBorder: Boolean,
         borderColor: Int,
     ) {
-        val paintBorder = if (useThickBorder) paintThickBorder else paintNormalBorder
-        paintBorder.withColor(borderColor) { paint ->
-            canvas.drawRect(bounds, paint)
+        val borderWidth = if (useThickBorder) thickBorderWidth else thinBorderWidth
+        paintBorder.withBorderWidth(borderWidth) { paintBorder ->
+            paintBorder.withColor(borderColor) { paintColor ->
+                canvas.drawRect(bounds, paintColor)
+            }
         }
     }
 
