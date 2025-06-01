@@ -78,9 +78,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
         color = Color.CYAN
     }
 
-    private val paintTextBackground = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val paintBackground = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        color = Color.RED
+        color = Color.CYAN
     }
 
     private val paintText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -225,7 +225,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
         val finalBgBottom = finalTextDrawYBaseline + fm.bottom
 
-        paintTextBackground.withColor(textBackgroundColor) { paint ->
+        paintBackground.withColor(textBackgroundColor) { paint ->
             canvas.drawRect(bgLeft, finalBgTop, bgRight, finalBgBottom, paint)
         }
         paintText.withColor(textColor) { paint ->
