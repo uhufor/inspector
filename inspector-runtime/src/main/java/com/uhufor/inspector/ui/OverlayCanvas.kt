@@ -42,6 +42,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
     private var internalConfigProvider: ConfigProvider? = null
     private var internalEngine: InspectorEngine? = null
 
+    private val displayMetrics = context.resources.displayMetrics
+
     private val cfg: Config
         get() = internalConfigProvider
             ?.getConfig()
@@ -148,30 +150,25 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
     }
 
-    private fun drawSelectedElement(canvas: Canvas) {
-        val currentEngine = internalEngine ?: return
-        val selection = currentEngine.selection ?: return
+    private fun drawElementInfo(
+        canvas: Canvas,
+        selection: SelectionState,
+        elementBaseColor: Int,
+    ) {
+        val selectionColor = getComplementaryColor(elementBaseColor)
 
-        selection.parentBounds?.let { parentBounds ->
-            drawDarkBackground(canvas, selection.bounds, parentBounds)
-        }
+        val borderPaint = if (selection.isClickable) paintClickableBorder else paintBorder
+        borderPaint.color = selectionColor
+        canvas.drawRect(selection.bounds, borderPaint)
 
-        val elementColor = getColorForElement(selection)
-        val selectionColor = getComplementaryColor(elementColor)
-
-        val paint = if (selection.isClickable) paintClickableBorder else paintBorder
-        paint.color = selectionColor
-        canvas.drawRect(selection.bounds, paint)
-
-        val dm = context.resources.displayMetrics
-        val widthText = UnitConverter.format(selection.bounds.width(), dm, cfg.unitMode)
-        val heightText = UnitConverter.format(selection.bounds.height(), dm, cfg.unitMode)
+        val widthText = UnitConverter.format(selection.bounds.width(), displayMetrics, cfg.unitMode)
+        val heightText =
+            UnitConverter.format(selection.bounds.height(), displayMetrics, cfg.unitMode)
         val sizeText = "$widthText x $heightText"
 
-        paintText.color = elementColor
+        paintText.color = elementBaseColor
 
         val textWidth = paintText.measureText(sizeText)
-
         var textDrawX = selection.bounds.left
         val textDrawYBaseline = selection.bounds.top - DIMENSION_TEXT_OFFSET
 
@@ -206,6 +203,18 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
         canvas.drawRect(bgLeft, finalBgTop, bgRight, finalBgBottom, paintTextBackground)
         canvas.drawText(sizeText, textDrawX, finalTextDrawYBaseline, paintText)
+    }
+
+    private fun drawSelectedElement(canvas: Canvas) {
+        val currentEngine = internalEngine ?: return
+        val selection = currentEngine.selection ?: return
+
+        selection.parentBounds?.let { parentBounds ->
+            drawDarkBackground(canvas, selection.bounds, parentBounds)
+        }
+
+        val elementBaseColor = getColorForElement(selection)
+        drawElementInfo(canvas, selection, elementBaseColor)
 
         selection.parentBounds?.let { parentBounds ->
             drawDistanceToBounds(canvas, selection.bounds, parentBounds)
@@ -217,46 +226,17 @@ internal class OverlayCanvas @JvmOverloads constructor(
     private fun drawRelativeMeasurement(canvas: Canvas) {
         val currentEngine = internalEngine ?: return
 
-        // Primary
         val primary = currentEngine.primarySelection ?: return
-
-        // Get colors for primary
         val primaryElementColor = getColorForElement(primary)
-        val primarySelectionColor = getComplementaryColor(primaryElementColor)
 
-        // Draw border for primary element
-        val primaryPaint = if (primary.isClickable) {
-            paintClickableBorder.apply { color = primarySelectionColor }
-        } else {
-            paintBorder.apply { color = primarySelectionColor }
-        }
-        canvas.drawRect(primary.bounds, primaryPaint)
-
-        // Draw fill colors for primary element
         val primaryFillPaint = Paint().apply {
             color = MODE_RED_BG_COLOR.toColorInt()
             style = Paint.Style.FILL
         }
         canvas.drawRect(primary.bounds, primaryFillPaint)
 
-        val dm = context.resources.displayMetrics
-        val primaryWidthText = UnitConverter.format(primary.bounds.width(), dm, cfg.unitMode)
-        val primaryHeightText = UnitConverter.format(primary.bounds.height(), dm, cfg.unitMode)
-        val primarySizeText = "$primaryWidthText × $primaryHeightText"
+        drawElementInfo(canvas, primary, primaryElementColor)
 
-        paintText.color = primaryElementColor
-        // Draw primary background for text
-        drawSizeTextBackground(canvas, primarySizeText, primary, primarySelectionColor)
-
-        // Draw primary text
-        canvas.drawText(
-            primarySizeText,
-            primary.bounds.left,
-            primary.bounds.top - DIMENSION_TEXT_OFFSET,
-            paintText
-        )
-
-        // Secondary
         val secondary = currentEngine.secondarySelection
         if (secondary != null) {
             val screenRect = android.graphics.RectF(0f, 0f, width.toFloat(), height.toFloat())
@@ -273,82 +253,16 @@ internal class OverlayCanvas @JvmOverloads constructor(
             canvas.drawRect(primary.bounds, clearPaint)
             canvas.drawRect(secondary.bounds, clearPaint)
 
-            canvas.drawRect(primary.bounds, primaryPaint)
             canvas.drawRect(primary.bounds, primaryFillPaint)
+            drawElementInfo(canvas, primary, primaryElementColor)
 
-            // Get colors for secondary
             val secondaryElementColor = getColorForElement(secondary)
-            val secondarySelectionColor = getComplementaryColor(secondaryElementColor)
+            drawElementInfo(canvas, secondary, secondaryElementColor)
 
-            val secondaryPaint = if (secondary.isClickable) paintClickableBorder.apply {
-                color = secondarySelectionColor
-            } else paintBorder.apply { color = secondarySelectionColor }
-            canvas.drawRect(secondary.bounds, secondaryPaint)
-
-            val secondaryWidth = UnitConverter.format(secondary.bounds.width(), dm, cfg.unitMode)
-            val secondaryHeight = UnitConverter.format(secondary.bounds.height(), dm, cfg.unitMode)
-            val secondarySizeText = "$secondaryWidth × $secondaryHeight"
-
-            paintText.color = secondaryElementColor
-
-            // Draw secondary background for text
-            drawSizeTextBackground(canvas, secondarySizeText, secondary, secondarySelectionColor)
-
-            // Draw secondary text
-            canvas.drawText(
-                secondarySizeText,
-                secondary.bounds.left,
-                secondary.bounds.top - DIMENSION_TEXT_OFFSET,
-                paintText
-            )
-
-            drawRelativeDistances(canvas, dm)
+            drawRelativeDistances(canvas, displayMetrics)
         }
 
         paintText.color = Color.RED
-    }
-
-    private fun drawSizeTextBackground(
-        canvas: Canvas,
-        sizeText: String,
-        selectionState: SelectionState,
-        selectionColor: Int,
-    ) {
-        val textWidth = paintText.measureText(sizeText)
-
-        var textDrawX = selectionState.bounds.left
-        val textDrawYBaseline = selectionState.bounds.top - DIMENSION_TEXT_OFFSET
-
-        val paintTextBackground = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            this.style = Paint.Style.FILL
-            this.color = selectionColor
-        }
-
-        val fm = paintText.fontMetrics
-        var bgLeft = textDrawX
-        val bgTopInitial = textDrawYBaseline + fm.top
-        var bgRight = textDrawX + textWidth
-        var finalBgTop = bgTopInitial
-        var finalTextDrawYBaseline = textDrawYBaseline
-
-        if (bgLeft < 0f) {
-            textDrawX = 0f
-            bgLeft = 0f
-            bgRight = textWidth
-        } else if (bgLeft + textWidth > getWidth()) {
-            textDrawX = getWidth() - textWidth
-            bgLeft = textDrawX
-            bgRight = getWidth().toFloat()
-        }
-
-        if (bgTopInitial < 0f) {
-            val vShift = -bgTopInitial
-            finalBgTop = 0f
-            finalTextDrawYBaseline += vShift
-        }
-        val finalBgBottom = finalTextDrawYBaseline + fm.bottom
-
-        canvas.drawRect(bgLeft, finalBgTop, bgRight, finalBgBottom, paintTextBackground)
     }
 
     private fun drawDarkBackground(
