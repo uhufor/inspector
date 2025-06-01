@@ -260,40 +260,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
     }
 
-    private fun drawRelativeMeasurement(canvas: Canvas) {
-        val currentEngine = internalEngine ?: return
-
-        val primary = currentEngine.primarySelection ?: return
-        val primaryElementColor = getColorForElement(primary)
-
-        val secondary = currentEngine.secondarySelection
-        if (secondary == null) {
-            // have primary only
-            paintBackground.withColor(BG_COLOR_RED.toColorInt()) { paintColor ->
-                canvas.drawRect(primary.bounds, paintColor)
-            }
-            drawElementInfo(canvas, primary, primaryElementColor)
-        } else {
-            // have primary and secondary both
-            paintBackground.withColor(BG_COLOR_DARK.toColorInt()) { paintColor ->
-                canvas.drawRect(RectF(0f, 0f, width.toFloat(), height.toFloat()), paintColor)
-            }
-
-            canvas.drawRect(primary.bounds, paintPorterDuffClear)
-            canvas.drawRect(secondary.bounds, paintPorterDuffClear)
-
-            paintBackground.withColor(BG_COLOR_RED.toColorInt()) { paintColor ->
-                canvas.drawRect(primary.bounds, paintColor)
-            }
-            drawElementInfo(canvas, primary, primaryElementColor)
-
-            val secondaryElementColor = getColorForElement(secondary)
-            drawElementInfo(canvas, secondary, secondaryElementColor)
-
-            drawRelativeDistances(canvas, displayMetrics)
-        }
-    }
-
     private fun drawDarkBackground(
         canvas: Canvas,
         childBounds: RectF,
@@ -413,6 +379,40 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
         canvas.drawLine(fromX, fromY, arrowX1, arrowY1, paint)
         canvas.drawLine(fromX, fromY, arrowX2, arrowY2, paint)
+    }
+
+    private fun drawRelativeMeasurement(canvas: Canvas) {
+        val currentEngine = internalEngine ?: return
+
+        val primary = currentEngine.primarySelection ?: return
+        val primaryElementColor = getColorForElement(primary)
+
+        val secondary = currentEngine.secondarySelection
+        if (secondary == null) {
+            // have primary only
+            paintBackground.withColor(BG_COLOR_RED.toColorInt()) { paintColor ->
+                canvas.drawRect(primary.bounds, paintColor)
+            }
+            drawElementInfo(canvas, primary, primaryElementColor)
+        } else {
+            // have primary and secondary both
+            paintBackground.withColor(BG_COLOR_DARK.toColorInt()) { paintColor ->
+                canvas.drawRect(RectF(0f, 0f, width.toFloat(), height.toFloat()), paintColor)
+            }
+
+            canvas.drawRect(primary.bounds, paintPorterDuffClear)
+            canvas.drawRect(secondary.bounds, paintPorterDuffClear)
+
+            paintBackground.withColor(BG_COLOR_RED.toColorInt()) { paintColor ->
+                canvas.drawRect(primary.bounds, paintColor)
+            }
+            drawElementInfo(canvas, primary, primaryElementColor)
+
+            val secondaryElementColor = getColorForElement(secondary)
+            drawElementInfo(canvas, secondary, secondaryElementColor)
+
+            drawRelativeDistances(canvas, displayMetrics)
+        }
     }
 
     private fun drawRelativeDistances(canvas: Canvas, dm: android.util.DisplayMetrics) {
