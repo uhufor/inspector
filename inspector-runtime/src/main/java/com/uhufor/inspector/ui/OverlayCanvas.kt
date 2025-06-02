@@ -408,6 +408,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
             drawElementInfo(canvas, primary, primaryElementColor)
 
             val secondaryElementColor = getColorForElement(secondary)
+            paintBackground.withColor(BG_COLOR_BLUE.toColorInt()) { paintColor ->
+                canvas.drawRect(secondary.bounds, paintColor)
+            }
             drawElementInfo(canvas, secondary, secondaryElementColor)
 
             drawRelativeDistances(canvas, displayMetrics)
@@ -475,6 +478,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val BG_COLOR_DEEP_DARK = "#DC000000"
         private const val BG_COLOR_DARK = "#50000000"
         private const val BG_COLOR_RED = "#60FFAAAA"
+        private const val BG_COLOR_BLUE = "#60AAAAFF"
         private const val DIMENSION_TEXT_OFFSET = 8f
 
         private val ELEMENT_COLORS = listOf(
