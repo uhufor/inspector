@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.github.uhufor"
-version = (project.findProperty("mavenPublishVersion") as String? ?: "0.0.1-SNAPSHOT")
+version = (project.findProperty("mavenPublishVersion") as String? ?: "SNAPSHOT")
 
 android {
     namespace = "com.uhufor.inspector"
@@ -70,10 +70,10 @@ mavenPublishing {
     )
 
     pom {
-        name.set("Android UI Inspection - ${project.name}")
-        description.set("Android UI inspection tool - ${project.name}")
+        name.set("Android UI Inspector - ${project.name}")
+        description.set("A powerful Android UI inspection tool - ${project.name}")
         inceptionYear.set("2025")
-        url.set("https://github.com/uhufor/ui_inspection_sample")
+        url.set("https://github.com/uhufor/inspector")
         licenses {
             license {
                 name.set("The Apache License, Version 2.0")
@@ -84,14 +84,14 @@ mavenPublishing {
         developers {
             developer {
                 id.set("uhufor")
-                name.set("Uhufor")
+                name.set("Hae Jung, Kim")
                 url.set("https://github.com/uhufor/")
             }
         }
         scm {
-            url.set("https://github.com/uhufor/ui_inspection_sample")
-            connection.set("scm:git:https://github.com/uhufor/ui_inspection_sample.git")
-            developerConnection.set("scm:git:git@github.com:uhufor/ui_inspection_sample.git")
+            url.set("https://github.com/uhufor/inspector")
+            connection.set("scm:git:https://github.com/uhufor/inspector.git")
+            developerConnection.set("scm:git:git@github.com:uhufor/inspector.git")
         }
     }
 

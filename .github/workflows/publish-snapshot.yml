@@ -30,7 +30,7 @@ jobs:
           cache: gradle
 
       - name: Set Snapshot Version
-        run: echo "mavenPublishVersion=0.0.1-SNAPSHOT" >> gradle.properties
+        run: echo "mavenPublishVersion=TEST-SNAPSHOT" >> gradle.properties
 
       - name: Publish all modules
         run: ./gradlew clean publishAllPublicationsToMavenCentralRepository --no-daemon
