@@ -15,19 +15,75 @@ object RelativeMeasurement {
         val horizontalOverlap = !(secondary.right < primary.left || secondary.left > primary.right)
         val verticalOverlap = !(secondary.bottom < primary.top || secondary.top > primary.bottom)
 
-        if (horizontalOverlap && !verticalOverlap) {
-            val verticalX = getHorizontalOverlap(primary, secondary)
-                ?.run { first + (second - first) / 2 }
-                ?: (primary.left + primary.width() / 2)
+        if (horizontalOverlap && verticalOverlap) {
+            val overlapCenterX = getHorizontalOverlapCenterX(primary, secondary)
+            val overlapCenterY = getVerticalOverlapCenterY(primary, secondary)
 
+            val topDistanceVal = abs(primary.top - secondary.top)
+            if (topDistanceVal > 0f) {
+                distances.add(
+                    Distance(
+                        startX = overlapCenterX,
+                        startY = min(primary.top, secondary.top),
+                        endX = overlapCenterX,
+                        endY = max(primary.top, secondary.top),
+                        value = topDistanceVal,
+                        type = DistanceType.VERTICAL
+                    )
+                )
+            }
+
+            val bottomDistanceVal = abs(primary.bottom - secondary.bottom)
+            if (bottomDistanceVal > 0f) {
+                distances.add(
+                    Distance(
+                        startX = overlapCenterX,
+                        startY = min(primary.bottom, secondary.bottom),
+                        endX = overlapCenterX,
+                        endY = max(primary.bottom, secondary.bottom),
+                        value = bottomDistanceVal,
+                        type = DistanceType.VERTICAL
+                    )
+                )
+            }
+
+            val leftDistanceVal = abs(primary.left - secondary.left)
+            if (leftDistanceVal > 0f) {
+                distances.add(
+                    Distance(
+                        startX = min(primary.left, secondary.left),
+                        startY = overlapCenterY,
+                        endX = max(primary.left, secondary.left),
+                        endY = overlapCenterY,
+                        value = leftDistanceVal,
+                        type = DistanceType.HORIZONTAL
+                    )
+                )
+            }
+
+            val rightDistanceVal = abs(primary.right - secondary.right)
+            if (rightDistanceVal > 0f) {
+                distances.add(
+                    Distance(
+                        startX = min(primary.right, secondary.right),
+                        startY = overlapCenterY,
+                        endX = max(primary.right, secondary.right),
+                        endY = overlapCenterY,
+                        value = rightDistanceVal,
+                        type = DistanceType.HORIZONTAL
+                    )
+                )
+            }
+        } else if (horizontalOverlap) {
+            val centerX = getHorizontalOverlapCenterX(primary, secondary)
             if (secondary.top > primary.bottom) {
                 val distance = secondary.top - primary.bottom
                 if (distance > 0) {
                     distances.add(
                         Distance(
-                            startX = verticalX,
+                            startX = centerX,
                             startY = primary.bottom,
-                            endX = verticalX,
+                            endX = centerX,
                             endY = secondary.top,
                             value = distance,
                             type = DistanceType.VERTICAL
@@ -39,9 +95,9 @@ object RelativeMeasurement {
                 if (distance > 0) {
                     distances.add(
                         Distance(
-                            startX = verticalX,
+                            startX = centerX,
                             startY = primary.top,
-                            endX = verticalX,
+                            endX = centerX,
                             endY = secondary.bottom,
                             value = distance,
                             type = DistanceType.VERTICAL
@@ -94,20 +150,17 @@ object RelativeMeasurement {
                 )
             }
 
-        } else if (verticalOverlap && !horizontalOverlap) {
-            val horizontalY = getVerticalOverlap(primary, secondary)
-                ?.run { first + (second - first) / 2 }
-                ?: (primary.top + primary.height() / 2)
-
+        } else if (verticalOverlap) {
+            val centerY = getVerticalOverlapCenterY(primary, secondary)
             if (secondary.left > primary.right) {
                 val distance = secondary.left - primary.right
                 if (distance > 0) {
                     distances.add(
                         Distance(
                             startX = primary.right,
-                            startY = horizontalY,
+                            startY = centerY,
                             endX = secondary.left,
-                            endY = horizontalY,
+                            endY = centerY,
                             value = distance,
                             type = DistanceType.HORIZONTAL
                         )
@@ -119,9 +172,9 @@ object RelativeMeasurement {
                     distances.add(
                         Distance(
                             startX = primary.left,
-                            startY = horizontalY,
+                            startY = centerY,
                             endX = secondary.right,
-                            endY = horizontalY,
+                            endY = centerY,
                             value = distance,
                             type = DistanceType.HORIZONTAL
                         )
@@ -174,7 +227,6 @@ object RelativeMeasurement {
                     )
                 )
             }
-
         } else {
             val horizontalY = primary.top + primary.height() / 2
             if (secondary.left > primary.right) {
@@ -229,6 +281,12 @@ object RelativeMeasurement {
         return distances
     }
 
+    private fun getHorizontalOverlapCenterX(rect1: RectF, rect2: RectF): Float {
+        return getHorizontalOverlap(rect1, rect2)
+            ?.run { first + (second - first) / 2 }
+            ?: (if (rect1.width() > rect2.width()) getCenterX(rect2) else getCenterX(rect1))
+    }
+
     private fun getHorizontalOverlap(rect1: RectF, rect2: RectF): Pair<Float, Float>? {
         val startX = max(rect1.left, rect2.left)
         val endX = min(rect1.right, rect2.right)
@@ -236,11 +294,25 @@ object RelativeMeasurement {
         return if (startX < endX) Pair(startX, endX) else null
     }
 
+    private fun getCenterX(rect: RectF): Float {
+        return rect.left + rect.width() / 2
+    }
+
+    private fun getVerticalOverlapCenterY(rect1: RectF, rect2: RectF): Float {
+        return getVerticalOverlap(rect1, rect2)
+            ?.run { first + (second - first) / 2 }
+            ?: (if (rect1.height() > rect2.height()) getCenterY(rect2) else getCenterY(rect1))
+    }
+
     private fun getVerticalOverlap(rect1: RectF, rect2: RectF): Pair<Float, Float>? {
         val startY = max(rect1.top, rect2.top)
         val endY = min(rect1.bottom, rect2.bottom)
 
         return if (startY < endY) Pair(startY, endY) else null
+    }
+
+    private fun getCenterY(rect: RectF): Float {
+        return rect.top + rect.height() / 2
     }
 }
 
