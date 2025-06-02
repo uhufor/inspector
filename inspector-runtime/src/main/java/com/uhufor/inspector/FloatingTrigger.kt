@@ -45,8 +45,8 @@ internal class FloatingTrigger(
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.END or Gravity.BOTTOM
-            x = 16.dp()
-            y = 96.dp()
+            x = 16.dp().toInt()
+            y = 96.dp().toInt()
         }
 
         try {

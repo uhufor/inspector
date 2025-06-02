@@ -19,7 +19,6 @@ import com.uhufor.inspector.engine.MeasurementMode
 import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.util.UnitConverter
 import com.uhufor.inspector.util.dp
-import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -69,8 +68,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
             ?.getConfig()
             ?: throw IllegalStateException("ConfigProvider must be set before accessing config.")
 
-    private val thinBorderWidth = 1.dp().toFloat()
-    private val thickBorderWidth = 2.dp().toFloat()
+    private val thinBorderWidth = 1.dp()
+    private val thickBorderWidth = 2.dp()
 
     private val paintBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -83,17 +82,17 @@ internal class OverlayCanvas @JvmOverloads constructor(
     }
 
     private val paintText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = TEXT_SIZE
+        textSize = TEXT_SIZE.dp()
         color = Color.RED
     }
 
     private val paintDistanceText = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = DISTANCE_TEXT_SIZE
+        textSize = DISTANCE_TEXT_SIZE.dp()
         color = Color.WHITE
     }
 
     private val paintDistanceLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        strokeWidth = DASHED_LINE_WIDTH
+        strokeWidth = DASHED_LINE_WIDTH.dp()
         style = Paint.Style.STROKE
         color = Color.WHITE
         pathEffect = android.graphics.DashPathEffect(
@@ -202,7 +201,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         val sizeText = getElementSizeText(bounds)
         val textWidth = paintText.measureText(sizeText)
         var textDrawX = bounds.left
-        val textDrawYBaseline = bounds.top - DIMENSION_TEXT_OFFSET
+        val textDrawYBaseline = bounds.top - DIMENSION_TEXT_OFFSET.dp()
 
         val fm = paintText.fontMetrics
         var bgLeft = textDrawX
@@ -337,22 +336,15 @@ internal class OverlayCanvas @JvmOverloads constructor(
         drawArrow(canvas, startX, startY, endX, endY, paintDistanceLine)
         drawArrow(canvas, endX, endY, startX, startY, paintDistanceLine)
 
-        val isHorizontal = abs(startY - endY) < abs(startX - endX)
-
         val textWidth = paintDistanceText.measureText(distanceText)
         val textX = (startX + endX) / 2 - textWidth / 2
-
-        val textY = if (isHorizontal) {
-            (startY + endY) / 2 - TEXT_VERTICAL_OFFSET_HORIZONTAL_LINE
-        } else {
-            (startY + endY) / 2 + TEXT_VERTICAL_OFFSET_VERTICAL_LINE
-        }
+        val textY = (startY + endY) / 2 + TEXT_VERTICAL_OFFSET
 
         val textBgRect = RectF(
-            textX - TEXT_PADDING_HORIZONTAL,
-            textY - TEXT_PADDING_TOP,
-            textX + textWidth + TEXT_PADDING_HORIZONTAL,
-            textY + TEXT_PADDING_BOTTOM
+            textX - TEXT_PADDING_HORIZONTAL.dp(),
+            textY - TEXT_PADDING_TOP.dp(),
+            textX + textWidth + TEXT_PADDING_HORIZONTAL.dp(),
+            textY + TEXT_PADDING_BOTTOM.dp()
         )
 
         paintBackground.withColor(BG_COLOR_DEEP_DARK.toColorInt()) { paintColor ->
@@ -370,11 +362,12 @@ internal class OverlayCanvas @JvmOverloads constructor(
         paint: Paint,
     ) {
         val angle = atan2((toY - fromY).toDouble(), (toX - fromX).toDouble())
+        val arrowSize = ARROW_SIZE.dp()
 
-        val arrowX1 = fromX + ARROW_SIZE * cos(angle - ARROW_ANGLE).toFloat()
-        val arrowY1 = fromY + ARROW_SIZE * sin(angle - ARROW_ANGLE).toFloat()
-        val arrowX2 = fromX + ARROW_SIZE * cos(angle + ARROW_ANGLE).toFloat()
-        val arrowY2 = fromY + ARROW_SIZE * sin(angle + ARROW_ANGLE).toFloat()
+        val arrowX1 = fromX + arrowSize * cos(angle - ARROW_ANGLE).toFloat()
+        val arrowY1 = fromY + arrowSize * sin(angle - ARROW_ANGLE).toFloat()
+        val arrowX2 = fromX + arrowSize * cos(angle + ARROW_ANGLE).toFloat()
+        val arrowY2 = fromY + arrowSize * sin(angle + ARROW_ANGLE).toFloat()
 
         canvas.drawLine(fromX, fromY, arrowX1, arrowY1, paint)
         canvas.drawLine(fromX, fromY, arrowX2, arrowY2, paint)
@@ -462,24 +455,23 @@ internal class OverlayCanvas @JvmOverloads constructor(
     fun getAllElements() = internalEngine?.allElements
 
     companion object {
-        private const val TEXT_SIZE = 24f
-        private const val DISTANCE_TEXT_SIZE = 22f
-        private const val DASHED_LINE_WIDTH = 2f
+        private const val TEXT_SIZE = 8f
+        private const val DISTANCE_TEXT_SIZE = 7f
+        private const val DASHED_LINE_WIDTH = 1.2f
         private const val DASH_PATTERN_ON = 10f
         private const val DASH_PATTERN_OFF = 5f
         private const val DASH_PHASE = 0f
-        private const val TEXT_PADDING_HORIZONTAL = 5f
-        private const val TEXT_PADDING_TOP = 20f
-        private const val TEXT_PADDING_BOTTOM = 5f
-        private const val TEXT_VERTICAL_OFFSET_HORIZONTAL_LINE = 15f
-        private const val TEXT_VERTICAL_OFFSET_VERTICAL_LINE = 5f
-        private const val ARROW_SIZE = 10f
+        private const val TEXT_PADDING_HORIZONTAL = 1f
+        private const val TEXT_PADDING_TOP = 7f
+        private const val TEXT_PADDING_BOTTOM = 2f
+        private const val TEXT_VERTICAL_OFFSET = DISTANCE_TEXT_SIZE
+        private const val ARROW_SIZE = 4f
         private const val ARROW_ANGLE = Math.PI / 6
-        private const val BG_COLOR_DEEP_DARK = "#DC000000"
+        private const val BG_COLOR_DEEP_DARK = "#AC000000"
         private const val BG_COLOR_DARK = "#50000000"
         private const val BG_COLOR_RED = "#60FFAAAA"
         private const val BG_COLOR_BLUE = "#60AAAAFF"
-        private const val DIMENSION_TEXT_OFFSET = 8f
+        private const val DIMENSION_TEXT_OFFSET = 3f
 
         private val ELEMENT_COLORS = listOf(
             "#F44336".toColorInt(),
