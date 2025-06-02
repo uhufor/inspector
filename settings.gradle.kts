@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "InspectionSample"
+rootProject.name = "Inspector"
 include(":app", ":inspector-runtime", ":inspector-noop")
