@@ -2,6 +2,9 @@
 
 **UI Inspector** is a debugging overlay library for Android that allows developers to visually
 inspect layout elements during development.
+
+This app is inspired by the UI inspection (measurement) function of the now defunct **Window VQA** app.
+
 It is intended for **debug builds only**, and a corresponding **no-op module** ensures no overhead
 or code inclusion in release builds.
 
@@ -36,6 +39,35 @@ or code inclusion in release builds.
 
 ---
 
+## Compose Constraints
+
+Since **SemanticsNode** is used for UI element extraction in **Compose**, Nodes that do not generate Semantics during composable declaration are not displayed as selectable elements. In such cases, you need to ensure that SemanticsNode is generated as shown in the code below.
+
+```kotlin
+@Composable
+fun Profile(profile: Profile, modifier: Modifier) {
+  Box(
+    modifier = Modifier
+      .clearAndSetSemantics {} // or .semantics {}
+      .size(100.dp)
+      ..
+  ) {
+      Image(
+        painter = painterResource(id = R.drawable.ic_profile_placeholder),
+        contentDescription = "profile holder", // Option 1
+        modifier = Modifier
+          // or .clearAndSetSemantics {}       // Option 2
+          // or .semantics {}                  // Option 3
+          .fillMaxSize(),
+        contentScale = ContentScale.Crop
+      )
+      ..
+  }
+}
+```
+
+---
+
 ## Permissions
 
 This library requires the **"Draw over other apps"** permission in order to display the overlay UI.
@@ -49,8 +81,8 @@ Add the following dependencies via Maven Central:
 
 ```kotlin
 dependencies {
-  debugImplementation("io.github.uhufor:inspector-runtime:latest")
-  releaseImplementation("io.github.uhufor:inspector-noop:latest")
+  debugImplementation("io.github.uhufor:inspector-runtime:latest.release")
+  releaseImplementation("io.github.uhufor:inspector-noop:latest.release")
 }
 ```
 
@@ -82,9 +114,17 @@ class InspectorActivity : Activity() {
 ## License
 
 ```
+Copyright [2025] [uhufor (Hae Jung, Kim)]
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ```
