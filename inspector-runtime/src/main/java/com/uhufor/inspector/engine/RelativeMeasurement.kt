@@ -12,8 +12,10 @@ object RelativeMeasurement {
         secondary: RectF,
     ): List<Distance> {
         val distances = mutableListOf<Distance>()
-        val horizontalOverlap = !(secondary.right < primary.left || secondary.left > primary.right)
-        val verticalOverlap = !(secondary.bottom < primary.top || secondary.top > primary.bottom)
+        val horizontalOverlap =
+            !(secondary.right <= primary.left || secondary.left >= primary.right)
+        val verticalOverlap =
+            !(secondary.bottom <= primary.top || secondary.top >= primary.bottom)
 
         if (horizontalOverlap && verticalOverlap) {
             val overlapCenterX = getHorizontalOverlapCenterX(primary, secondary)
