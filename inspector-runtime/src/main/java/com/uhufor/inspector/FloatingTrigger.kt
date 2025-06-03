@@ -56,7 +56,7 @@ internal class FloatingTrigger(
             isInstalled = false
         }
 
-        updateButtonLabel(inspector.isInspectionEnabled, inspector.getConfig().unitMode)
+        updateButtonLabel(inspector.isInspectionEnabled)
     }
 
     fun uninstall() {
@@ -109,14 +109,17 @@ internal class FloatingTrigger(
     }
 
     @SuppressLint("SetTextI18n")
-    fun updateButtonLabel(isOverlayEnabled: Boolean, unitMode: UnitMode) {
+    fun updateButtonLabel(isOverlayEnabled: Boolean) {
         if (!isInstalled || button == null) return
 
-        button?.setLabelText("${unitMode.name.lowercase()} | ${if (isOverlayEnabled) "ON" else "OFF"}")
+        val config = inspector.getConfig()
+        button?.setLabelText(
+            "${config.unitMode.name} (${config.densityString})\n > ${if (isOverlayEnabled) "ON" else "OFF"}"
+        )
     }
 
-    fun updateInspectorState(isOverlayEnabled: Boolean, unitMode: UnitMode) {
-        updateButtonLabel(isOverlayEnabled, unitMode)
+    fun updateInspectorState(isOverlayEnabled: Boolean) {
+        updateButtonLabel(isOverlayEnabled)
     }
 
     fun bringToFront() {

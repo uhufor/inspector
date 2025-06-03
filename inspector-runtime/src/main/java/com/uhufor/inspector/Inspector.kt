@@ -81,7 +81,7 @@ object Inspector : ConfigProvider {
         inspectorEngine?.scanAllElements()
         floatingTrigger?.bringToFront()
         isInspectionEnabled = true
-        floatingTrigger?.updateInspectorState(true, _config.unitMode)
+        floatingTrigger?.updateInspectorState(true)
     }
 
     @MainThread
@@ -95,7 +95,7 @@ object Inspector : ConfigProvider {
         inspectorEngine?.clearScan()
         inspectorEngine = null
         isInspectionEnabled = false
-        floatingTrigger?.updateInspectorState(false, _config.unitMode)
+        floatingTrigger?.updateInspectorState(false)
     }
 
     @MainThread
@@ -111,7 +111,7 @@ object Inspector : ConfigProvider {
         if (_config.unitMode == mode) return
         _config.unitMode = mode
         overlayCanvas?.invalidate()
-        floatingTrigger?.updateInspectorState(isInspectionEnabled, _config.unitMode)
+        floatingTrigger?.updateInspectorState(isInspectionEnabled)
     }
 
     fun getCurrentMeasurementMode(): MeasurementMode? {
@@ -138,7 +138,7 @@ object Inspector : ConfigProvider {
         }
 
         floatingTrigger?.install()
-        floatingTrigger?.updateInspectorState(isInspectionEnabled, _config.unitMode)
+        floatingTrigger?.updateInspectorState(isInspectionEnabled)
     }
 
     @MainThread
