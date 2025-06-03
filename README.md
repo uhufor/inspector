@@ -1,9 +1,9 @@
 # UI Inspector
 
-**UI Inspector** is a debugging overlay library for Android that allows developers to visually
+**UI Inspector** is a debugging overlay library for <u>Android</u> that allows developers to visually
 inspect layout elements during development.
 
-This app is inspired by the UI inspection (measurement) function of the now defunct **Window VQA** app.
+This project is inspired by the UI inspection (measurement) function of the now-<u>defunct</u> **Window VQA** app.
 
 It is intended for **debug builds only**, and a corresponding **no-op module** ensures no overhead
 or code inclusion in release builds.
@@ -27,9 +27,9 @@ or code inclusion in release builds.
 ### Relative Inspection Mode
 
 - Long-pressing a selectable element activates relative inspection mode.
-- The first selected element is tinted **red**, the second **blue**.
+- The first selected element is highlighted in **red**, and the second in **blue**.
 - The distance between the two elements is shown for each side (top, bottom, left, right).
-    - Sides with **zero distance are omitted** from the display.
+    - Sides with **zero distance are not shown**
 
 ### View System Compatibility
 
@@ -41,7 +41,7 @@ or code inclusion in release builds.
 
 ## Compose Constraints
 
-Since **SemanticsNode** is used for UI element extraction in **Compose**, Nodes that do not generate Semantics during composable declaration are not displayed as selectable elements. In such cases, you need to ensure that SemanticsNode is generated as shown in the code below.
+Since **SemanticsNode** is used for UI element extraction in **Compose**, any node that does not generate semantics during declaration will not be selectable. In such cases, make sure semantics are generated, as shown in the code below:
 
 ```kotlin
 @Composable
@@ -70,14 +70,28 @@ fun Profile(profile: Profile, modifier: Modifier) {
 
 ## Permissions
 
-This library requires the **"Draw over other apps"** permission in order to display the overlay UI.
-Make sure to request and handle this permission appropriately in your app.
+This library requires the **“Draw over other apps”** permission to display the overlay UI.
+
+First, you need to declare this permission in <u>your app</u> to allow drawing over other apps.
+Add the following to your `AndroidManifest.xml` file:
+(You can also place it in a <u>debug-specific manifest</u> to avoid including it in release builds.)
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+  ..
+</manifest>
+```
+
+After installing the app, this permission must be granted before performing any UI inspection.
+(Settings > Apps > Your App > Display over other apps)
 
 ---
 
 ## Download
 
-Add the following dependencies via Maven Central:
+Add the following dependencies from Maven Central:
 
 ```kotlin
 dependencies {
@@ -92,21 +106,21 @@ dependencies {
 class InspectorApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        // Installation required before use
+        // Install before using
         Inspector.install(this)
-        // If you want to use the control floating button provided by default
+        // To use the default floating control button (Option)
         Inspector.showFloatingTrigger()
     }
 }
 
-// If you want to manipulate inspection manually
+// For manual control of inspection
 class InspectorActivity : Activity() {
     fun enableInspection() {
         Inspector.enableInspection()
     }
 
     fun disableInspection() {
-        Inspector.disableInspection()
+        Inspector.disableInspection()s
     }
 }
 ```
