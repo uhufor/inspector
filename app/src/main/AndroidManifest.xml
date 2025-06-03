@@ -29,10 +29,6 @@
         </activity>
 
         <activity
-            android:name=".contact.ContactActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".contact.ContactComposeActivity"
             android:exported="false" />
 
