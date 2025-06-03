@@ -1,13 +1,11 @@
 package com.uhufor.inspectionsample
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.uhufor.inspectionsample.contact.ContactActivity
 import com.uhufor.inspectionsample.contact.ContactComposeActivity
 
 class MainActivity : ComponentActivity() {
@@ -35,12 +33,20 @@ class MainActivity : ComponentActivity() {
     private fun setupViews() {
         findViewById<View>(R.id.showXmlUi).setOnClickListener {
             startActivity(
-                Intent(this, ContactActivity::class.java)
+                ContactComposeActivity.newIntent(
+                    context = this,
+                    showProfileCompose = false,
+                    showHistoryCompose = false
+                )
             )
         }
         findViewById<View>(R.id.showComposeUi).setOnClickListener {
             startActivity(
-                Intent(this, ContactComposeActivity::class.java)
+                ContactComposeActivity.newIntent(
+                    context = this,
+                    showProfileCompose = true,
+                    showHistoryCompose = true
+                )
             )
         }
     }
