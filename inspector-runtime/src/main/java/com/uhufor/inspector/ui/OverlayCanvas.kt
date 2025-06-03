@@ -277,11 +277,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
         childBounds: RectF,
         parentBounds: RectF,
     ) {
-        val dm = resources.displayMetrics
-
         val leftDistance = childBounds.left - parentBounds.left
         if (leftDistance > 0) {
-            val distanceText = UnitConverter.format(leftDistance, dm, cfg.unitMode)
+            val distanceText = UnitConverter.format(leftDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
                 canvas,
                 parentBounds.left, childBounds.top + childBounds.height() / 2,
@@ -292,7 +290,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
         val rightDistance = parentBounds.right - childBounds.right
         if (rightDistance > 0) {
-            val distanceText = UnitConverter.format(rightDistance, dm, cfg.unitMode)
+            val distanceText = UnitConverter.format(rightDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
                 canvas,
                 childBounds.right, childBounds.top + childBounds.height() / 2,
@@ -303,7 +301,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
         val topDistance = childBounds.top - parentBounds.top
         if (topDistance > 0) {
-            val distanceText = UnitConverter.format(topDistance, dm, cfg.unitMode)
+            val distanceText = UnitConverter.format(topDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
                 canvas,
                 childBounds.left + childBounds.width() / 2, parentBounds.top,
@@ -314,7 +312,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
         val bottomDistance = parentBounds.bottom - childBounds.bottom
         if (bottomDistance > 0) {
-            val distanceText = UnitConverter.format(bottomDistance, dm, cfg.unitMode)
+            val distanceText = UnitConverter.format(bottomDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
                 canvas,
                 childBounds.left + childBounds.width() / 2, childBounds.bottom,
