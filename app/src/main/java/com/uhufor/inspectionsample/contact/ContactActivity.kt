@@ -47,7 +47,7 @@ class ContactActivity : AppCompatActivity() {
 
     companion object {
         private const val ARG_SHOW_PROFILE_COMPOSE = "show_profile_compose"
-        private const val ARG_SHOW_HISTORY_COMPOSE = "show_profile_compose"
+        private const val ARG_SHOW_HISTORY_COMPOSE = "show_history_compose"
 
         @JvmStatic
         fun newIntent(

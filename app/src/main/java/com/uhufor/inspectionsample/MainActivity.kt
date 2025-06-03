@@ -49,5 +49,14 @@ class MainActivity : ComponentActivity() {
                 )
             )
         }
+        findViewById<View>(R.id.showCombinedUi).setOnClickListener {
+            startActivity(
+                ContactActivity.newIntent(
+                    context = this,
+                    showProfileCompose = false,
+                    showHistoryCompose = true
+                )
+            )
+        }
     }
 }

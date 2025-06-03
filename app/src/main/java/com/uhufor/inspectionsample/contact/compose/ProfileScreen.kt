@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -58,6 +59,7 @@ fun ProfileScreen() {
         Text(
             text = "John Doe",
             fontSize = 20.sp,
+            color = Color(0xFFFC86BB),
             modifier = Modifier.constrainAs(nameText) {
                 top.linkTo(profileImage.top)
                 start.linkTo(profileImage.end, margin = 16.dp)
