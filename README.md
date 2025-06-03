@@ -120,7 +120,7 @@ class InspectorActivity : Activity() {
     }
 
     fun disableInspection() {
-        Inspector.disableInspection()s
+        Inspector.disableInspection()
     }
 }
 ```
