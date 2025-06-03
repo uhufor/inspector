@@ -8,7 +8,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.uhufor.inspectionsample.R
 
-class ContactComposeActivity : AppCompatActivity() {
+class ContactActivity : AppCompatActivity() {
 
     private val showProfileCompose: Boolean
         get() = intent.getBooleanExtra(ARG_SHOW_PROFILE_COMPOSE, false)
@@ -18,7 +18,7 @@ class ContactComposeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.contact_compose_activity)
+        setContentView(R.layout.contact_activity)
         setupInsets()
 
         if (savedInstanceState == null) {
@@ -55,7 +55,7 @@ class ContactComposeActivity : AppCompatActivity() {
             showProfileCompose: Boolean,
             showHistoryCompose: Boolean,
         ): Intent {
-            return Intent(context, ContactComposeActivity::class.java).apply {
+            return Intent(context, ContactActivity::class.java).apply {
                 putExtra(ARG_SHOW_PROFILE_COMPOSE, showProfileCompose)
                 putExtra(ARG_SHOW_HISTORY_COMPOSE, showHistoryCompose)
             }

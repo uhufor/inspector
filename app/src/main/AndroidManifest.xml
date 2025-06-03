@@ -29,7 +29,7 @@
         </activity>
 
         <activity
-            android:name=".contact.ContactComposeActivity"
+            android:name=".contact.ContactActivity"
             android:exported="false" />
 
     </application>

@@ -6,7 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.uhufor.inspectionsample.contact.ContactComposeActivity
+import com.uhufor.inspectionsample.contact.ContactActivity
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
     private fun setupViews() {
         findViewById<View>(R.id.showXmlUi).setOnClickListener {
             startActivity(
-                ContactComposeActivity.newIntent(
+                ContactActivity.newIntent(
                     context = this,
                     showProfileCompose = false,
                     showHistoryCompose = false
@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         }
         findViewById<View>(R.id.showComposeUi).setOnClickListener {
             startActivity(
-                ContactComposeActivity.newIntent(
+                ContactActivity.newIntent(
                     context = this,
                     showProfileCompose = true,
                     showHistoryCompose = true
