@@ -4,7 +4,7 @@ import android.app.Activity
 import android.graphics.Rect
 import android.graphics.RectF
 import android.view.View
-
+import com.uhufor.inspector.util.SwipeGestureDetector
 
 internal class InspectorEngine(
     private val topActivityProvider: () -> Activity?,
@@ -24,6 +24,10 @@ internal class InspectorEngine(
 
     var allElements: List<SelectionState> = emptyList()
         private set
+
+    var selectionTraverseType: SelectionTraverseType = SelectionTraverseType.HIERARCHICAL
+
+    private val dfsElements: MutableList<SelectionState> = mutableListOf()
 
     fun handleTap(x: Float, y: Float) {
         val activity = topActivityProvider() ?: return
@@ -57,6 +61,88 @@ internal class InspectorEngine(
                 this.selection = null
             }
             invalidate()
+        }
+    }
+
+    fun handleSwipe(direction: SwipeGestureDetector.GestureDirection) {
+        when (measurementMode) {
+            MeasurementMode.Normal -> {
+                val from = this.selection ?: return
+
+                getNextSelection(direction, from)?.let { selection ->
+                    this.selection = selection
+                    invalidate()
+                }
+            }
+
+            MeasurementMode.Relative -> {
+                val from = this.secondarySelection ?: this.primarySelection ?: return
+
+                getNextSelection(direction, from)?.let { selection ->
+                    this.secondarySelection = selection
+                    invalidate()
+                }
+            }
+        }
+    }
+
+    private fun getNextSelection(
+        direction: SwipeGestureDetector.GestureDirection,
+        from: SelectionState,
+    ): SelectionState? = when (selectionTraverseType) {
+        SelectionTraverseType.HIERARCHICAL -> ::getNextHierarchicalSelection
+        SelectionTraverseType.DFS -> ::getNextDfsSelection
+    }(direction, from)
+
+    private fun getNextHierarchicalSelection(
+        direction: SwipeGestureDetector.GestureDirection,
+        from: SelectionState,
+    ): SelectionState? = when (direction) {
+        SwipeGestureDetector.GestureDirection.UP -> {
+            findParentOf(from)
+        }
+
+        SwipeGestureDetector.GestureDirection.DOWN -> {
+            findChildrenOf(from).firstOrNull()
+        }
+
+        SwipeGestureDetector.GestureDirection.LEFT -> {
+            findPreviousSiblingOf(from)
+        }
+
+        SwipeGestureDetector.GestureDirection.RIGHT -> {
+            findNextSiblingOf(from)
+        }
+    }
+
+    private fun getNextDfsSelection(
+        direction: SwipeGestureDetector.GestureDirection,
+        from: SelectionState,
+    ): SelectionState? = when (direction) {
+        SwipeGestureDetector.GestureDirection.UP -> {
+            findParentOf(from)
+        }
+
+        SwipeGestureDetector.GestureDirection.DOWN -> {
+            findChildrenOf(from).firstOrNull()
+        }
+
+        SwipeGestureDetector.GestureDirection.LEFT -> {
+            val currentIndex = dfsElements.indexOfFirst { it.id == from.id }
+            if (currentIndex > 0) {
+                dfsElements[currentIndex - 1]
+            } else {
+                null
+            }
+        }
+
+        SwipeGestureDetector.GestureDirection.RIGHT -> {
+            val currentIndex = dfsElements.indexOfFirst { it.id == from.id }
+            if (currentIndex != -1 && currentIndex < dfsElements.size - 1) {
+                dfsElements[currentIndex + 1]
+            } else {
+                null
+            }
         }
     }
 
@@ -101,11 +187,13 @@ internal class InspectorEngine(
         elements.addAll(ViewHitTester.scanAllElements(rootView))
 
         allElements = elements
+        dfsElements.addAll(buildDfsOrderedList())
         invalidate()
     }
 
     fun clearScan() {
         allElements = emptyList()
+        dfsElements.clear()
         selection = null
         primarySelection = null
         secondarySelection = null
@@ -122,5 +210,74 @@ internal class InspectorEngine(
 
     private fun invalidate() {
         invalidator()
+    }
+
+    private fun List<SelectionState>.sortForHierarchy(): List<SelectionState> {
+        return this.sortedWith(compareBy({ it.bounds.top }, { it.bounds.left }))
+    }
+
+    private fun findParentOf(element: SelectionState?): SelectionState? {
+        if (element?.parentBounds == null) return null
+        return allElements.find { it.bounds == element.parentBounds }
+    }
+
+    private fun findChildrenOf(element: SelectionState?): List<SelectionState> {
+        if (element == null) return emptyList()
+        return allElements
+            .asSequence()
+            .filter {
+                it.parentBounds == element.bounds
+            }
+            .filterNot {
+                it.parentBounds == it.bounds
+            }
+            .toList()
+            .sortForHierarchy()
+    }
+
+    private fun findSiblingsOf(element: SelectionState?): List<SelectionState> {
+        if (element == null) return emptyList()
+        val parent = findParentOf(element) ?: return emptyList()
+        return findChildrenOf(parent)
+    }
+
+    private fun findPreviousSiblingOf(element: SelectionState?): SelectionState? {
+        if (element == null) return null
+        val siblings = findSiblingsOf(element)
+        val currentIndex = siblings.indexOfFirst { it.id == element.id }
+        return if (currentIndex > 0) siblings[currentIndex - 1] else null
+    }
+
+    private fun findNextSiblingOf(element: SelectionState?): SelectionState? {
+        if (element == null) return null
+        val siblings = findSiblingsOf(element)
+        val currentIndex = siblings.indexOfFirst { it.id == element.id }
+        return if (currentIndex != -1 && currentIndex < siblings.size - 1) siblings[currentIndex + 1] else null
+    }
+
+    private fun buildDfsOrderedList(): List<SelectionState> {
+        if (allElements.isEmpty()) return emptyList()
+
+        val orderedList = mutableListOf<SelectionState>()
+        val visitedGlobal = mutableSetOf<Int>()
+        val roots = allElements.filter { findParentOf(it) == null }.sortForHierarchy()
+
+        fun dfsVisit(currentElement: SelectionState) {
+            if (currentElement.id in visitedGlobal) {
+                return
+            }
+            visitedGlobal.add(currentElement.id)
+
+            orderedList.add(currentElement)
+            val children = findChildrenOf(currentElement)
+            for (child in children) {
+                dfsVisit(child)
+            }
+        }
+
+        for (root in roots) {
+            dfsVisit(root)
+        }
+        return orderedList
     }
 }
