@@ -4,11 +4,10 @@ import android.app.Activity
 import android.graphics.Rect
 import android.graphics.RectF
 import android.view.View
-import com.uhufor.inspector.util.ActivityTracker
 
 
 internal class InspectorEngine(
-    private val topActivityProvider: () -> Activity? = { ActivityTracker.top },
+    private val topActivityProvider: () -> Activity?,
     private val invalidator: () -> Unit,
 ) {
     var selection: SelectionState? = null
