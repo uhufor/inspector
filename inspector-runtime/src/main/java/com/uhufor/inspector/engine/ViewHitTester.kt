@@ -9,7 +9,7 @@ internal object ViewHitTester {
     private const val MIN_VIEW_SIZE = 1
     private const val MIN_ALPHA = 0.01f
 
-    fun findLeaf(root: View, x: Int, y: Int): Pair<View, View?>? {
+    fun hitTest(root: View, x: Int, y: Int): Pair<View, View?>? {
         val hits = mutableListOf<View>()
         depthFirstSearch(root, x, y, hits)
         val leaf = hits.minByOrNull { it.width * it.height } ?: return null

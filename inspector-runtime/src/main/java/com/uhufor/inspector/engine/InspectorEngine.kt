@@ -77,7 +77,7 @@ internal class InspectorEngine(
             )
         }
 
-        ViewHitTester.findLeaf(rootView, x, y)?.let { (view, parentView) ->
+        ViewHitTester.hitTest(rootView, x, y)?.let { (view, parentView) ->
             val rect = Rect()
             view.getGlobalVisibleRect(rect)
 
