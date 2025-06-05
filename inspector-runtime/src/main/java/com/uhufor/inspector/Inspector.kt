@@ -1,6 +1,5 @@
 package com.uhufor.inspector
 
-import android.app.Application
 import android.content.Context
 import android.graphics.PixelFormat
 import android.view.Gravity
@@ -8,7 +7,7 @@ import android.view.WindowManager
 import androidx.annotation.MainThread
 import androidx.core.content.getSystemService
 import com.uhufor.inspector.engine.InspectorEngine
-import com.uhufor.inspector.engine.MeasurementMode
+import com.uhufor.inspector.engine.SelectionTraverseType
 import com.uhufor.inspector.ui.OverlayCanvas
 import com.uhufor.inspector.util.ActivityTracker
 import com.uhufor.inspector.util.checkPermission
@@ -24,6 +23,8 @@ object Inspector {
     var isInspectionEnabled: Boolean = false
         private set
 
+    val isDfsTraverseEnabled: Boolean
+        get() = inspectorEngine?.selectionTraverseType == SelectionTraverseType.DFS
 
     private val config: Config = Config()
     private val configProvider = object : ConfigProvider {
@@ -33,9 +34,9 @@ object Inspector {
     }
 
     @MainThread
-    fun install(app: Application) {
+    fun install(context: Context) {
         if (installed) return
-        applicationContext = app.applicationContext
+        applicationContext = context.applicationContext
 
         if (!checkPermission(applicationContext)) {
             return
@@ -51,9 +52,10 @@ object Inspector {
         if (!installed || isInspectionEnabled) return
         val activity = ActivityTracker.top ?: return
 
-        val engine = InspectorEngine(topActivityProvider = { ActivityTracker.top }) {
-            overlayCanvas?.invalidate()
-        }
+        val engine = InspectorEngine(
+            topActivityProvider = { ActivityTracker.top },
+            invalidator = { overlayCanvas?.invalidate() }
+        )
         inspectorEngine = engine
 
         val canvas = OverlayCanvas(
@@ -119,16 +121,16 @@ object Inspector {
         floatingTrigger?.updateInspectorState(isInspectionEnabled)
     }
 
-    fun getCurrentMeasurementMode(): MeasurementMode? {
-        return inspectorEngine?.measurementMode
+    fun getUnitMode(): UnitMode {
+        return config.unitMode
     }
 
-    fun handleTap(x: Float, y: Float) {
-        inspectorEngine?.handleTap(x, y)
+    fun enableDfsTraverse() {
+        inspectorEngine?.selectionTraverseType = SelectionTraverseType.DFS
     }
 
-    fun handleLongPress(x: Float, y: Float) {
-        inspectorEngine?.handleLongPress(x, y)
+    fun disableDfsTraverse() {
+        inspectorEngine?.selectionTraverseType = SelectionTraverseType.HIERARCHICAL
     }
 
     @MainThread
