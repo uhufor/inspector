@@ -15,6 +15,7 @@ import java.lang.ref.WeakReference
 
 internal class FloatingTrigger(
     context: Context,
+    private val configProvider: ConfigProvider,
     private val inspector: Inspector,
 ) {
     private val context: WeakReference<Context?> = WeakReference(context)
@@ -71,7 +72,7 @@ internal class FloatingTrigger(
     }
 
     private fun showMenu(anchor: View) {
-        val currentConfig = inspector.getConfig()
+        val currentConfig = configProvider.getConfig()
         val isOverlayCurrentlyShown = inspector.isInspectionEnabled
 
         PopupMenu(anchor.context, anchor).apply {
@@ -112,7 +113,7 @@ internal class FloatingTrigger(
     fun updateButtonLabel(isOverlayEnabled: Boolean) {
         if (!isInstalled || button == null) return
 
-        val config = inspector.getConfig()
+        val config = configProvider.getConfig()
         button?.setLabelText(
             "${config.unitMode.name} (${config.densityString})\n > ${if (isOverlayEnabled) "ON" else "OFF"}"
         )

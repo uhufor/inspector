@@ -13,7 +13,7 @@ import com.uhufor.inspector.ui.OverlayCanvas
 import com.uhufor.inspector.util.ActivityTracker
 import com.uhufor.inspector.util.checkPermission
 
-object Inspector : ConfigProvider {
+object Inspector {
     private lateinit var applicationContext: Context
     private var windowManager: WindowManager? = null
     private var overlayCanvas: OverlayCanvas? = null
@@ -24,9 +24,13 @@ object Inspector : ConfigProvider {
     var isInspectionEnabled: Boolean = false
         private set
 
-    private val _config: Config = Config()
 
-    override fun getConfig(): Config = _config
+    private val config: Config = Config()
+    private val configProvider = object : ConfigProvider {
+        override fun getConfig(): Config {
+            return config
+        }
+    }
 
     @MainThread
     fun install(app: Application) {
@@ -55,7 +59,7 @@ object Inspector : ConfigProvider {
         val canvas = OverlayCanvas(
             context = activity,
         ).apply {
-            setConfigProvider(this@Inspector)
+            setConfigProvider(configProvider)
             setEngine(engine)
             backKeyListener = object : OverlayCanvas.BackKeyListener {
                 override fun onBackPressed() {
@@ -108,8 +112,9 @@ object Inspector : ConfigProvider {
     }
 
     fun setUnitMode(mode: UnitMode) {
-        if (_config.unitMode == mode) return
-        _config.unitMode = mode
+        if (config.unitMode == mode) return
+
+        config.unitMode = mode
         overlayCanvas?.invalidate()
         floatingTrigger?.updateInspectorState(isInspectionEnabled)
     }
@@ -133,6 +138,7 @@ object Inspector : ConfigProvider {
         if (floatingTrigger == null) {
             floatingTrigger = FloatingTrigger(
                 context = applicationContext,
+                configProvider = configProvider,
                 inspector = this
             )
         }
