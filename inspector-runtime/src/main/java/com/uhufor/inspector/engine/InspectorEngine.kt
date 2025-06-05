@@ -36,16 +36,11 @@ internal class InspectorEngine(
         val activity = topActivityProvider() ?: return
         val rootView = activity.window.decorView
 
-        if (measurementMode == MeasurementMode.Relative) {
-            findElementAt(rootView, x.toInt(), y.toInt())?.let { selectionState ->
-                secondarySelection = selectionState
-                invalidate()
+        findElementAt(rootView, x.toInt(), y.toInt())?.let { selection ->
+            when (measurementMode) {
+                MeasurementMode.Normal -> this.selection = selection
+                MeasurementMode.Relative -> secondarySelection = selection
             }
-            return
-        }
-
-        findElementAt(rootView, x.toInt(), y.toInt())?.let { selectionState ->
-            selection = selectionState
             invalidate()
         }
     }
@@ -54,19 +49,19 @@ internal class InspectorEngine(
         val activity = topActivityProvider() ?: return
         val rootView = activity.window.decorView
 
-        findElementAt(rootView, x.toInt(), y.toInt())?.let { selectionState ->
+        findElementAt(rootView, x.toInt(), y.toInt())?.let { selection ->
             if (measurementMode == MeasurementMode.Relative &&
-                primarySelection?.id == selectionState.id
+                primarySelection?.id == selection.id
             ) {
                 measurementMode = MeasurementMode.Normal
                 primarySelection = null
                 secondarySelection = null
-                selection = selectionState
+                this.selection = selection
             } else {
                 measurementMode = MeasurementMode.Relative
-                primarySelection = selectionState
+                primarySelection = selection
                 secondarySelection = null
-                selection = null
+                this.selection = null
             }
             invalidate()
         }
