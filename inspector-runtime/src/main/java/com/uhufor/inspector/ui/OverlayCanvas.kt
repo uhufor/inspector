@@ -17,6 +17,7 @@ import com.uhufor.inspector.ConfigProvider
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.engine.MeasurementMode
 import com.uhufor.inspector.engine.SelectionState
+import com.uhufor.inspector.util.SwipeGestureDetector
 import com.uhufor.inspector.util.UnitConverter
 import com.uhufor.inspector.util.dp
 import kotlin.math.atan2
@@ -109,7 +110,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     private val gestureDetector = GestureDetector(
         context,
-        object : GestureDetector.SimpleOnGestureListener() {
+        object : SwipeGestureDetector() {
             override fun onDown(e: MotionEvent): Boolean {
                 return true
             }
@@ -121,6 +122,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
             override fun onLongPress(e: MotionEvent) {
                 internalEngine?.handleLongPress(e.rawX, e.rawY)
+            }
+
+            override fun onSwipe(direction: GestureDirection) {
+                internalEngine?.handleSwipe(direction)
             }
         }
     )
