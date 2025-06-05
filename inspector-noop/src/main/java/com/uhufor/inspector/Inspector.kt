@@ -1,23 +1,24 @@
 package com.uhufor.inspector
 
-import android.app.Application
+import android.content.Context
 
 object Inspector {
     var isInspectionEnabled: Boolean = false
         private set
 
-    fun install(app: Application) = Unit
-    fun enableInspection() {
-        isInspectionEnabled = true
-    }
+    val isDfsTraverseEnabled: Boolean
+        get() = false
 
-    fun disableInspection() {
-        isInspectionEnabled = false
-    }
+    fun install(context: Context) = Unit
+    fun enableInspection() = Unit
+    fun disableInspection() = Unit
+    fun toggleInspection() = Unit
 
-    fun toggleInspection() {
-        isInspectionEnabled = !isInspectionEnabled
-    }
+    fun setUnitMode(mode: UnitMode) = Unit
+    fun getUnitMode(): UnitMode = UnitMode.DP
+
+    fun enableDfsTraverse() = Unit
+    fun disableDfsTraverse() = Unit
 
     fun showFloatingTrigger() = Unit
     fun hideFloatingTrigger() = Unit
