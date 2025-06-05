@@ -6,12 +6,6 @@ import android.graphics.RectF
 import android.view.View
 import com.uhufor.inspector.util.ActivityTracker
 
-data class SelectionState(
-    val bounds: RectF,
-    val isClickable: Boolean = false,
-    val parentBounds: RectF? = null,
-    val id: Int = 0,
-)
 
 internal class InspectorEngine(
     private val topActivityProvider: () -> Activity? = { ActivityTracker.top },
