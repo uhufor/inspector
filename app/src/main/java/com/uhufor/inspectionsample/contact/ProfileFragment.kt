@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import com.uhufor.inspectionsample.R
 import com.uhufor.inspectionsample.contact.compose.ProfileScreen
+import com.uhufor.inspectionsample.ui.theme.InspectionSampleTheme
 
 class ProfileFragment : Fragment() {
 
@@ -30,7 +31,9 @@ class ProfileFragment : Fragment() {
         return if (showCompose) {
             ComposeView(requireContext()).apply {
                 setContent {
-                    ProfileScreen()
+                    InspectionSampleTheme {
+                        ProfileScreen()
+                    }
                 }
             }
         } else {

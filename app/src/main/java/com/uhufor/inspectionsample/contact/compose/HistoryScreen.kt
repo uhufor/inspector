@@ -13,10 +13,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.uhufor.inspectionsample.ui.theme.InspectionSampleTheme
 
 data class Experience(val id: Int, val title: String, val dates: String, val description: String)
 
@@ -87,6 +89,7 @@ val sampleExperiences = listOf(
 fun HistoryScreen(experiences: List<Experience>) {
     LazyColumn(
         modifier = Modifier
+            .clearAndSetSemantics {}
             .fillMaxSize()
             .padding(16.dp),
         contentPadding = PaddingValues(bottom = 16.dp)
@@ -95,14 +98,18 @@ fun HistoryScreen(experiences: List<Experience>) {
             Text(
                 text = "Work Experience",
                 color = Color(0xFFFC86BB),
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         }
         items(experiences) { experience ->
             ExperienceItem(experience)
             if (experiences.last() != experience) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                HorizontalDivider(
+                    modifier = Modifier
+                        .clearAndSetSemantics {}
+                        .padding(vertical = 12.dp)
+                )
             }
         }
     }
@@ -110,20 +117,30 @@ fun HistoryScreen(experiences: List<Experience>) {
 
 @Composable
 fun ExperienceItem(experience: Experience) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier
+            .clearAndSetSemantics {}
+            .fillMaxWidth()
+    ) {
         Text(
             text = experience.title,
             fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onPrimary,
             fontSize = 16.sp
         )
         Text(
             text = experience.dates,
             fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSecondary,
+            style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(top = 2.dp, bottom = 4.dp)
         )
         Text(
             text = experience.description,
-            fontSize = 14.sp
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSecondary,
+            style = MaterialTheme.typography.bodySmall,
         )
     }
 }
@@ -131,5 +148,7 @@ fun ExperienceItem(experience: Experience) {
 @Preview(showBackground = true)
 @Composable
 fun DefaultHistoryPreview() {
-    HistoryScreen(experiences = sampleExperiences)
+    InspectionSampleTheme {
+        HistoryScreen(experiences = sampleExperiences)
+    }
 }

@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import com.uhufor.inspectionsample.R
 import com.uhufor.inspectionsample.contact.compose.HistoryScreen
 import com.uhufor.inspectionsample.contact.compose.sampleExperiences
+import com.uhufor.inspectionsample.ui.theme.InspectionSampleTheme
 
 class HistoryFragment : Fragment() {
 
@@ -29,7 +30,9 @@ class HistoryFragment : Fragment() {
         return if (showCompose) {
             ComposeView(requireContext()).apply {
                 setContent {
-                    HistoryScreen(experiences = sampleExperiences)
+                    InspectionSampleTheme {
+                        HistoryScreen(experiences = sampleExperiences)
+                    }
                 }
             }
         } else {
