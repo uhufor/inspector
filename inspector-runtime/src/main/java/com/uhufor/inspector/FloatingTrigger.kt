@@ -74,6 +74,7 @@ internal class FloatingTrigger(
     private fun showMenu(anchor: View) {
         val currentConfig = configProvider.getConfig()
         val isOverlayCurrentlyShown = inspector.isInspectionEnabled
+        val isDfsTraverseEnabled = inspector.isDfsTraverseEnabled
 
         PopupMenu(anchor.context, anchor).apply {
             menu.add(
@@ -88,6 +89,13 @@ internal class FloatingTrigger(
                 1,
                 if (isOverlayCurrentlyShown) "Hide overlay" else "Show overlay"
             )
+            menu.add(
+                0,
+                MENU_ID_TOGGLE_DFS_TRAVERSE,
+                1,
+                if (isDfsTraverseEnabled) "Disable DFS Traverse" else "Enable DFS Traverse"
+            )
+
             setOnMenuItemClickListener {
                 when (it.itemId) {
                     MENU_ID_SWITCH_UNIT -> {
@@ -101,6 +109,14 @@ internal class FloatingTrigger(
 
                     MENU_ID_TOGGLE_OVERLAY -> {
                         inspector.toggleInspection()
+                    }
+
+                    MENU_ID_TOGGLE_DFS_TRAVERSE -> {
+                        if (isDfsTraverseEnabled) {
+                            inspector.disableDfsTraverse()
+                        } else {
+                            inspector.enableDfsTraverse()
+                        }
                     }
                 }
                 true
@@ -134,5 +150,6 @@ internal class FloatingTrigger(
     companion object {
         private const val MENU_ID_SWITCH_UNIT = 1
         private const val MENU_ID_TOGGLE_OVERLAY = 2
+        private const val MENU_ID_TOGGLE_DFS_TRAVERSE = 3
     }
 }
