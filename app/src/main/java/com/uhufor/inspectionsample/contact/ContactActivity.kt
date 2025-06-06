@@ -7,9 +7,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.uhufor.inspectionsample.R
+import com.uhufor.inspector.Inspector
 
 class ContactActivity : AppCompatActivity() {
-
     private val showProfileCompose: Boolean
         get() = intent.getBooleanExtra(ARG_SHOW_PROFILE_COMPOSE, false)
 
@@ -20,7 +20,19 @@ class ContactActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.contact_activity)
         setupInsets()
+        setupFragments(savedInstanceState)
+        disableInspectionIfNeeded(savedInstanceState)
+    }
 
+    private fun setupInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+    }
+
+    private fun setupFragments(savedInstanceState: Bundle?) {
         if (savedInstanceState == null) {
             val profileFragment = ProfileFragment.newInstance(showCompose = showProfileCompose)
             val historyFragment = HistoryFragment.newInstance(showCompose = showHistoryCompose)
@@ -32,17 +44,22 @@ class ContactActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_compose)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(
-                v.paddingLeft + systemBars.left,
-                v.paddingTop + systemBars.top,
-                v.paddingRight + systemBars.right,
-                v.paddingBottom + systemBars.bottom
-            )
-            insets
+    private fun disableInspectionIfNeeded(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null) {
+            if (Inspector.isInspectionEnabled) {
+                Inspector.disableInspection()
+            }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Inspector.showFloatingTrigger()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Inspector.hideFloatingTrigger()
     }
 
     companion object {

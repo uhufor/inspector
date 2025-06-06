@@ -3,29 +3,25 @@ package com.uhufor.inspectionsample
 import android.os.Bundle
 import android.view.View
 import androidx.activity.ComponentActivity
-import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.uhufor.inspectionsample.contact.ContactActivity
+import com.uhufor.inspector.Inspector
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.main_activity)
         setupInsets()
         setupViews()
+        disableInspectionIfNeeded(savedInstanceState)
     }
 
     private fun setupInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(
-                v.paddingLeft + systemBars.left,
-                v.paddingTop + systemBars.top,
-                v.paddingRight + systemBars.right,
-                v.paddingBottom + systemBars.bottom
-            )
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
     }
@@ -58,5 +54,28 @@ class MainActivity : ComponentActivity() {
                 )
             )
         }
+    }
+
+    private fun disableInspectionIfNeeded(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null) {
+            if (Inspector.isInspectionEnabled) {
+                Inspector.disableInspection()
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Inspector.install(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Inspector.showFloatingTrigger()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Inspector.hideFloatingTrigger()
     }
 }
