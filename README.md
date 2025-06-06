@@ -89,6 +89,24 @@ After installing the app, this permission must be granted before performing any 
 
 ---
 
+## Additional feature
+
+### Swipe Gesture Navigation
+
+In measurement mode, when the target UI element is too small to select easily, swipe gesture navigation can help make selection easier. After activating the inspection feature, select any UI element. Then, by swiping in any of the four directions—up, down, left, or right—the selected element changes based on the swipe direction. Two types of view tree navigation methods are supported.
+
+The default is the **Hierarchy** mode, which allows intuitive navigation through parent, child, and sibling nodes. For example, swiping to the right moves through sibling nodes sequentially. When the last sibling node is reached, no further movement occurs.
+
+The other type is **DFS (Depth-First Search)** mode, which navigates the view tree using pre-order traversal. For instance, swiping to the right does not move to a sibling node but instead first traverses the child nodes of the current node, and then continues to the next sibling.
+
+|           Hierachy (Default)            |                   DFS                   |
+| :-------------------------------------: | :-------------------------------------: |
+| <img src="./art/art_4.png" width="420"> | <img src="./art/art_5.png" width="420"> |
+
+The diagram illustrates how the tree navigation changes according to the swipe gesture direction. For example, **GL** is a shorthand for Gesture Left. In DFS mode, moving from Top → B can be done using either the GD or GR swipe gestures.
+
+---
+
 ## Download
 
 Add the following dependencies from Maven Central:
