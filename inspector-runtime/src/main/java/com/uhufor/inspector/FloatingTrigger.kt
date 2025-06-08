@@ -135,19 +135,6 @@ internal class FloatingTrigger(
         )
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    fun uninstall() {
-        if (!isInstalled) return
-
-        runCatching {
-            windowManager.get()?.removeView(triggerLayout)
-        }
-        triggerLayout = null
-        triggerLayoutParams = null
-        dragHelper = null
-        isInstalled = false
-    }
-
     private fun getScreenSize(): Size {
         val wm = windowManager.get() ?: return Size(0, 0)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -159,6 +146,19 @@ internal class FloatingTrigger(
             wm.defaultDisplay.getMetrics(displayMetrics)
             Size(displayMetrics.widthPixels, displayMetrics.heightPixels)
         }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    fun uninstall() {
+        if (!isInstalled) return
+
+        runCatching {
+            windowManager.get()?.removeView(triggerLayout)
+        }
+        triggerLayout = null
+        triggerLayoutParams = null
+        dragHelper = null
+        isInstalled = false
     }
 
     fun bringToFront() {
