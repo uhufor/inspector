@@ -1,49 +1,98 @@
 package com.uhufor.inspector.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.setPadding
+import com.uhufor.inspector.databinding.LayoutTriggerButtonBinding
+import com.uhufor.inspector.util.FloatingViewDragHelper
+import com.uhufor.inspector.util.dp
 
 internal class TriggerButton @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0,
-) : LinearLayout(context, attrs, defStyleAttr, defStyleRes) {
+) : ConstraintLayout(context, attrs, defStyleAttr, defStyleRes) {
+    private val binding: LayoutTriggerButtonBinding =
+        LayoutTriggerButtonBinding.inflate(LayoutInflater.from(context), this)
 
-    private val button: ImageView
-    private val label: TextView
+    private var dragHelper: FloatingViewDragHelper? = null
+
+    private var clickAction: (() -> Unit)? = null
+    private var longClickAction: (() -> Unit)? = null
 
     init {
-        orientation = VERTICAL
-
-        button = ImageView(context).apply {
-            setImageResource(android.R.drawable.ic_menu_search)
-        }
-        label = TextView(context).apply {
-            textSize = 9F
-            setTextColor(Color.RED)
-        }
-        addView(button, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
-        addView(label, LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
+        binding.root.setBackgroundColor(Color.WHITE)
+        binding.root.elevation = 4.dp()
+        binding.label.textSize = 2.dp()
+        binding.label.setTextColor(Color.RED)
+        setPadding(12)
     }
 
-    fun setClickListener(listener: () -> Unit) {
-        button.setOnClickListener { listener.invoke() }
+    fun setDragHelperInstance(helper: FloatingViewDragHelper) {
+        dragHelper = helper
     }
 
-    fun setLongClickListener(listener: () -> Boolean) {
-        button.setOnLongClickListener {
-            listener.invoke()
+    fun setOnClickAction(action: () -> Unit) {
+        this.clickAction = action
+        binding.root.setOnClickListener {
+            if (dragHelper?.isDragging == false) {
+                clickAction?.invoke()
+            }
+        }
+    }
+
+    fun setOnLongClickAction(action: () -> Unit) {
+        this.longClickAction = action
+        binding.root.setOnLongClickListener {
+            if (dragHelper?.isDragging == false) {
+                longClickAction?.invoke()
+                true
+            } else {
+                false
+            }
         }
     }
 
     fun setLabelText(text: String) {
-        label.text = text
+        binding.label.text = text
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        setupTouchListener()
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        setOnTouchListener(null)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupTouchListener() {
+        this.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    dragHelper?.onDown(event)
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    dragHelper?.onMove(event)
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    dragHelper?.onUp()
+                }
+
+                else -> Unit
+            }
+            false
+        }
     }
 }
 
