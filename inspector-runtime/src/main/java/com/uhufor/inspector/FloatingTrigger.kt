@@ -169,4 +169,8 @@ internal class FloatingTrigger(
             windowManager.get()?.addView(triggerLayout, triggerLayoutParams)
         }
     }
+
+    fun refreshEnableState() {
+        triggerLayout?.let(::updateTriggerLayoutEnableState)
+    }
 }

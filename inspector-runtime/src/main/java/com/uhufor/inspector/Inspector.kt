@@ -66,6 +66,7 @@ object Inspector {
             backKeyListener = object : OverlayCanvas.BackKeyListener {
                 override fun onBackPressed() {
                     disableInspection()
+                    floatingTrigger?.refreshEnableState()
                 }
             }
         }
