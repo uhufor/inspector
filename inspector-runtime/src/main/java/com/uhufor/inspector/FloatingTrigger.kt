@@ -7,9 +7,7 @@ import android.os.Build
 import android.util.DisplayMetrics
 import android.util.Size
 import android.view.Gravity
-import android.view.View
 import android.view.WindowManager
-import android.widget.PopupMenu
 import androidx.core.content.getSystemService
 import com.uhufor.inspector.ui.TriggerLayout
 import com.uhufor.inspector.util.FloatingViewDragHelper
@@ -19,7 +17,6 @@ import java.lang.ref.WeakReference
 
 internal class FloatingTrigger(
     context: Context,
-    private val configProvider: ConfigProvider,
     private val inspector: Inspector,
 ) {
     private val context: WeakReference<Context> = WeakReference(context)
@@ -52,8 +49,33 @@ internal class FloatingTrigger(
         }.also {
             this.triggerLayoutParams = it
         }
-        triggerLayout.setOnClickAction { inspector.toggleInspection() }
-        triggerLayout.setOnLongClickAction { showMenu(triggerLayout) }
+        updateTriggerLayoutEnableState(triggerLayout)
+        triggerLayout.setOnButtonClickListener { buttonType ->
+            when (buttonType) {
+                TriggerLayout.ButtonType.INSPECTION -> {
+                    inspector.toggleInspection()
+                }
+
+                TriggerLayout.ButtonType.DP -> {
+                    inspector.setUnitMode(
+                        if (inspector.getUnitMode() == UnitMode.DP) {
+                            UnitMode.PX
+                        } else {
+                            UnitMode.DP
+                        }
+                    )
+                }
+
+                TriggerLayout.ButtonType.DFS -> {
+                    if (inspector.isDfsTraverseEnabled) {
+                        inspector.disableDfsTraverse()
+                    } else {
+                        inspector.enableDfsTraverse()
+                    }
+                }
+            }
+            updateTriggerLayoutEnableState(triggerLayout)
+        }
 
         val currentDragHelper = FloatingViewDragHelper(
             screenSizeProvider = object : ScreenSizeProvider {
@@ -92,11 +114,25 @@ internal class FloatingTrigger(
 
         runCatching {
             currentWindowManager.addView(triggerLayout, triggerLayoutParams)
-            updateButtonLabel(inspector.isInspectionEnabled)
             isInstalled = true
         }.onFailure {
             isInstalled = false
         }
+    }
+
+    private fun updateTriggerLayoutEnableState(triggerLayout: TriggerLayout) {
+        triggerLayout.setButtonEnableState(
+            TriggerLayout.ButtonType.INSPECTION,
+            inspector.isInspectionEnabled
+        )
+        triggerLayout.setButtonEnableState(
+            TriggerLayout.ButtonType.DP,
+            inspector.getUnitMode() == UnitMode.DP
+        )
+        triggerLayout.setButtonEnableState(
+            TriggerLayout.ButtonType.DFS,
+            inspector.isDfsTraverseEnabled
+        )
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -125,75 +161,6 @@ internal class FloatingTrigger(
         }
     }
 
-    // TODO: This functions should be move to each icon on the floating view
-    private fun showMenu(anchor: View) {
-        val currentConfig = configProvider.getConfig()
-        val isOverlayCurrentlyShown = inspector.isInspectionEnabled
-        val isDfsTraverseEnabled = inspector.isDfsTraverseEnabled
-
-        PopupMenu(anchor.context, anchor).apply {
-            menu.add(
-                0,
-                MENU_ID_SWITCH_UNIT,
-                0,
-                "Switch to ${if (currentConfig.unitMode == UnitMode.DP) "PX" else "DP"}"
-            )
-            menu.add(
-                0,
-                MENU_ID_TOGGLE_OVERLAY,
-                1,
-                if (isOverlayCurrentlyShown) "Hide overlay" else "Show overlay"
-            )
-            menu.add(
-                0,
-                MENU_ID_TOGGLE_DFS_TRAVERSE,
-                1,
-                if (isDfsTraverseEnabled) "Disable DFS Traverse" else "Enable DFS Traverse"
-            )
-
-            setOnMenuItemClickListener {
-                when (it.itemId) {
-                    MENU_ID_SWITCH_UNIT -> {
-                        val newMode = if (currentConfig.unitMode == UnitMode.DP) {
-                            UnitMode.PX
-                        } else {
-                            UnitMode.DP
-                        }
-                        inspector.setUnitMode(newMode)
-                    }
-
-                    MENU_ID_TOGGLE_OVERLAY -> {
-                        inspector.toggleInspection()
-                    }
-
-                    MENU_ID_TOGGLE_DFS_TRAVERSE -> {
-                        if (isDfsTraverseEnabled) {
-                            inspector.disableDfsTraverse()
-                        } else {
-                            inspector.enableDfsTraverse()
-                        }
-                    }
-                }
-                true
-            }
-            show()
-        }
-    }
-
-    @SuppressLint("SetTextI18n")
-    fun updateButtonLabel(isOverlayEnabled: Boolean) {
-        if (!isInstalled || triggerLayout == null) return
-
-        val config = configProvider.getConfig()
-        triggerLayout?.setLabelText(
-            "${config.unitMode.name} (${config.densityString})\n > ${if (isOverlayEnabled) "ON" else "OFF"}"
-        )
-    }
-
-    fun updateInspectorState(isOverlayEnabled: Boolean) {
-        updateButtonLabel(isOverlayEnabled)
-    }
-
     fun bringToFront() {
         if (!isInstalled || triggerLayout == null || triggerLayoutParams == null) return
 
@@ -201,11 +168,5 @@ internal class FloatingTrigger(
             windowManager.get()?.removeView(triggerLayout)
             windowManager.get()?.addView(triggerLayout, triggerLayoutParams)
         }
-    }
-
-    companion object {
-        private const val MENU_ID_SWITCH_UNIT = 1
-        private const val MENU_ID_TOGGLE_OVERLAY = 2
-        private const val MENU_ID_TOGGLE_DFS_TRAVERSE = 3
     }
 }

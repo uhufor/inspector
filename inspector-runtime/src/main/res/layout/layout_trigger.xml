@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="HardcodedText,SpUsage"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout"
+    tools:text="DP">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/toggleInspection"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:elevation="2dp"
+        android:importantForAccessibility="no"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_floating_trigger" />
+
+    <TextView
+        android:id="@+id/toggleDensity"
+        style="@style/TextAppearance.AppCompat.Button"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="2dp"
+        android:background="#2266FF66"
+        android:gravity="center"
+        android:text="DP"
+        android:textColor="@android:color/black"
+        android:textSize="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toggleInspection" />
+
+    <TextView
+        android:id="@+id/toggleDfsTraverse"
+        style="@style/TextAppearance.AppCompat.Button"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="2dp"
+        android:background="#2266FFFF"
+        android:gravity="center"
+        android:text="DFS"
+        android:textColor="@android:color/black"
+        android:textSize="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toggleDensity" />
+
+</merge>

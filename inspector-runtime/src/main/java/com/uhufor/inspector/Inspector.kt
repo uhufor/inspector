@@ -87,7 +87,6 @@ object Inspector {
         inspectorEngine?.scanAllElements()
         floatingTrigger?.bringToFront()
         isInspectionEnabled = true
-        floatingTrigger?.updateInspectorState(true)
     }
 
     @MainThread
@@ -101,7 +100,6 @@ object Inspector {
         inspectorEngine?.clearScan()
         inspectorEngine = null
         isInspectionEnabled = false
-        floatingTrigger?.updateInspectorState(false)
     }
 
     @MainThread
@@ -118,7 +116,6 @@ object Inspector {
 
         config.unitMode = mode
         overlayCanvas?.invalidate()
-        floatingTrigger?.updateInspectorState(isInspectionEnabled)
     }
 
     fun getUnitMode(): UnitMode {
@@ -140,13 +137,11 @@ object Inspector {
         if (floatingTrigger == null) {
             floatingTrigger = FloatingTrigger(
                 context = applicationContext,
-                configProvider = configProvider,
                 inspector = this
             )
         }
 
         floatingTrigger?.install()
-        floatingTrigger?.updateInspectorState(isInspectionEnabled)
     }
 
     @MainThread
