@@ -11,7 +11,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.PopupMenu
 import androidx.core.content.getSystemService
-import com.uhufor.inspector.ui.TriggerButton
+import com.uhufor.inspector.ui.TriggerLayout
 import com.uhufor.inspector.util.FloatingViewDragHelper
 import com.uhufor.inspector.util.FloatingViewDragHelperDelegate
 import com.uhufor.inspector.util.ScreenSizeProvider
@@ -26,8 +26,8 @@ internal class FloatingTrigger(
     private val windowManager: WeakReference<WindowManager> =
         WeakReference(context.getSystemService())
 
-    private var floatingView: TriggerButton? = null
-    private var floatingViewLayoutParams: WindowManager.LayoutParams? = null
+    private var triggerLayout: TriggerLayout? = null
+    private var triggerLayoutParams: WindowManager.LayoutParams? = null
     private var dragHelper: FloatingViewDragHelper? = null
 
     private var isInstalled = false
@@ -38,8 +38,8 @@ internal class FloatingTrigger(
         val currentContext = context.get() ?: return
         val currentWindowManager = windowManager.get() ?: return
 
-        val triggerButton = TriggerButton(currentContext).also { floatingView = it }
-        val triggerButtonLayoutParams = WindowManager.LayoutParams(
+        val triggerLayout = TriggerLayout(currentContext).also { this.triggerLayout = it }
+        val triggerLayoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
@@ -50,8 +50,10 @@ internal class FloatingTrigger(
             x = 0
             y = 0
         }.also {
-            floatingViewLayoutParams = it
+            this.triggerLayoutParams = it
         }
+        triggerLayout.setOnClickAction { inspector.toggleInspection() }
+        triggerLayout.setOnLongClickAction { showMenu(triggerLayout) }
 
         val currentDragHelper = FloatingViewDragHelper(
             screenSizeProvider = object : ScreenSizeProvider {
@@ -61,35 +63,38 @@ internal class FloatingTrigger(
             },
             delegate = object : FloatingViewDragHelperDelegate {
                 override fun getPosition(): Pair<Int, Int> {
-                    return Pair(triggerButtonLayoutParams.x, triggerButtonLayoutParams.y)
+                    return Pair(triggerLayoutParams.x, triggerLayoutParams.y)
                 }
 
                 override fun getSize(): Size {
-                    return Size(floatingView?.width ?: 0, floatingView?.height ?: 0)
+                    return Size(
+                        this@FloatingTrigger.triggerLayout?.width ?: 0,
+                        this@FloatingTrigger.triggerLayout?.height ?: 0
+                    )
                 }
 
                 override fun onChangePosition(
                     x: Int,
                     y: Int,
                 ) {
-                    triggerButtonLayoutParams.x = x
-                    triggerButtonLayoutParams.y = y
-                    currentWindowManager.updateViewLayout(floatingView, triggerButtonLayoutParams)
+                    triggerLayoutParams.x = x
+                    triggerLayoutParams.y = y
+                    currentWindowManager.updateViewLayout(
+                        this@FloatingTrigger.triggerLayout,
+                        triggerLayoutParams
+                    )
                 }
             },
         ).also {
             dragHelper = it
         }
+        triggerLayout.setFloatingViewDragHelper(currentDragHelper)
 
-        try {
-            triggerButton.setOnClickAction { inspector.toggleInspection() }
-            triggerButton.setOnLongClickAction { showMenu(triggerButton) }
-            triggerButton.setDragHelperInstance(currentDragHelper)
-
-            currentWindowManager.addView(triggerButton, triggerButtonLayoutParams)
+        runCatching {
+            currentWindowManager.addView(triggerLayout, triggerLayoutParams)
             updateButtonLabel(inspector.isInspectionEnabled)
             isInstalled = true
-        } catch (_: Exception) {
+        }.onFailure {
             isInstalled = false
         }
     }
@@ -98,12 +103,11 @@ internal class FloatingTrigger(
     fun uninstall() {
         if (!isInstalled) return
 
-        floatingView?.let {
-            runCatching {
-                windowManager.get()?.removeView(it)
-            }
+        runCatching {
+            windowManager.get()?.removeView(triggerLayout)
         }
-        floatingView = null
+        triggerLayout = null
+        triggerLayoutParams = null
         dragHelper = null
         isInstalled = false
     }
@@ -178,10 +182,10 @@ internal class FloatingTrigger(
 
     @SuppressLint("SetTextI18n")
     fun updateButtonLabel(isOverlayEnabled: Boolean) {
-        if (!isInstalled || floatingView == null) return
+        if (!isInstalled || triggerLayout == null) return
 
         val config = configProvider.getConfig()
-        floatingView?.setLabelText(
+        triggerLayout?.setLabelText(
             "${config.unitMode.name} (${config.densityString})\n > ${if (isOverlayEnabled) "ON" else "OFF"}"
         )
     }
@@ -191,11 +195,11 @@ internal class FloatingTrigger(
     }
 
     fun bringToFront() {
-        if (!isInstalled || floatingView == null || floatingViewLayoutParams == null) return
+        if (!isInstalled || triggerLayout == null || triggerLayoutParams == null) return
 
         runCatching {
-            windowManager.get()?.removeView(floatingView)
-            windowManager.get()?.addView(floatingView, floatingViewLayoutParams)
+            windowManager.get()?.removeView(triggerLayout)
+            windowManager.get()?.addView(triggerLayout, triggerLayoutParams)
         }
     }
 

@@ -12,7 +12,7 @@ import com.uhufor.inspector.databinding.LayoutTriggerButtonBinding
 import com.uhufor.inspector.util.FloatingViewDragHelper
 import com.uhufor.inspector.util.dp
 
-internal class TriggerButton @JvmOverloads constructor(
+internal class TriggerLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -28,13 +28,13 @@ internal class TriggerButton @JvmOverloads constructor(
 
     init {
         binding.root.setBackgroundColor(Color.WHITE)
-        binding.root.elevation = 4.dp()
-        binding.label.textSize = 2.dp()
+        binding.root.elevation = LAYOUT_ELEVATION.dp()
+        binding.label.textSize = LABEL_TEXT_SIZE.dp()
         binding.label.setTextColor(Color.RED)
-        setPadding(12)
+        setPadding(LAYOUT_PADDING)
     }
 
-    fun setDragHelperInstance(helper: FloatingViewDragHelper) {
+    fun setFloatingViewDragHelper(helper: FloatingViewDragHelper) {
         dragHelper = helper
     }
 
@@ -93,6 +93,12 @@ internal class TriggerButton @JvmOverloads constructor(
             }
             false
         }
+    }
+
+    companion object {
+        private const val LAYOUT_ELEVATION = 4
+        private const val LABEL_TEXT_SIZE = 2
+        private const val LAYOUT_PADDING = 12
     }
 }
 
