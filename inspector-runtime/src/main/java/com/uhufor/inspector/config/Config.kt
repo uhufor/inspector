@@ -1,6 +1,7 @@
-package com.uhufor.inspector
+package com.uhufor.inspector.config
 
 import android.content.res.Resources
+import com.uhufor.inspector.UnitMode
 
 class Config {
     var unitMode: UnitMode = UnitMode.DP

@@ -6,6 +6,8 @@ import android.view.Gravity
 import android.view.WindowManager
 import androidx.annotation.MainThread
 import androidx.core.content.getSystemService
+import com.uhufor.inspector.config.Config
+import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.engine.SelectionTraverseType
 import com.uhufor.inspector.ui.OverlayCanvas

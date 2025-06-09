@@ -12,8 +12,8 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.graphics.toColorInt
-import com.uhufor.inspector.Config
-import com.uhufor.inspector.ConfigProvider
+import com.uhufor.inspector.config.Config
+import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.engine.MeasurementMode
 import com.uhufor.inspector.engine.SelectionState
