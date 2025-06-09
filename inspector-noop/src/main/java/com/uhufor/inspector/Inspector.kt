@@ -6,9 +6,6 @@ object Inspector {
     var isInspectionEnabled: Boolean = false
         private set
 
-    val isDfsTraverseEnabled: Boolean
-        get() = false
-
     fun install(context: Context) = Unit
     fun enableInspection() = Unit
     fun disableInspection() = Unit
@@ -17,8 +14,8 @@ object Inspector {
     fun setUnitMode(mode: UnitMode) = Unit
     fun getUnitMode(): UnitMode = UnitMode.DP
 
-    fun enableDfsTraverse() = Unit
-    fun disableDfsTraverse() = Unit
+    fun setTraverseType(type: TraverseType) = Unit
+    fun getTraverseType(): TraverseType = TraverseType.HIERARCHICAL
 
     fun showFloatingTrigger() = Unit
     fun hideFloatingTrigger() = Unit

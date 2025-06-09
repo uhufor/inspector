@@ -6,8 +6,9 @@ import android.view.Gravity
 import android.view.WindowManager
 import androidx.annotation.MainThread
 import androidx.core.content.getSystemService
+import com.uhufor.inspector.config.Config
+import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.engine.InspectorEngine
-import com.uhufor.inspector.engine.SelectionTraverseType
 import com.uhufor.inspector.ui.OverlayCanvas
 import com.uhufor.inspector.util.ActivityTracker
 import com.uhufor.inspector.util.checkPermission
@@ -22,9 +23,6 @@ object Inspector {
     private var installed = false
     var isInspectionEnabled: Boolean = false
         private set
-
-    val isDfsTraverseEnabled: Boolean
-        get() = inspectorEngine?.selectionTraverseType == SelectionTraverseType.DFS
 
     private val config: Config = Config()
     private val configProvider = object : ConfigProvider {
@@ -53,6 +51,7 @@ object Inspector {
         val activity = ActivityTracker.top ?: return
 
         val engine = InspectorEngine(
+            configProvider = configProvider,
             topActivityProvider = { ActivityTracker.top },
             invalidator = { overlayCanvas?.invalidate() }
         )
@@ -123,12 +122,14 @@ object Inspector {
         return config.unitMode
     }
 
-    fun enableDfsTraverse() {
-        inspectorEngine?.selectionTraverseType = SelectionTraverseType.DFS
+    fun setTraverseType(type: TraverseType) {
+        if (config.traverseType == type) return
+
+        config.traverseType = type
     }
 
-    fun disableDfsTraverse() {
-        inspectorEngine?.selectionTraverseType = SelectionTraverseType.HIERARCHICAL
+    fun getTraverseType(): TraverseType {
+        return config.traverseType
     }
 
     @MainThread

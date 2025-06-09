@@ -4,9 +4,12 @@ import android.app.Activity
 import android.graphics.Rect
 import android.graphics.RectF
 import android.view.View
+import com.uhufor.inspector.TraverseType
+import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.util.SwipeGestureDetector
 
 internal class InspectorEngine(
+    private val configProvider: ConfigProvider,
     private val topActivityProvider: () -> Activity?,
     private val invalidator: () -> Unit,
 ) {
@@ -25,7 +28,8 @@ internal class InspectorEngine(
     var allElements: List<SelectionState> = emptyList()
         private set
 
-    var selectionTraverseType: SelectionTraverseType = SelectionTraverseType.HIERARCHICAL
+    val traverseType: TraverseType
+        get() = configProvider.getConfig().traverseType
 
     private val dfsElements: MutableList<SelectionState> = mutableListOf()
 
@@ -89,9 +93,9 @@ internal class InspectorEngine(
     private fun getNextSelection(
         direction: SwipeGestureDetector.GestureDirection,
         from: SelectionState,
-    ): SelectionState? = when (selectionTraverseType) {
-        SelectionTraverseType.HIERARCHICAL -> ::getNextHierarchicalSelection
-        SelectionTraverseType.DFS -> ::getNextDfsSelection
+    ): SelectionState? = when (traverseType) {
+        TraverseType.HIERARCHICAL -> ::getNextHierarchicalSelection
+        TraverseType.DFS -> ::getNextDfsSelection
     }(direction, from)
 
     private fun getNextHierarchicalSelection(

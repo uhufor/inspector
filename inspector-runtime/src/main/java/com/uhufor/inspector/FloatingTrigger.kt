@@ -67,11 +67,13 @@ internal class FloatingTrigger(
                 }
 
                 TriggerLayout.ButtonType.DFS -> {
-                    if (inspector.isDfsTraverseEnabled) {
-                        inspector.disableDfsTraverse()
-                    } else {
-                        inspector.enableDfsTraverse()
-                    }
+                    inspector.setTraverseType(
+                        if (inspector.getTraverseType() == TraverseType.DFS) {
+                            TraverseType.HIERARCHICAL
+                        } else {
+                            TraverseType.DFS
+                        }
+                    )
                 }
             }
             updateTriggerLayoutEnableState(triggerLayout)
@@ -131,7 +133,7 @@ internal class FloatingTrigger(
         )
         triggerLayout.setButtonEnableState(
             TriggerLayout.ButtonType.DFS,
-            inspector.isDfsTraverseEnabled
+            inspector.getTraverseType() == TraverseType.DFS
         )
     }
 
