@@ -103,7 +103,7 @@ The other type is **DFS (Depth-First Search)** mode, which navigates the view tr
 | :-------------------------------------: | :-------------------------------------: |
 | <img src="./art/art_4.png" width="420"> | <img src="./art/art_5.png" width="420"> |
 
-The diagram illustrates how the tree navigation changes according to the swipe gesture direction. For example, **GL** is a shorthand for Gesture Left. In DFS mode, moving from Top → B can be done using either the GD or GR swipe gestures.
+The diagram illustrates how the tree navigation changes according to the swipe gesture direction. For example, In DFS mode, moving from Top → B can be done using either the GD or GR swipe gestures. **GD** is a shorthand for Gesture Down.
 
 ---
 
