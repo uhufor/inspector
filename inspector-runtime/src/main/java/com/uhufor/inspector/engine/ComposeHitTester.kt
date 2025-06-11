@@ -83,15 +83,15 @@ internal object ComposeHitTester {
                             RectF(pBounds.left, pBounds.top, pBounds.right, pBounds.bottom)
                         }
                         SelectionState(
+                            id = bounds.hashCode(),
                             bounds = RectF(
                                 bounds.left,
                                 bounds.top,
                                 bounds.right,
                                 bounds.bottom
                             ),
-                            isClickable = isNodeClickable(node),
                             parentBounds = parentBounds,
-                            id = bounds.hashCode()
+                            isClickable = isNodeClickable(node),
                         )
                     }
             }

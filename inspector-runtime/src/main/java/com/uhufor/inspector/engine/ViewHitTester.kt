@@ -66,10 +66,10 @@ internal object ViewHitTester {
 
                 elements.add(
                     SelectionState(
+                        id = view.hashCode(),
                         bounds = RectF(rect),
-                        isClickable = view.isClickable || view.isLongClickable,
                         parentBounds = parentRect,
-                        id = view.hashCode()
+                        isClickable = view.isClickable || view.isLongClickable,
                     )
                 )
             }

@@ -153,10 +153,10 @@ internal class InspectorEngine(
     private fun findElementAt(rootView: View, x: Int, y: Int): SelectionState? {
         ComposeHitTester.hitTest(rootView, x, y)?.let { (rect, parentRect, isClickable) ->
             return SelectionState(
+                id = rect.hashCode(),
                 bounds = rect,
-                isClickable = isClickable,
                 parentBounds = parentRect,
-                id = rect.hashCode()
+                isClickable = isClickable,
             )
         }
 
@@ -171,10 +171,10 @@ internal class InspectorEngine(
             } else null
 
             return SelectionState(
+                id = view.hashCode(),
                 bounds = RectF(rect),
-                isClickable = view.isClickable || view.isLongClickable,
                 parentBounds = parentRect,
-                id = view.hashCode()
+                isClickable = view.isClickable || view.isLongClickable,
             )
         }
 
