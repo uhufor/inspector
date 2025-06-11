@@ -1,8 +1,6 @@
 package com.uhufor.inspector.engine
 
 import android.app.Activity
-import android.graphics.Rect
-import android.graphics.RectF
 import android.view.View
 import com.uhufor.inspector.TraverseType
 import com.uhufor.inspector.config.ConfigProvider
@@ -151,34 +149,7 @@ internal class InspectorEngine(
     }
 
     private fun findElementAt(rootView: View, x: Int, y: Int): SelectionState? {
-        ComposeHitTester.hitTest(rootView, x, y)?.let { (rect, parentRect, isClickable) ->
-            return SelectionState(
-                bounds = rect,
-                isClickable = isClickable,
-                parentBounds = parentRect,
-                id = rect.hashCode()
-            )
-        }
-
-        ViewHitTester.hitTest(rootView, x, y)?.let { (view, parentView) ->
-            val rect = Rect()
-            view.getGlobalVisibleRect(rect)
-
-            val parentRect = if (parentView != null) {
-                val parentBounds = Rect()
-                parentView.getGlobalVisibleRect(parentBounds)
-                RectF(parentBounds)
-            } else null
-
-            return SelectionState(
-                bounds = RectF(rect),
-                isClickable = view.isClickable || view.isLongClickable,
-                parentBounds = parentRect,
-                id = view.hashCode()
-            )
-        }
-
-        return null
+        return ComposeHitTester.hitTest(rootView, x, y) ?: ViewHitTester.hitTest(rootView, x, y)
     }
 
     fun scanAllElements() {

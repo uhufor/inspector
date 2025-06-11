@@ -18,11 +18,11 @@ internal object ComposeHitTester {
     private const val MIN_ELEMENT_SIZE = 1
 
     @SuppressLint("UseKtx")
-    fun hitTest(root: View, x: Int, y: Int): Triple<RectF, RectF?, Boolean>? {
+    fun hitTest(root: View, x: Int, y: Int): SelectionState? {
         val composeViews = mutableListOf<AbstractComposeView>()
         collectComposeViews(root, composeViews)
 
-        var bestMatch: Triple<RectF, RectF?, Boolean>? = null
+        var matched: SelectionState? = null
         var smallestArea = INVALID_AREA
 
         composeViews
@@ -31,31 +31,38 @@ internal object ComposeHitTester {
                 (composeView.getChildAt(0) as? RootForTest)?.semanticsOwner
             }
             .forEach { owner ->
-                val nodes = owner.getAllSemanticsNodes(mergingEnabled = false)
-
-                nodes.forEach { node: SemanticsNode ->
-                    val bounds = node.boundsInWindow
-                    if (bounds.width > MIN_ELEMENT_SIZE && bounds.height > MIN_ELEMENT_SIZE) {
-                        if (bounds.contains(Offset(x.toFloat(), y.toFloat()))) {
-                            val area = (bounds.width * bounds.height).toInt()
-                            if (area < smallestArea) {
-                                val isClickable = isNodeClickable(node)
-                                val parentNode = node.parent
-                                val parentBounds = parentNode?.let { pNode ->
-                                    val pBounds = pNode.boundsInWindow
-                                    RectF(pBounds.left, pBounds.top, pBounds.right, pBounds.bottom)
+                owner
+                    .getAllSemanticsNodes(mergingEnabled = false)
+                    .forEach { node: SemanticsNode ->
+                        val bounds = node.boundsInWindow
+                        if (bounds.width > MIN_ELEMENT_SIZE &&
+                            bounds.height > MIN_ELEMENT_SIZE
+                        ) {
+                            val hitPosition = Offset(x.toFloat(), y.toFloat())
+                            if (bounds.contains(hitPosition)) {
+                                val area = (bounds.width * bounds.height).toInt()
+                                if (area < smallestArea) {
+                                    matched = SelectionState(
+                                        id = bounds.hashCode(),
+                                        bounds = RectF(
+                                            bounds.left,
+                                            bounds.top,
+                                            bounds.right,
+                                            bounds.bottom
+                                        ),
+                                        parentBounds = node.parent?.boundsInWindow?.run {
+                                            RectF(left, top, right, bottom)
+                                        },
+                                        isClickable = isNodeClickable(node),
+                                    )
+                                    smallestArea = area
                                 }
-                                smallestArea = area
-                                val selectedNodeBounds =
-                                    RectF(bounds.left, bounds.top, bounds.right, bounds.bottom)
-                                bestMatch = Triple(selectedNodeBounds, parentBounds, isClickable)
                             }
                         }
                     }
-                }
             }
 
-        return bestMatch
+        return matched
     }
 
     @SuppressLint("UseKtx")
@@ -77,21 +84,18 @@ internal object ComposeHitTester {
                     }
                     .map { node: SemanticsNode ->
                         val bounds = node.boundsInWindow
-                        val parentNode = node.parent
-                        val parentBounds = parentNode?.let { pNode ->
-                            val pBounds = pNode.boundsInWindow
-                            RectF(pBounds.left, pBounds.top, pBounds.right, pBounds.bottom)
-                        }
                         SelectionState(
+                            id = bounds.hashCode(),
                             bounds = RectF(
                                 bounds.left,
                                 bounds.top,
                                 bounds.right,
                                 bounds.bottom
                             ),
+                            parentBounds = node.parent?.boundsInWindow?.run {
+                                RectF(left, top, right, bottom)
+                            },
                             isClickable = isNodeClickable(node),
-                            parentBounds = parentBounds,
-                            id = bounds.hashCode()
                         )
                     }
             }
