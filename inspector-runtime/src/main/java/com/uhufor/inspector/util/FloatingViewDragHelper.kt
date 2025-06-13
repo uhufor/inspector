@@ -65,9 +65,7 @@ internal class FloatingViewDragHelper(
     }
 
     fun onUp(): Boolean {
-        val wasDragging = isDragging
-        isDragging = false
-        return wasDragging
+        return isDragging
     }
 
     companion object {
