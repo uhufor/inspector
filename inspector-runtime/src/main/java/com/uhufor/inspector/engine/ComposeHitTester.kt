@@ -43,7 +43,7 @@ internal object ComposeHitTester {
                                 val area = (bounds.width * bounds.height).toInt()
                                 if (area < smallestArea) {
                                     matched = SelectionState(
-                                        id = bounds.hashCode(),
+                                        id = node.getNestedBoundsHash(),
                                         bounds = RectF(
                                             bounds.left,
                                             bounds.top,
@@ -85,7 +85,7 @@ internal object ComposeHitTester {
                     .map { node: SemanticsNode ->
                         val bounds = node.boundsInWindow
                         SelectionState(
-                            id = bounds.hashCode(),
+                            id = node.getNestedBoundsHash(),
                             bounds = RectF(
                                 bounds.left,
                                 bounds.top,
@@ -111,6 +111,16 @@ internal object ComposeHitTester {
                 collectComposeViews(view.getChildAt(i), out)
             }
         }
+    }
+
+    private fun SemanticsNode.getNestedBoundsHash(): Int {
+        var hash = boundsInWindow.hashCode()
+        var node: SemanticsNode? = this
+        while (node != null && node.parent != null) {
+            hash = hash.plus(node.parent?.boundsInWindow.hashCode())
+            node = node.parent
+        }
+        return hash
     }
 
     private fun isNodeClickable(node: SemanticsNode): Boolean {
