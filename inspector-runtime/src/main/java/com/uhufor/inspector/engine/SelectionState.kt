@@ -1,5 +1,6 @@
 package com.uhufor.inspector.engine
 
+import android.graphics.Color
 import android.graphics.RectF
 import android.util.Size
 
@@ -23,12 +24,27 @@ enum class UiNodeActionProperties(val value: String) {
     FOCUSABLE("Focusable"),
 }
 
+sealed class UiNodeStyleProperties(
+    open val backgroundColor: Int,
+) {
+    data class ColorStyle(
+        override val backgroundColor: Int,
+    ) : UiNodeStyleProperties(backgroundColor)
+
+    data class TextStyle(
+        val text: String,
+        val textColor: Int,
+        override val backgroundColor: Int = Color.TRANSPARENT,
+    ) : UiNodeStyleProperties(backgroundColor)
+}
+
 sealed class UiNodeProperties(
     val type: UiNodeType,
     open val id: String,
     open val size: Size,
     open val margin: RectF,
     open val actions: Set<UiNodeActionProperties>,
+    open val styles: Set<UiNodeStyleProperties>,
 ) {
     val isClickable: Boolean
         get() = actions.contains(UiNodeActionProperties.CLICKABLE)
@@ -41,12 +57,14 @@ sealed class UiNodeProperties(
         override val size: Size,
         override val margin: RectF,
         override val actions: Set<UiNodeActionProperties> = emptySet(),
-    ) : UiNodeProperties(UiNodeType.VIEW, id, size, margin, actions)
+        override val styles: Set<UiNodeStyleProperties> = emptySet(),
+    ) : UiNodeProperties(UiNodeType.VIEW, id, size, margin, actions, styles)
 
     data class ComposeNodeProperties(
         override val id: String,
         override val size: Size,
         override val margin: RectF,
         override val actions: Set<UiNodeActionProperties> = emptySet(),
-    ) : UiNodeProperties(UiNodeType.COMPOSE, id, size, margin, actions)
+        override val styles: Set<UiNodeStyleProperties> = emptySet(),
+    ) : UiNodeProperties(UiNodeType.COMPOSE, id, size, margin, actions, styles)
 }

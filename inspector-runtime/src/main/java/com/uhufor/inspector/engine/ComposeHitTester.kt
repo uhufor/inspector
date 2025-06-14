@@ -145,6 +145,16 @@ internal object ComposeHitTester {
                 if (config.getOrNull(SemanticsProperties.SelectableGroup) != null) {
                     add(UiNodeActionProperties.SELECTABLE)
                 }
+            },
+            styles = buildSet {
+                if (config.getOrNull(SemanticsProperties.Text) != null) {
+                    add(
+                        UiNodeStyleProperties.TextStyle(
+                            text = config.getOrNull(SemanticsProperties.Text).toString(),
+                            textColor = 0
+                        )
+                    )
+                }
             }
         )
 

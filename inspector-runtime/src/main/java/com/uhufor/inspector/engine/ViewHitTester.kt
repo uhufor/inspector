@@ -6,6 +6,7 @@ import android.util.Size
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Checkable
+import android.widget.TextView
 
 internal object ViewHitTester {
     private const val MIN_VIEW_SIZE = 1
@@ -122,6 +123,16 @@ internal object ViewHitTester {
                         add(UiNodeActionProperties.CHECKABLE)
                     }
                 },
+                styles = buildSet {
+                    if (view is TextView) {
+                        add(
+                            UiNodeStyleProperties.TextStyle(
+                                text = view.text.toString(),
+                                textColor = view.currentTextColor,
+                            )
+                        )
+                    }
+                }
             ),
         )
     }
