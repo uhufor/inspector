@@ -169,7 +169,12 @@ internal class OverlayCanvas @JvmOverloads constructor(
     private fun drawAllElements(canvas: Canvas) {
         internalEngine?.allElements?.forEach { element ->
             val borderColor = applyAlpha(getColorForElement(element), 0.5f)
-            drawElementBorder(canvas, element.bounds, element.isClickable, borderColor)
+            drawElementBorder(
+                canvas,
+                element.bounds,
+                element.properties.isClickable,
+                borderColor
+            )
         }
     }
 
@@ -179,7 +184,12 @@ internal class OverlayCanvas @JvmOverloads constructor(
         elementBaseColor: Int,
     ) {
         val complementaryColor = getComplementaryColor(elementBaseColor)
-        drawElementBorder(canvas, selection.bounds, selection.isClickable, complementaryColor)
+        drawElementBorder(
+            canvas,
+            selection.bounds,
+            selection.properties.isClickable,
+            complementaryColor
+        )
         drawElementSizeInfo(canvas, selection.bounds, elementBaseColor, complementaryColor)
     }
 
