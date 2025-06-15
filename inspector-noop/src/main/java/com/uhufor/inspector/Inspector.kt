@@ -17,6 +17,10 @@ object Inspector {
     fun setTraverseType(type: TraverseType) = Unit
     fun getTraverseType(): TraverseType = TraverseType.HIERARCHICAL
 
+    fun enableDetailsView(enabled: Boolean) = Unit
+    val isDetailsViewEnabled: Boolean
+        get() = false
+
     fun showFloatingTrigger() = Unit
     fun hideFloatingTrigger() = Unit
 }
