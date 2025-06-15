@@ -1,6 +1,7 @@
 package com.uhufor.inspector.engine
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.graphics.RectF
 import android.util.Size
 import android.view.View
@@ -151,7 +152,7 @@ internal object ComposeHitTester {
                     add(
                         UiNodeStyleProperties.TextStyle(
                             text = config.getOrNull(SemanticsProperties.Text).toString(),
-                            textColor = 0
+                            textColor = Color.TRANSPARENT
                         )
                     )
                 }

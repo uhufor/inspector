@@ -21,4 +21,12 @@ class Config {
         set(value) {
             _traverseType.value = value
         }
+
+    private val _showDetailsView = MutableStateFlow<Boolean>(false)
+    val showDetailsViewFlow = _showDetailsView.asStateFlow()
+    var showDetailsView: Boolean
+        get() = _showDetailsView.value
+        set(value) {
+            _showDetailsView.value = value
+        }
 }

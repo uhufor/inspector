@@ -135,8 +135,12 @@ object Inspector {
     private fun startObservingSelectionChanges() {
         selectionChangedJob?.cancel()
         selectionChangedJob = coroutineScope.launch {
-            combine(selectionState, config.unitModeFlow) { selectionState, unitMode ->
-                selectionState to unitMode
+            combine(
+                selectionState,
+                config.unitModeFlow,
+                config.showDetailsViewFlow
+            ) { selectionState, unitMode, showDetailsView ->
+                selectionState.takeIf { showDetailsView } to unitMode
             }.collectLatest { (selectionState, unitMode) ->
                 handleSelectionChanged(selectionState, unitMode)
             }
@@ -175,6 +179,15 @@ object Inspector {
     fun getTraverseType(): TraverseType {
         return config.traverseType
     }
+
+    fun enableDetailsView(enabled: Boolean) {
+        if (config.showDetailsView == enabled) return
+
+        config.showDetailsView = enabled
+    }
+
+    val isDetailsViewEnabled: Boolean
+        get() = config.showDetailsView
 
     @MainThread
     fun showFloatingTrigger() {
