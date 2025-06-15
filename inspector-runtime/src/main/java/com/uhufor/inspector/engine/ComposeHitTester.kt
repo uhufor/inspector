@@ -1,7 +1,9 @@
 package com.uhufor.inspector.engine
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.graphics.RectF
+import android.util.Size
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.geometry.Offset
@@ -53,7 +55,7 @@ internal object ComposeHitTester {
                                         parentBounds = node.parent?.boundsInWindow?.run {
                                             RectF(left, top, right, bottom)
                                         },
-                                        isClickable = isNodeClickable(node),
+                                        properties = node.getUiNodeProperties()
                                     )
                                     smallestArea = area
                                 }
@@ -95,7 +97,7 @@ internal object ComposeHitTester {
                             parentBounds = node.parent?.boundsInWindow?.run {
                                 RectF(left, top, right, bottom)
                             },
-                            isClickable = isNodeClickable(node),
+                            properties = node.getUiNodeProperties()
                         )
                     }
             }
@@ -123,9 +125,49 @@ internal object ComposeHitTester {
         return hash
     }
 
-    private fun isNodeClickable(node: SemanticsNode): Boolean {
-        return node.config.getOrNull(SemanticsProperties.Role) != null ||
-                node.config.getOrNull(SemanticsActions.OnClick) != null ||
-                node.config.getOrNull(SemanticsActions.OnLongClick) != null
+    private fun SemanticsNode.getUiNodeProperties(): UiNodeProperties =
+        UiNodeProperties.ComposeNodeProperties(
+            id = id.toString(),
+            size = layoutInfo.run { Size(width, height) },
+            margin = marginBetweenParent(),
+            actions = buildSet {
+                if (config.getOrNull(SemanticsActions.OnClick) != null) {
+                    add(UiNodeActionProperties.CLICKABLE)
+                }
+                if (config.getOrNull(SemanticsActions.OnLongClick) != null) {
+                    add(UiNodeActionProperties.LONG_CLICKABLE)
+                }
+                if (config.getOrNull(SemanticsProperties.Focused) != null) {
+                    add(UiNodeActionProperties.FOCUSABLE)
+                }
+                if (config.getOrNull(SemanticsProperties.ToggleableState) != null) {
+                    add(UiNodeActionProperties.CHECKABLE)
+                }
+                if (config.getOrNull(SemanticsProperties.SelectableGroup) != null) {
+                    add(UiNodeActionProperties.SELECTABLE)
+                }
+            },
+            styles = buildSet {
+                if (config.getOrNull(SemanticsProperties.Text) != null) {
+                    add(
+                        UiNodeStyleProperties.TextStyle(
+                            text = config.getOrNull(SemanticsProperties.Text).toString(),
+                            textColor = Color.TRANSPARENT
+                        )
+                    )
+                }
+            }
+        )
+
+    private fun SemanticsNode.marginBetweenParent(): RectF {
+        val parentBounds = parent?.boundsInWindow ?: return RectF()
+        val childBounds = boundsInWindow
+
+        return RectF(
+            childBounds.left - parentBounds.left,
+            childBounds.top - parentBounds.top,
+            parentBounds.right - childBounds.right,
+            parentBounds.bottom - childBounds.bottom
+        )
     }
 }

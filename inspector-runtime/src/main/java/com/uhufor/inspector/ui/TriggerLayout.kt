@@ -49,6 +49,12 @@ internal class TriggerLayout @JvmOverloads constructor(
                     if (enable) Color.RED else Color.BLACK
                 )
             }
+
+            ButtonType.SEE_PROPERTY_DETAILS -> {
+                binding.toggleSeePropertyDetails.setTextColor(
+                    if (enable) Color.RED else Color.BLACK
+                )
+            }
         }
     }
 
@@ -66,6 +72,11 @@ internal class TriggerLayout @JvmOverloads constructor(
         binding.toggleDfsTraverse.setOnClickListener {
             if (dragHelper?.isDragging == false) {
                 listener(ButtonType.DFS)
+            }
+        }
+        binding.toggleSeePropertyDetails.setOnClickListener {
+            if (dragHelper?.isDragging == false) {
+                listener(ButtonType.SEE_PROPERTY_DETAILS)
             }
         }
     }
@@ -92,7 +103,8 @@ internal class TriggerLayout @JvmOverloads constructor(
     internal enum class ButtonType {
         INSPECTION,
         DP,
-        DFS
+        DFS,
+        SEE_PROPERTY_DETAILS,
     }
 
     companion object {

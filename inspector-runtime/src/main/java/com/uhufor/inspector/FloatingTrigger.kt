@@ -75,6 +75,12 @@ internal class FloatingTrigger(
                         }
                     )
                 }
+
+                TriggerLayout.ButtonType.SEE_PROPERTY_DETAILS -> {
+                    inspector.enableDetailsView(
+                        !inspector.isDetailsViewEnabled
+                    )
+                }
             }
             updateTriggerLayoutEnableState(triggerLayout)
         }
@@ -134,6 +140,10 @@ internal class FloatingTrigger(
         triggerLayout.setButtonEnableState(
             TriggerLayout.ButtonType.DFS,
             inspector.getTraverseType() == TraverseType.DFS
+        )
+        triggerLayout.setButtonEnableState(
+            TriggerLayout.ButtonType.SEE_PROPERTY_DETAILS,
+            inspector.isDetailsViewEnabled
         )
     }
 
