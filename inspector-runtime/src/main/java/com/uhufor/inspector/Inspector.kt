@@ -9,9 +9,19 @@ import androidx.core.content.getSystemService
 import com.uhufor.inspector.config.Config
 import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.engine.InspectorEngine
+import com.uhufor.inspector.engine.SelectionState
+import com.uhufor.inspector.ui.FloatingDetailsView
 import com.uhufor.inspector.ui.OverlayCanvas
 import com.uhufor.inspector.util.ActivityTracker
 import com.uhufor.inspector.util.checkPermission
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
 
 object Inspector {
     private lateinit var applicationContext: Context
@@ -19,6 +29,7 @@ object Inspector {
     private var overlayCanvas: OverlayCanvas? = null
     private var inspectorEngine: InspectorEngine? = null
     private var floatingTrigger: FloatingTrigger? = null
+    private var floatingDetailsView: FloatingDetailsView? = null
 
     private var installed = false
     var isInspectionEnabled: Boolean = false
@@ -30,6 +41,10 @@ object Inspector {
             return config
         }
     }
+
+    private val selectionState: MutableStateFlow<SelectionState?> = MutableStateFlow(null)
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var selectionChangedJob: Job? = null
 
     @MainThread
     fun install(context: Context) {
@@ -53,7 +68,8 @@ object Inspector {
         val engine = InspectorEngine(
             configProvider = configProvider,
             topActivityProvider = { ActivityTracker.top },
-            invalidator = { overlayCanvas?.invalidate() }
+            onSelectionChanged = { selectionState.value = it },
+            invalidator = { overlayCanvas?.invalidate() },
         )
         inspectorEngine = engine
 
@@ -75,7 +91,8 @@ object Inspector {
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.START or Gravity.TOP
@@ -86,19 +103,23 @@ object Inspector {
 
         inspectorEngine?.scanAllElements()
         floatingTrigger?.bringToFront()
+        startObservingSelectionChanges()
+
         isInspectionEnabled = true
     }
 
     @MainThread
     fun disableInspection() {
         if (!installed || !isInspectionEnabled) return
-        overlayCanvas?.let {
-            windowManager?.removeView(it)
-        }
 
+        runCatching {
+            windowManager?.removeView(overlayCanvas)
+        }
         overlayCanvas = null
         inspectorEngine?.clearScan()
         inspectorEngine = null
+        selectionState.value = null
+
         isInspectionEnabled = false
     }
 
@@ -108,6 +129,29 @@ object Inspector {
             disableInspection()
         } else {
             enableInspection()
+        }
+    }
+
+    private fun startObservingSelectionChanges() {
+        selectionChangedJob?.cancel()
+        selectionChangedJob = coroutineScope.launch {
+            combine(selectionState, config.unitModeFlow) { selectionState, unitMode ->
+                selectionState to unitMode
+            }.collectLatest { (selectionState, unitMode) ->
+                handleSelectionChanged(selectionState, unitMode)
+            }
+        }
+    }
+
+    private fun handleSelectionChanged(selectionState: SelectionState?, unitMode: UnitMode) {
+        if (selectionState != null) {
+            if (floatingDetailsView == null) {
+                floatingDetailsView = FloatingDetailsView(applicationContext)
+            }
+            floatingDetailsView?.install(selectionState = selectionState, unitMode = unitMode)
+        } else {
+            floatingDetailsView?.uninstall()
+            floatingDetailsView = null
         }
     }
 

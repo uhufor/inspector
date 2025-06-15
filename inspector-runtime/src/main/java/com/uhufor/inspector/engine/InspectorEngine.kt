@@ -9,6 +9,7 @@ import com.uhufor.inspector.util.SwipeGestureDetector
 internal class InspectorEngine(
     private val configProvider: ConfigProvider,
     private val topActivityProvider: () -> Activity?,
+    private val onSelectionChanged: (SelectionState?) -> Unit,
     private val invalidator: () -> Unit,
 ) {
     var selection: SelectionState? = null
@@ -40,6 +41,7 @@ internal class InspectorEngine(
                 MeasurementMode.Normal -> this.selection = selection
                 MeasurementMode.Relative -> secondarySelection = selection
             }
+            notifyOnChangeSelectionState()
             invalidate()
         }
     }
@@ -62,6 +64,7 @@ internal class InspectorEngine(
                 secondarySelection = null
                 this.selection = null
             }
+            notifyOnChangeSelectionState()
             invalidate()
         }
     }
@@ -73,6 +76,7 @@ internal class InspectorEngine(
 
                 getNextSelection(direction, from)?.let { selection ->
                     this.selection = selection
+                    notifyOnChangeSelectionState()
                     invalidate()
                 }
             }
@@ -82,6 +86,7 @@ internal class InspectorEngine(
 
                 getNextSelection(direction, from)?.let { selection ->
                     this.secondarySelection = selection
+                    notifyOnChangeSelectionState()
                     invalidate()
                 }
             }
@@ -163,6 +168,7 @@ internal class InspectorEngine(
 
         allElements = elements
         dfsElements.addAll(buildDfsOrderedList())
+        notifyOnChangeSelectionState()
         invalidate()
     }
 
@@ -173,6 +179,7 @@ internal class InspectorEngine(
         primarySelection = null
         secondarySelection = null
         measurementMode = MeasurementMode.Normal
+        notifyOnChangeSelectionState()
         invalidate()
     }
 
@@ -185,6 +192,15 @@ internal class InspectorEngine(
 
     private fun invalidate() {
         invalidator()
+    }
+
+    private fun notifyOnChangeSelectionState() {
+        onSelectionChanged(
+            when (measurementMode) {
+                MeasurementMode.Normal -> selection
+                MeasurementMode.Relative -> secondarySelection ?: primarySelection
+            }
+        )
     }
 
     private fun List<SelectionState>.sortForHierarchy(): List<SelectionState> {
