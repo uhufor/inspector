@@ -39,7 +39,7 @@ import com.uhufor.inspector.engine.UiNodeProperties
 import com.uhufor.inspector.engine.UiNodeStyleProperties
 
 @Composable
-fun ElementDetails(
+internal fun ElementDetails(
     selectionState: SelectionState,
     unitMode: UnitMode,
 ) {
@@ -269,7 +269,7 @@ private fun Int.toHexString(): String = Integer.toHexString(this).uppercase().pa
 
 @Preview
 @Composable
-fun ElementDetailPreview() {
+internal fun ElementDetailPreview() {
     val selectionState = SelectionState(
         id = 0,
         bounds = RectF(0f, 0f, 200f, 100f),

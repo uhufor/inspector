@@ -1,5 +1,5 @@
 package com.uhufor.inspector.config
 
-interface ConfigProvider {
+internal interface ConfigProvider {
     fun getConfig(): Config
 }

@@ -4,19 +4,19 @@ import android.graphics.Color
 import android.graphics.RectF
 import android.util.Size
 
-data class SelectionState(
+internal data class SelectionState(
     val id: Int,
     val bounds: RectF,
     val parentBounds: RectF?,
     val properties: UiNodeProperties,
 )
 
-enum class UiNodeType(val value: String) {
+internal enum class UiNodeType(val value: String) {
     VIEW("View"),
     COMPOSE("Compose")
 }
 
-enum class UiNodeActionProperties(val value: String) {
+internal enum class UiNodeActionProperties(val value: String) {
     CLICKABLE("Clickable"),
     LONG_CLICKABLE("Long Clickable"),
     SELECTABLE("Selectable"),
@@ -24,7 +24,7 @@ enum class UiNodeActionProperties(val value: String) {
     FOCUSABLE("Focusable"),
 }
 
-sealed class UiNodeStyleProperties(
+internal sealed class UiNodeStyleProperties(
     open val backgroundColor: Int,
 ) {
     data class ColorStyle(
@@ -38,7 +38,7 @@ sealed class UiNodeStyleProperties(
     ) : UiNodeStyleProperties(backgroundColor)
 }
 
-sealed class UiNodeProperties(
+internal sealed class UiNodeProperties(
     val type: UiNodeType,
     open val id: String,
     open val size: Size,

@@ -4,7 +4,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import kotlin.math.abs
 
-open class SwipeGestureDetector(
+internal open class SwipeGestureDetector(
     private val distanceThreshold: Int = SWIPE_DISTANCE_THRESHOLD,
     private val velocityThreshold: Int = SWIPE_VELOCITY_THRESHOLD,
 ) : GestureDetector.SimpleOnGestureListener() {

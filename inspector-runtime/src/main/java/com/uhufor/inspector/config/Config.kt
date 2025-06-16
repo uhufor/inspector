@@ -5,7 +5,7 @@ import com.uhufor.inspector.UnitMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class Config {
+internal class Config {
     private val _unitModeFlow = MutableStateFlow<UnitMode>(UnitMode.DP)
     val unitModeFlow = _unitModeFlow.asStateFlow()
     var unitMode: UnitMode
