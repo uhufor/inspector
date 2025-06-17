@@ -37,6 +37,7 @@ import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.engine.UiNodeActionProperties
 import com.uhufor.inspector.engine.UiNodeProperties
 import com.uhufor.inspector.engine.UiNodeStyleProperties
+import com.uhufor.inspector.engine.UiNodeType
 
 @Composable
 internal fun ElementDetails(
@@ -73,7 +74,7 @@ internal fun ElementDetails(
                 .verticalScroll(state = rememberScrollState())
         ) {
             SectionTitle("Details")
-            InfoRow("ID", selectionState.properties.id)
+            InfoRow("ID (${selectionState.properties.type.value})", selectionState.properties.id)
             InfoRow("Size", size)
 
             BoxModel(selectionState, unitMode)
@@ -267,14 +268,15 @@ private fun Styles(selectionState: SelectionState) {
 
 private fun Int.toHexString(): String = Integer.toHexString(this).uppercase().padStart(8, '0')
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 internal fun ElementDetailPreview() {
     val selectionState = SelectionState(
         id = 0,
         bounds = RectF(0f, 0f, 200f, 100f),
         parentBounds = RectF(0f, 0f, 400f, 200f),
-        properties = UiNodeProperties.ViewNodeProperties(
+        properties = UiNodeProperties(
+            type = UiNodeType.VIEW,
             id = "app:id/showDetail",
             size = android.util.Size(200, 100),
             margin = RectF(11f, 10f, 5f, 5f),
