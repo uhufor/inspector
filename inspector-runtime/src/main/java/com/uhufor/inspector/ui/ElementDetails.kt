@@ -38,6 +38,7 @@ import com.uhufor.inspector.engine.UiNodeActionProperties
 import com.uhufor.inspector.engine.UiNodeProperties
 import com.uhufor.inspector.engine.UiNodeStyleProperties
 import com.uhufor.inspector.engine.UiNodeType
+import com.uhufor.inspector.ui.compose.rememberLowDecayFling
 import kotlin.math.roundToInt
 
 @Composable
@@ -72,7 +73,10 @@ internal fun ElementDetails(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(4.dp)
-                .verticalScroll(state = rememberScrollState())
+                .verticalScroll(
+                    state = rememberScrollState(),
+                    flingBehavior = rememberLowDecayFling(friction = 0.8F)
+                )
         ) {
             SectionTitle("Details")
             InfoRow("ID (${selectionState.properties.type.value})", selectionState.properties.id)
