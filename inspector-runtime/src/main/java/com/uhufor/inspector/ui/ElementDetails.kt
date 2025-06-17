@@ -38,6 +38,7 @@ import com.uhufor.inspector.engine.UiNodeActionProperties
 import com.uhufor.inspector.engine.UiNodeProperties
 import com.uhufor.inspector.engine.UiNodeStyleProperties
 import com.uhufor.inspector.engine.UiNodeType
+import kotlin.math.roundToInt
 
 @Composable
 internal fun ElementDetails(
@@ -50,7 +51,7 @@ internal fun ElementDetails(
         val size = selectionState.properties.size
         when (unitMode) {
             UnitMode.DP -> {
-                "${(size.width / density).toInt()}dp x ${(size.height / density).toInt()}dp"
+                "${(size.width / density).roundToInt()}dp x ${(size.height / density).roundToInt()}dp"
             }
 
             UnitMode.PX -> {
@@ -143,7 +144,7 @@ private fun BoxModel(
         val size = selectionState.properties.size
         when (unitMode) {
             UnitMode.DP -> {
-                "${(size.width / density).toInt()}dp x ${(size.height / density).toInt()}dp"
+                "${(size.width / density).roundToInt()}dp x ${(size.height / density).roundToInt()}dp"
             }
 
             UnitMode.PX -> {
@@ -157,17 +158,17 @@ private fun BoxModel(
         buildList {
             when (unitMode) {
                 UnitMode.DP -> {
-                    add("${(margin.left / density).toInt()}dp")
-                    add("${(margin.top / density).toInt()}dp")
-                    add("${(margin.right / density).toInt()}dp")
-                    add("${(margin.bottom / density).toInt()}dp")
+                    add("${(margin.left / density).roundToInt()}dp")
+                    add("${(margin.top / density).roundToInt()}dp")
+                    add("${(margin.right / density).roundToInt()}dp")
+                    add("${(margin.bottom / density).roundToInt()}dp")
                 }
 
                 UnitMode.PX -> {
-                    add("${margin.left.toInt()}px")
-                    add("${margin.top.toInt()}px")
-                    add("${margin.right.toInt()}px")
-                    add("${margin.bottom.toInt()}px")
+                    add("${margin.left.roundToInt()}px")
+                    add("${margin.top.roundToInt()}px")
+                    add("${margin.right.roundToInt()}px")
+                    add("${margin.bottom.roundToInt()}px")
                 }
             }
         }
