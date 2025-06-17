@@ -105,7 +105,8 @@ internal object ViewHitTester {
             id = view.hashCode(),
             bounds = RectF(rect),
             parentBounds = parentRect,
-            properties = UiNodeProperties.ViewNodeProperties(
+            properties = UiNodeProperties(
+                type = UiNodeType.VIEW,
                 id = getResourceId(view),
                 size = Size(view.width, view.height),
                 margin = view.marginBetweenParent(),

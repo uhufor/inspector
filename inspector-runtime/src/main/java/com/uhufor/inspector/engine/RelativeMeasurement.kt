@@ -7,6 +7,39 @@ import kotlin.math.min
 
 internal object RelativeMeasurement {
 
+    fun getRelativeBounds(
+        primary: RectF,
+        secondary: RectF,
+    ): RectF {
+        val distances = calculateDistances(primary, secondary)
+
+        val horizontalDistances = distances.filter { it.type == DistanceType.HORIZONTAL }
+        val left = horizontalDistances
+            .filter { min(it.startX, it.endX) < primary.right }
+            .minByOrNull { it.startX + it.endX }
+            .takeIf { primary.left != secondary.left }
+        val right = horizontalDistances
+            .filter { max(it.startX, it.endX) > primary.left }
+            .maxByOrNull { it.startX + it.endX }
+            .takeIf { primary.right != secondary.right }
+        val verticalDistance = distances.filter { it.type == DistanceType.VERTICAL }
+        val top = verticalDistance
+            .filter { min(it.startY, it.endY) < primary.bottom }
+            .minByOrNull { it.startY + it.endY }
+            .takeIf { primary.top != secondary.top }
+        val bottom = verticalDistance
+            .filter { max(it.startY, it.endY) > primary.top }
+            .maxByOrNull { it.startY + it.endY }
+            .takeIf { primary.bottom != secondary.bottom }
+
+        return RectF(
+            left?.value ?: 0F,
+            top?.value ?: 0F,
+            right?.value ?: 0F,
+            bottom?.value ?: 0F
+        )
+    }
+
     fun calculateDistances(
         primary: RectF,
         secondary: RectF,

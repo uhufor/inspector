@@ -12,7 +12,7 @@ internal data class SelectionState(
 )
 
 internal enum class UiNodeType(val value: String) {
-    VIEW("View"),
+    VIEW("XML"),
     COMPOSE("Compose")
 }
 
@@ -38,33 +38,17 @@ internal sealed class UiNodeStyleProperties(
     ) : UiNodeStyleProperties(backgroundColor)
 }
 
-internal sealed class UiNodeProperties(
+internal data class UiNodeProperties(
     val type: UiNodeType,
-    open val id: String,
-    open val size: Size,
-    open val margin: RectF,
-    open val actions: Set<UiNodeActionProperties>,
-    open val styles: Set<UiNodeStyleProperties>,
+    val id: String,
+    val size: Size,
+    val margin: RectF,
+    val actions: Set<UiNodeActionProperties> = emptySet(),
+    val styles: Set<UiNodeStyleProperties> = emptySet(),
 ) {
     val isClickable: Boolean
         get() = actions.contains(UiNodeActionProperties.CLICKABLE)
 
     val isLongClickable: Boolean
         get() = actions.contains(UiNodeActionProperties.LONG_CLICKABLE)
-
-    data class ViewNodeProperties(
-        override val id: String,
-        override val size: Size,
-        override val margin: RectF,
-        override val actions: Set<UiNodeActionProperties> = emptySet(),
-        override val styles: Set<UiNodeStyleProperties> = emptySet(),
-    ) : UiNodeProperties(UiNodeType.VIEW, id, size, margin, actions, styles)
-
-    data class ComposeNodeProperties(
-        override val id: String,
-        override val size: Size,
-        override val margin: RectF,
-        override val actions: Set<UiNodeActionProperties> = emptySet(),
-        override val styles: Set<UiNodeStyleProperties> = emptySet(),
-    ) : UiNodeProperties(UiNodeType.COMPOSE, id, size, margin, actions, styles)
 }

@@ -126,7 +126,8 @@ internal object ComposeHitTester {
     }
 
     private fun SemanticsNode.getUiNodeProperties(): UiNodeProperties =
-        UiNodeProperties.ComposeNodeProperties(
+        UiNodeProperties(
+            type = UiNodeType.COMPOSE,
             id = id.toString(),
             size = layoutInfo.run { Size(width, height) },
             margin = marginBetweenParent(),

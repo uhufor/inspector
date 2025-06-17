@@ -37,6 +37,9 @@ import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.engine.UiNodeActionProperties
 import com.uhufor.inspector.engine.UiNodeProperties
 import com.uhufor.inspector.engine.UiNodeStyleProperties
+import com.uhufor.inspector.engine.UiNodeType
+import com.uhufor.inspector.ui.compose.rememberLowDecayFling
+import kotlin.math.roundToInt
 
 @Composable
 internal fun ElementDetails(
@@ -49,7 +52,7 @@ internal fun ElementDetails(
         val size = selectionState.properties.size
         when (unitMode) {
             UnitMode.DP -> {
-                "${(size.width / density).toInt()}dp x ${(size.height / density).toInt()}dp"
+                "${(size.width / density).roundToInt()}dp x ${(size.height / density).roundToInt()}dp"
             }
 
             UnitMode.PX -> {
@@ -70,10 +73,13 @@ internal fun ElementDetails(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(4.dp)
-                .verticalScroll(state = rememberScrollState())
+                .verticalScroll(
+                    state = rememberScrollState(),
+                    flingBehavior = rememberLowDecayFling(friction = 0.8F)
+                )
         ) {
             SectionTitle("Details")
-            InfoRow("ID", selectionState.properties.id)
+            InfoRow("ID (${selectionState.properties.type.value})", selectionState.properties.id)
             InfoRow("Size", size)
 
             BoxModel(selectionState, unitMode)
@@ -142,7 +148,7 @@ private fun BoxModel(
         val size = selectionState.properties.size
         when (unitMode) {
             UnitMode.DP -> {
-                "${(size.width / density).toInt()}dp x ${(size.height / density).toInt()}dp"
+                "${(size.width / density).roundToInt()}dp x ${(size.height / density).roundToInt()}dp"
             }
 
             UnitMode.PX -> {
@@ -156,17 +162,17 @@ private fun BoxModel(
         buildList {
             when (unitMode) {
                 UnitMode.DP -> {
-                    add("${(margin.left / density).toInt()}dp")
-                    add("${(margin.top / density).toInt()}dp")
-                    add("${(margin.right / density).toInt()}dp")
-                    add("${(margin.bottom / density).toInt()}dp")
+                    add("${(margin.left / density).roundToInt()}dp")
+                    add("${(margin.top / density).roundToInt()}dp")
+                    add("${(margin.right / density).roundToInt()}dp")
+                    add("${(margin.bottom / density).roundToInt()}dp")
                 }
 
                 UnitMode.PX -> {
-                    add("${margin.left.toInt()}px")
-                    add("${margin.top.toInt()}px")
-                    add("${margin.right.toInt()}px")
-                    add("${margin.bottom.toInt()}px")
+                    add("${margin.left.roundToInt()}px")
+                    add("${margin.top.roundToInt()}px")
+                    add("${margin.right.roundToInt()}px")
+                    add("${margin.bottom.roundToInt()}px")
                 }
             }
         }
@@ -267,14 +273,15 @@ private fun Styles(selectionState: SelectionState) {
 
 private fun Int.toHexString(): String = Integer.toHexString(this).uppercase().padStart(8, '0')
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 internal fun ElementDetailPreview() {
     val selectionState = SelectionState(
         id = 0,
         bounds = RectF(0f, 0f, 200f, 100f),
         parentBounds = RectF(0f, 0f, 400f, 200f),
-        properties = UiNodeProperties.ViewNodeProperties(
+        properties = UiNodeProperties(
+            type = UiNodeType.VIEW,
             id = "app:id/showDetail",
             size = android.util.Size(200, 100),
             margin = RectF(11f, 10f, 5f, 5f),
