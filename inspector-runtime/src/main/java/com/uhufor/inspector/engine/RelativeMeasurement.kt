@@ -12,12 +12,25 @@ internal object RelativeMeasurement {
         secondary: RectF,
     ): RectF {
         val distances = calculateDistances(primary, secondary)
+
         val horizontalDistances = distances.filter { it.type == DistanceType.HORIZONTAL }
-        val left = horizontalDistances.find { min(it.startX, it.endX) < primary.left }
-        val right = horizontalDistances.find { max(it.startX, it.endX) > primary.right }
+        val left = horizontalDistances
+            .filter { min(it.startX, it.endX) < primary.right }
+            .minByOrNull { it.startX + it.endX }
+            .takeIf { primary.left != secondary.left }
+        val right = horizontalDistances
+            .filter { max(it.startX, it.endX) > primary.left }
+            .maxByOrNull { it.startX + it.endX }
+            .takeIf { primary.right != secondary.right }
         val verticalDistance = distances.filter { it.type == DistanceType.VERTICAL }
-        val top = verticalDistance.find { min(it.startY, it.endY) < primary.top }
-        val bottom = verticalDistance.find { max(it.startY, it.endY) > primary.bottom }
+        val top = verticalDistance
+            .filter { min(it.startY, it.endY) < primary.bottom }
+            .minByOrNull { it.startY + it.endY }
+            .takeIf { primary.top != secondary.top }
+        val bottom = verticalDistance
+            .filter { max(it.startY, it.endY) > primary.top }
+            .maxByOrNull { it.startY + it.endY }
+            .takeIf { primary.bottom != secondary.bottom }
 
         return RectF(
             left?.value ?: 0F,
