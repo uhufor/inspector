@@ -198,9 +198,22 @@ internal class InspectorEngine(
         onSelectionChanged(
             when (measurementMode) {
                 MeasurementMode.Normal -> selection
-                MeasurementMode.Relative -> secondarySelection ?: primarySelection
+                MeasurementMode.Relative -> getRelativeSelection()
             }
         )
+    }
+
+    private fun getRelativeSelection(): SelectionState? {
+        val primary = primarySelection?.bounds ?: return null
+        val secondary = secondarySelection?.bounds ?: return null
+
+        return primarySelection?.run {
+            copy(
+                properties = properties.copy(
+                    margin = RelativeMeasurement.getRelativeBounds(primary, secondary)
+                )
+            )
+        }
     }
 
     private fun List<SelectionState>.sortForHierarchy(): List<SelectionState> {
