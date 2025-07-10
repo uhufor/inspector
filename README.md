@@ -8,9 +8,9 @@ This project is inspired by the UI inspection (measurement) function of the now-
 It is intended for **debug builds only**, and a corresponding **no-op module** ensures no overhead
 or code inclusion in release builds.
 
-| Screenshot 1                            | Screenshot 2                            | Screenshot 3                            |
-|:----------------------------------------| :-------------------------------------- |:----------------------------------------|
-| <img src="./art/art_1.png" width="300"> | <img src="./art/art_2.png" width="300"> | <img src="./art/art_3.png" width="300"> |
+| Screenshot 1                            | Screenshot 2                            | Screenshot 3                            | Screenshot 4                            |
+| --------------------------------------- | :-------------------------------------- | :-------------------------------------- | :-------------------------------------- |
+| <img src="./art/art_0.png" width="300"> | <img src="./art/art_1.png" width="300"> | <img src="./art/art_2.png" width="300"> | <img src="./art/art_3.png" width="300"> |
 
 ---
 
