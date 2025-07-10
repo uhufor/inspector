@@ -244,27 +244,61 @@ private fun Actions(selectionState: SelectionState) {
 @Composable
 private fun Styles(selectionState: SelectionState) {
     if (selectionState.properties.styles.isNotEmpty()) {
+        val (density, fontScale) = LocalDensity.current.run {
+            density to fontScale
+        }
         Spacer(modifier = Modifier.height(8.dp))
         SectionTitle("Styles")
         selectionState.properties.styles.forEach { style ->
             when (style) {
                 is UiNodeStyleProperties.ColorStyle -> {
-                    InfoRow(
-                        "Bg Color",
-                        "#${style.backgroundColor.toHexString()}"
-                    )
+                    style.backgroundType?.let { backgroundType ->
+                        InfoRow(
+                            "Bg Type",
+                            backgroundType
+                        )
+                    }
+                    style.backgroundColor?.let { backgroundColor ->
+                        InfoRow(
+                            "Bg Color",
+                            "#${backgroundColor.toHexString()}"
+                        )
+                    }
                 }
 
                 is UiNodeStyleProperties.TextStyle -> {
-                    InfoRow("Text", style.text)
                     InfoRow(
-                        "Text Color",
-                        "#${style.textColor.toHexString()}"
+                        "Text",
+                        style.text
                     )
-                    InfoRow(
-                        "Bg Color",
-                        "#${style.backgroundColor.toHexString()}"
-                    )
+                    style.textColor?.let { textColor ->
+                        InfoRow(
+                            "Text Color",
+                            "#${textColor.toHexString()}"
+                        )
+                    }
+                    style.textSize?.let { textSize ->
+                        val sizeInDp = textSize / density
+                        val sizeInSp = sizeInDp / fontScale
+                        InfoRow(
+                            "Text Size",
+                            "${sizeInSp.roundToInt()}sp, ${sizeInDp.roundToInt()}dp, ${textSize.roundToInt()}px"
+                        )
+                    }
+                    if (style.isBold || style.isItalic) {
+                        val typefaceStyles = buildList {
+                            if (style.isBold) {
+                                add("Bold")
+                            }
+                            if (style.isItalic) {
+                                add("Italic")
+                            }
+                        }
+                        InfoRow(
+                            "Text Style",
+                            typefaceStyles.joinToString(", ")
+                        )
+                    }
                 }
             }
         }
@@ -292,7 +326,9 @@ internal fun ElementDetailPreview() {
                 UiNodeStyleProperties.TextStyle(
                     text = "Hello World",
                     textColor = 0xFF000000.toInt(),
-                    backgroundColor = 0xFFFFFFFF.toInt()
+                    textSize = 12f,
+                    isBold = false,
+                    isItalic = false,
                 ),
             )
         )

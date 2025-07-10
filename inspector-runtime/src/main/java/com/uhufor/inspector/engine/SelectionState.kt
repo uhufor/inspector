@@ -2,6 +2,7 @@ package com.uhufor.inspector.engine
 
 import android.graphics.Color
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.util.Size
 
 internal data class SelectionState(
@@ -24,18 +25,19 @@ internal enum class UiNodeActionProperties(val value: String) {
     FOCUSABLE("Focusable"),
 }
 
-internal sealed class UiNodeStyleProperties(
-    open val backgroundColor: Int,
-) {
+internal sealed interface UiNodeStyleProperties {
     data class ColorStyle(
-        override val backgroundColor: Int,
-    ) : UiNodeStyleProperties(backgroundColor)
+        val backgroundType: String?,
+        val backgroundColor: Int?,
+    ) : UiNodeStyleProperties
 
     data class TextStyle(
         val text: String,
-        val textColor: Int,
-        override val backgroundColor: Int = Color.TRANSPARENT,
-    ) : UiNodeStyleProperties(backgroundColor)
+        val textColor: Int?,
+        val textSize: Float?,
+        val isBold: Boolean,
+        val isItalic: Boolean,
+    ) : UiNodeStyleProperties
 }
 
 internal data class UiNodeProperties(
