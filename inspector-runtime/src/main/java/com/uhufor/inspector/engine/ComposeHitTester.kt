@@ -153,7 +153,10 @@ internal object ComposeHitTester {
                     add(
                         UiNodeStyleProperties.TextStyle(
                             text = config.getOrNull(SemanticsProperties.Text).toString(),
-                            textColor = Color.TRANSPARENT
+                            textColor = null,
+                            textSize = null,
+                            isBold = false,
+                            isItalic = false,
                         )
                     )
                 }
