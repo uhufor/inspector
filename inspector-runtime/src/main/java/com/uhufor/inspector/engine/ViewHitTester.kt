@@ -1,18 +1,13 @@
 package com.uhufor.inspector.engine
 
-import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import android.util.Size
-import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Checkable
 import android.widget.TextView
-import androidx.core.text.TextUtilsCompat
-import androidx.core.widget.TextViewCompat
 
 internal object ViewHitTester {
     private const val MIN_VIEW_SIZE = 1
