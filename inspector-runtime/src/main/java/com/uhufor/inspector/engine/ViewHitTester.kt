@@ -132,8 +132,8 @@ internal object ViewHitTester {
                                 text = view.text.toString(),
                                 textColor = view.currentTextColor,
                                 textSize = view.textSize,
-                                isBold = view.typeface.isBold,
-                                isItalic = view.typeface.isItalic,
+                                isBold = view.typeface?.isBold ?: false,
+                                isItalic = view.typeface?.isItalic ?: false,
                             )
                         )
                     }
