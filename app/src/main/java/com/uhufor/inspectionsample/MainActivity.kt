@@ -2,13 +2,15 @@ package com.uhufor.inspectionsample
 
 import android.os.Bundle
 import android.view.View
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.uhufor.inspectionsample.bottomsheet.PersonListBottomSheetDialogFragment
 import com.uhufor.inspectionsample.contact.ContactActivity
+import com.uhufor.inspectionsample.dialog.PersonListDialogFragment
 import com.uhufor.inspector.Inspector
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +55,14 @@ class MainActivity : ComponentActivity() {
                     showHistoryCompose = true
                 )
             )
+        }
+        findViewById<View>(R.id.showBottomSheetUi).setOnClickListener {
+            PersonListBottomSheetDialogFragment.newInstance()
+                .show(supportFragmentManager, PersonListBottomSheetDialogFragment.TAG)
+        }
+        findViewById<View>(R.id.showDialogUi).setOnClickListener {
+            PersonListDialogFragment.newInstance()
+                .show(supportFragmentManager, PersonListDialogFragment.TAG)
         }
     }
 
