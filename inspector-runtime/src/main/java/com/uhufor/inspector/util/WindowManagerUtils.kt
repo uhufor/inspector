@@ -26,8 +26,8 @@ internal object WindowManagerUtils {
     @Suppress("UNCHECKED_CAST")
     fun getDecorViews(): List<View>? {
         val decorViews = viewsField?.get(windowManager) as? ArrayList<View> ?: return null
-        return decorViews.filter {
-            it.javaClass.simpleName.equals("DecorView")
-        }
+        return decorViews
+            .filter { it.javaClass.simpleName.equals("DecorView") && it.isShown }
+            .sortedBy { it.z }
     }
 }
