@@ -61,8 +61,8 @@ class MainActivity : AppCompatActivity() {
                 .show(supportFragmentManager, PersonListBottomSheetDialogFragment.TAG)
         }
         findViewById<View>(R.id.showDialogUi).setOnClickListener {
-            PersonListDialogFragment.newInstance()
-                .show(supportFragmentManager, PersonListDialogFragment.TAG)
+            PersonListDialogFragment.createDialog(context = this)
+                .show()
         }
     }
 
