@@ -37,12 +37,14 @@ internal class InspectorEngine(
 
     private val dfsElements: MutableList<SelectionState> = mutableListOf()
 
-    private val selectedDecorView: View?
-        get() = WindowManagerUtils.getDecorViews()?.lastOrNull()
-            ?: topActivityProvider()?.window?.decorView
+    private fun getDecorView(): View? {
+        return runCatching {
+            WindowManagerUtils.getDecorViews()?.lastOrNull()
+        }.getOrNull() ?: topActivityProvider()?.window?.decorView
+    }
 
     fun handleTap(x: Float, y: Float) {
-        val rootView = selectedDecorView ?: return
+        val rootView = getDecorView() ?: return
 
         findElementAt(rootView, x.toInt(), y.toInt())?.let { selection ->
             when (measurementMode) {
@@ -55,7 +57,7 @@ internal class InspectorEngine(
     }
 
     fun handleLongPress(x: Float, y: Float) {
-        val rootView = selectedDecorView ?: return
+        val rootView = getDecorView() ?: return
 
         findElementAt(rootView, x.toInt(), y.toInt())?.let { selection ->
             if (measurementMode == MeasurementMode.Relative &&
@@ -165,7 +167,7 @@ internal class InspectorEngine(
     }
 
     fun scanAllElements() {
-        val rootView: View = selectedDecorView ?: return
+        val rootView: View = getDecorView() ?: return
 
         val location = IntArray(2)
         rootView.getLocationOnScreen(location)
