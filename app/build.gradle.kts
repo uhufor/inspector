@@ -52,6 +52,8 @@ dependencies {
     implementation(libs.androidx.ui.material3)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.google.ui.material)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

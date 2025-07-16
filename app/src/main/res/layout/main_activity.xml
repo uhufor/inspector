@@ -53,6 +53,30 @@
         android:paddingBottom="8dp"
         android:text="XML and Compose UI" />
 
+    <LinearLayout
+        style="?android:attr/buttonBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/showBottomSheetUi"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:foreground="?attr/selectableItemBackground"
+            android:text="BottomSheet" />
+
+        <Button
+            android:id="@+id/showDialogUi"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:foreground="?attr/selectableItemBackground"
+            android:text="Dialog" />
+
+    </LinearLayout>
+
     <View
         android:layout_width="48dp"
         android:layout_height="4dp"
