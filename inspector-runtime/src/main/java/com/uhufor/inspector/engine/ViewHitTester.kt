@@ -3,6 +3,8 @@ package com.uhufor.inspector.engine
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.RippleDrawable
+import android.os.Build
 import android.util.Size
 import android.view.View
 import android.view.ViewGroup
@@ -140,7 +142,23 @@ internal object ViewHitTester {
                     add(
                         UiNodeStyleProperties.ColorStyle(
                             backgroundType = view.background?.javaClass?.simpleName ?: "None",
-                            backgroundColor = (view.background as? ColorDrawable)?.color
+                            backgroundColor = when (val drawable = view.background) {
+                                is ColorDrawable -> {
+                                    drawable.color
+                                }
+
+                                is RippleDrawable -> {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                        drawable.effectColor.defaultColor
+                                    } else {
+                                        null
+                                    }
+                                }
+
+                                else -> {
+                                    null
+                                }
+                            }
                         )
                     )
                 }
