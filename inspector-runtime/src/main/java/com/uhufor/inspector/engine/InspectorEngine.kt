@@ -1,10 +1,12 @@
 package com.uhufor.inspector.engine
 
 import android.app.Activity
+import android.graphics.PointF
 import android.view.View
 import com.uhufor.inspector.TraverseType
 import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.util.SwipeGestureDetector
+import com.uhufor.inspector.util.WindowManagerUtils
 
 internal class InspectorEngine(
     private val configProvider: ConfigProvider,
@@ -27,14 +29,20 @@ internal class InspectorEngine(
     var allElements: List<SelectionState> = emptyList()
         private set
 
+    var offsetOnScreen: PointF = PointF()
+        private set
+
     val traverseType: TraverseType
         get() = configProvider.getConfig().traverseType
 
     private val dfsElements: MutableList<SelectionState> = mutableListOf()
 
+    private val selectedDecorView: View?
+        get() = WindowManagerUtils.getDecorViews()?.lastOrNull()
+            ?: topActivityProvider()?.window?.decorView
+
     fun handleTap(x: Float, y: Float) {
-        val activity = topActivityProvider() ?: return
-        val rootView = activity.window.decorView
+        val rootView = selectedDecorView ?: return
 
         findElementAt(rootView, x.toInt(), y.toInt())?.let { selection ->
             when (measurementMode) {
@@ -47,8 +55,7 @@ internal class InspectorEngine(
     }
 
     fun handleLongPress(x: Float, y: Float) {
-        val activity = topActivityProvider() ?: return
-        val rootView = activity.window.decorView
+        val rootView = selectedDecorView ?: return
 
         findElementAt(rootView, x.toInt(), y.toInt())?.let { selection ->
             if (measurementMode == MeasurementMode.Relative &&
@@ -158,8 +165,11 @@ internal class InspectorEngine(
     }
 
     fun scanAllElements() {
-        val activity = topActivityProvider() ?: return
-        val rootView = activity.window.decorView
+        val rootView: View = selectedDecorView ?: return
+
+        val location = IntArray(2)
+        rootView.getLocationOnScreen(location)
+        offsetOnScreen.set(location[0].toFloat(), location[1].toFloat())
 
         val elements = mutableListOf<SelectionState>()
 

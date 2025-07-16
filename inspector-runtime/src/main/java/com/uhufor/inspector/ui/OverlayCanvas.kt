@@ -12,6 +12,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.graphics.toColorInt
+import androidx.core.graphics.withTranslation
 import com.uhufor.inspector.config.Config
 import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.engine.InspectorEngine
@@ -157,12 +158,16 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        drawAllElements(canvas)
 
-        when (internalEngine?.measurementMode) {
-            MeasurementMode.Normal -> drawSelectedElement(canvas)
-            MeasurementMode.Relative -> drawRelativeMeasurement(canvas)
-            else -> Unit
+        val offset = internalEngine?.offsetOnScreen
+        canvas.withTranslation(offset?.x ?: 0f, offset?.y ?: 0f) {
+            drawAllElements(canvas)
+
+            when (internalEngine?.measurementMode) {
+                MeasurementMode.Normal -> drawSelectedElement(canvas)
+                MeasurementMode.Relative -> drawRelativeMeasurement(canvas)
+                else -> Unit
+            }
         }
     }
 
