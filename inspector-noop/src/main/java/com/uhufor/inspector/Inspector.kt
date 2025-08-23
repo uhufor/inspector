@@ -6,20 +6,24 @@ object Inspector {
     var isInspectionEnabled: Boolean = false
         private set
 
+    private var unitMode: UnitMode = UnitMode.DP
+    private var traverseType: TraverseType = TraverseType.HIERARCHICAL
+    private var showDetailsView: Boolean = false
+
     fun install(context: Context) = Unit
-    fun enableInspection() = Unit
-    fun disableInspection() = Unit
-    fun toggleInspection() = Unit
+    fun enableInspection() { isInspectionEnabled = true }
+    fun disableInspection() { isInspectionEnabled = false }
+    fun toggleInspection() { isInspectionEnabled = !isInspectionEnabled }
 
-    fun setUnitMode(mode: UnitMode) = Unit
-    fun getUnitMode(): UnitMode = UnitMode.DP
+    fun setUnitMode(mode: UnitMode) { unitMode = mode }
+    fun getUnitMode(): UnitMode = unitMode
 
-    fun setTraverseType(type: TraverseType) = Unit
-    fun getTraverseType(): TraverseType = TraverseType.HIERARCHICAL
+    fun setTraverseType(type: TraverseType) { traverseType = type }
+    fun getTraverseType(): TraverseType = traverseType
 
-    fun enableDetailsView(enabled: Boolean) = Unit
+    fun enableDetailsView(enabled: Boolean) { showDetailsView = enabled }
     val isDetailsViewEnabled: Boolean
-        get() = false
+        get() = showDetailsView
 
     fun showFloatingTrigger() = Unit
     fun hideFloatingTrigger() = Unit

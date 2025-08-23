@@ -4,6 +4,7 @@ import android.content.res.Resources
 import android.os.Build
 import android.util.DisplayMetrics
 import android.util.Size
+import android.view.WindowInsets
 import android.view.WindowManager
 
 internal fun Number.dp(): Float {
@@ -13,7 +14,14 @@ internal fun Number.dp(): Float {
 internal fun WindowManager.getScreenSize(): Size {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         val metrics = this.currentWindowMetrics
-        Size(metrics.bounds.width(), metrics.bounds.height())
+        val insets = metrics.windowInsets.getInsets(
+            WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout()
+        )
+        val bounds = metrics.bounds
+        Size(
+            bounds.width() - insets.left - insets.right,
+            bounds.height() - insets.top - insets.bottom
+        )
     } else {
         val dm = DisplayMetrics()
         @Suppress("DEPRECATION")
