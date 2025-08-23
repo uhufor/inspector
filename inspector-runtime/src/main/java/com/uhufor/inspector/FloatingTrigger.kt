@@ -11,6 +11,7 @@ import android.view.Gravity
 import android.view.WindowManager
 import androidx.core.content.getSystemService
 import com.uhufor.inspector.ui.TriggerLayout
+import com.uhufor.inspector.util.AnchorView
 import com.uhufor.inspector.util.FloatingViewDragHelper
 import com.uhufor.inspector.util.FloatingViewDragHelperDelegate
 import com.uhufor.inspector.util.ScreenSizeProvider
@@ -19,6 +20,7 @@ import java.lang.ref.WeakReference
 internal class FloatingTrigger(
     context: Context,
     private val inspector: Inspector,
+    private val positionRectChangeListener: AnchorView.OnPositionRectChangeListener,
 ) {
     private val context: WeakReference<Context> = WeakReference(context)
     private val windowManager: WeakReference<WindowManager> =
@@ -114,7 +116,7 @@ internal class FloatingTrigger(
                         this@FloatingTrigger.triggerLayout,
                         triggerLayoutParams
                     )
-                    updateDetailsSticky()
+                    notifyAnchorChanged()
                 }
             },
         ).also {
@@ -124,7 +126,7 @@ internal class FloatingTrigger(
 
         runCatching {
             currentWindowManager.addView(triggerLayout, triggerLayoutParams)
-            triggerLayout.post { updateDetailsSticky() }
+            triggerLayout.post { notifyAnchorChanged() }
             isInstalled = true
         }.onFailure {
             isInstalled = false
@@ -173,13 +175,13 @@ internal class FloatingTrigger(
         return Rect(lp.x, lp.y, lp.x + w, lp.y + h)
     }
 
-    private fun updateDetailsSticky() {
-        val rect = buildAnchorRect() ?: return
-        inspector.updateDetailsViewSticky(rect, getScreenSize())
+    private fun notifyAnchorChanged() {
+        val anchorRect = buildAnchorRect() ?: return
+        positionRectChangeListener.onPositionRectChange(anchorRect)
     }
 
-    fun requestUpdateDetailsSticky() {
-        updateDetailsSticky()
+    fun requestUpdateAnchor() {
+        notifyAnchorChanged()
     }
 
     @SuppressLint("ClickableViewAccessibility")

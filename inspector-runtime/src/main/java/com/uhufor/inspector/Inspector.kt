@@ -3,6 +3,8 @@ package com.uhufor.inspector
 import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.os.Build
+import android.util.DisplayMetrics
 import android.util.Size
 import android.view.Gravity
 import android.view.WindowManager
@@ -15,6 +17,7 @@ import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.ui.FloatingDetailsView
 import com.uhufor.inspector.ui.OverlayCanvas
 import com.uhufor.inspector.util.ActivityTracker
+import com.uhufor.inspector.util.AnchorView
 import com.uhufor.inspector.util.checkPermission
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +44,12 @@ object Inspector {
     private val configProvider = object : ConfigProvider {
         override fun getConfig(): Config {
             return config
+        }
+    }
+
+    private val positionRectChangeListener = object : AnchorView.OnPositionRectChangeListener {
+        override fun onPositionRectChange(rect: Rect) {
+            floatingDetailsView?.updateSticky(rect, getScreenSize())
         }
     }
 
@@ -155,15 +164,24 @@ object Inspector {
                 floatingDetailsView = FloatingDetailsView(applicationContext)
             }
             floatingDetailsView?.install(selectionState = selectionState, unitMode = unitMode)
-            floatingTrigger?.requestUpdateDetailsSticky()
+            floatingTrigger?.requestUpdateAnchor()
         } else {
             floatingDetailsView?.uninstall()
             floatingDetailsView = null
         }
     }
 
-    fun updateDetailsViewSticky(anchorRect: Rect, screenSize: Size) {
-        floatingDetailsView?.updateSticky(anchorRect, screenSize)
+    private fun getScreenSize(): Size {
+        val wm = windowManager ?: return Size(0, 0)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val metrics = wm.currentWindowMetrics
+            Size(metrics.bounds.width(), metrics.bounds.height())
+        } else {
+            val dm = DisplayMetrics()
+            @Suppress("DEPRECATION")
+            wm.defaultDisplay.getMetrics(dm)
+            Size(dm.widthPixels, dm.heightPixels)
+        }
     }
 
     fun setUnitMode(mode: UnitMode) {
@@ -203,7 +221,8 @@ object Inspector {
         if (floatingTrigger == null) {
             floatingTrigger = FloatingTrigger(
                 context = applicationContext,
-                inspector = this
+                inspector = this,
+                positionRectChangeListener = positionRectChangeListener,
             )
         }
 
