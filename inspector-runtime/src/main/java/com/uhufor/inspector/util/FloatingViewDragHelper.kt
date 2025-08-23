@@ -32,6 +32,7 @@ internal class FloatingViewDragHelper(
     }
 
     fun onDown(event: MotionEvent) {
+        updateScreenDimensions()
         delegate.getPosition().let { (x, y) ->
             initialX = x
             initialY = y
