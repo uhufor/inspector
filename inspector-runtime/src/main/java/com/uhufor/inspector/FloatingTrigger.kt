@@ -8,6 +8,7 @@ import android.util.Size
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.core.content.getSystemService
+import androidx.core.view.isVisible
 import com.uhufor.inspector.ui.TriggerLayout
 import com.uhufor.inspector.util.AnchorView
 import com.uhufor.inspector.util.FloatingViewDragHelper
@@ -37,7 +38,10 @@ internal class FloatingTrigger(
         val currentContext = context.get() ?: return
         val currentWindowManager = windowManager.get() ?: return
 
-        val triggerLayout = TriggerLayout(currentContext).also { this.triggerLayout = it }
+        val triggerLayout = TriggerLayout(currentContext).also {
+            this.triggerLayout = it
+            it.isVisible = false
+        }
         val triggerLayoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -118,6 +122,7 @@ internal class FloatingTrigger(
                     notifyAnchorChanged()
                 }
             },
+            horizontalMargin = HORIZONTAL_MARGIN
         ).also {
             dragHelper = it
         }
@@ -125,7 +130,21 @@ internal class FloatingTrigger(
 
         runCatching {
             currentWindowManager.addView(triggerLayout, triggerLayoutParams)
-            triggerLayout.post { notifyAnchorChanged() }
+            triggerLayout.post {
+                val screen = currentWindowManager.getScreenSize()
+                val w = triggerLayout.width
+                val h = triggerLayout.height
+                val initialX = w / 2
+                val initialY = ((screen.height - h) / 2).coerceIn(0, screen.height - h)
+
+                triggerLayoutParams.x = initialX
+                triggerLayoutParams.y = initialY
+                currentWindowManager.updateViewLayout(triggerLayout, triggerLayoutParams)
+
+                triggerLayout.isVisible = true
+
+                notifyAnchorChanged()
+            }
             isInstalled = true
         }.onFailure {
             isInstalled = false
@@ -194,5 +213,9 @@ internal class FloatingTrigger(
 
     fun refreshEnableState() {
         triggerLayout?.let(::updateTriggerLayoutEnableState)
+    }
+
+    companion object {
+        private const val HORIZONTAL_MARGIN = 10
     }
 }
