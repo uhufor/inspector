@@ -64,8 +64,7 @@ internal fun ElementDetails(
     Card(
         modifier = Modifier
             .width(200.dp)
-            .height(180.dp)
-            .padding(8.dp),
+            .height(180.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(4.dp)
     ) {
