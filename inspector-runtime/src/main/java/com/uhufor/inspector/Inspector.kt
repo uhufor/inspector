@@ -3,9 +3,6 @@ package com.uhufor.inspector
 import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.Rect
-import android.os.Build
-import android.util.DisplayMetrics
-import android.util.Size
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.annotation.MainThread
@@ -160,11 +157,16 @@ object Inspector {
 
     private fun handleSelectionChanged(selectionState: SelectionState?, unitMode: UnitMode) {
         if (selectionState != null) {
+            var isNeedToBringToFront = false
             if (floatingDetailsView == null) {
                 floatingDetailsView = FloatingDetailsView(applicationContext)
+                isNeedToBringToFront = true
             }
             floatingDetailsView?.install(selectionState = selectionState, unitMode = unitMode)
             floatingTrigger?.requestUpdateAnchor()
+            if (isNeedToBringToFront) {
+                floatingTrigger?.bringToFront()
+            }
         } else {
             floatingDetailsView?.uninstall()
             floatingDetailsView = null

@@ -9,6 +9,7 @@ import android.view.Gravity
 import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.getSystemService
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -64,6 +65,7 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
             setContent {
                 ElementDetails(selectionState = selectionState, unitMode = unitMode)
             }
+            isVisible = false
         }
 
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
@@ -125,6 +127,10 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
             lp.x = clampedX
             lp.y = clampedY
             runCatching { wm.updateViewLayout(view, lp) }
+        }
+
+        if (!view.isVisible) {
+            view.isVisible = true
         }
     }
 
