@@ -2,6 +2,8 @@ package com.uhufor.inspector
 
 import android.content.Context
 import android.graphics.PixelFormat
+import android.graphics.Rect
+import android.util.Size
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.annotation.MainThread
@@ -153,10 +155,15 @@ object Inspector {
                 floatingDetailsView = FloatingDetailsView(applicationContext)
             }
             floatingDetailsView?.install(selectionState = selectionState, unitMode = unitMode)
+            floatingTrigger?.requestUpdateDetailsSticky()
         } else {
             floatingDetailsView?.uninstall()
             floatingDetailsView = null
         }
+    }
+
+    fun updateDetailsViewSticky(anchorRect: Rect, screenSize: Size) {
+        floatingDetailsView?.updateSticky(anchorRect, screenSize)
     }
 
     fun setUnitMode(mode: UnitMode) {

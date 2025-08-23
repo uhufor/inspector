@@ -3,6 +3,7 @@ package com.uhufor.inspector
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.os.Build
 import android.util.DisplayMetrics
 import android.util.Size
@@ -113,6 +114,7 @@ internal class FloatingTrigger(
                         this@FloatingTrigger.triggerLayout,
                         triggerLayoutParams
                     )
+                    updateDetailsSticky()
                 }
             },
         ).also {
@@ -122,6 +124,7 @@ internal class FloatingTrigger(
 
         runCatching {
             currentWindowManager.addView(triggerLayout, triggerLayoutParams)
+            triggerLayout.post { updateDetailsSticky() }
             isInstalled = true
         }.onFailure {
             isInstalled = false
@@ -158,6 +161,25 @@ internal class FloatingTrigger(
             wm.defaultDisplay.getMetrics(displayMetrics)
             Size(displayMetrics.widthPixels, displayMetrics.heightPixels)
         }
+    }
+
+    private fun buildAnchorRect(): Rect? {
+        val lp = triggerLayoutParams ?: return null
+        val view = triggerLayout ?: return null
+        val w = view.width
+        val h = view.height
+        if (w == 0 || h == 0) return null
+
+        return Rect(lp.x, lp.y, lp.x + w, lp.y + h)
+    }
+
+    private fun updateDetailsSticky() {
+        val rect = buildAnchorRect() ?: return
+        inspector.updateDetailsViewSticky(rect, getScreenSize())
+    }
+
+    fun requestUpdateDetailsSticky() {
+        updateDetailsSticky()
     }
 
     @SuppressLint("ClickableViewAccessibility")

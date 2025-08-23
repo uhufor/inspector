@@ -3,6 +3,8 @@ package com.uhufor.inspector.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
+import android.graphics.Rect
+import android.util.Size
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
@@ -17,6 +19,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.uhufor.inspector.UnitMode
 import com.uhufor.inspector.engine.SelectionState
+import com.uhufor.inspector.util.dp
 import java.lang.ref.WeakReference
 
 internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStateRegistryOwner {
@@ -68,9 +71,9 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            gravity = Gravity.TOP or Gravity.START
             x = 0
-            y = 100
+            y = 0
         }
 
         runCatching {
@@ -79,6 +82,50 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         }.onFailure {
             isInstalled = false
         }
+    }
+
+    fun updateSticky(anchorRect: Rect, screenSize: Size, gapDp: Int = 2) {
+        if (!isInstalled) return
+        val view = composeView ?: return
+        val lp = layoutParams ?: return
+        val wm = windowManager.get() ?: return
+
+        val w = view.width
+        val h = view.height
+        if (w == 0 || h == 0) {
+            view.post { updateSticky(anchorRect, screenSize, gapDp) }
+            return
+        }
+
+        val gap = gapDp.dp().toInt()
+        val centerX = anchorRect.left + anchorRect.width() / 2
+        val centerY = anchorRect.top + anchorRect.height() / 2
+        val isLeft = centerX < screenSize.width / 2
+        val isTop = centerY < screenSize.height / 2
+
+        var targetX: Int
+        var targetY: Int
+        if (isTop && isLeft) {
+            targetX = anchorRect.right + gap
+            targetY = anchorRect.top
+        } else if (isTop && !isLeft) {
+            targetX = anchorRect.left - gap - w
+            targetY = anchorRect.top
+        } else if (!isTop && isLeft) {
+            targetX = anchorRect.right + gap
+            targetY = anchorRect.bottom - h
+        } else {
+            targetX = anchorRect.left - gap - w
+            targetY = anchorRect.bottom - h
+        }
+
+        targetX = targetX.coerceIn(0, screenSize.width - w)
+        targetY = targetY.coerceIn(0, screenSize.height - h)
+
+        lp.gravity = Gravity.TOP or Gravity.START
+        lp.x = targetX
+        lp.y = targetY
+        runCatching { wm.updateViewLayout(view, lp) }
     }
 
     fun uninstall() {
