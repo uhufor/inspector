@@ -22,6 +22,7 @@ import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.util.dp
 import com.uhufor.inspector.util.getScreenSize
 import java.lang.ref.WeakReference
+import kotlin.math.roundToInt
 
 internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStateRegistryOwner {
     private val context: WeakReference<Context> = WeakReference(context)
@@ -32,6 +33,7 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
     private var composeView: ComposeView? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var isInstalled = false
+    private val gapPx: Int = GAP_STICKY.dp().roundToInt()
 
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
     override val savedStateRegistry: SavedStateRegistry
@@ -87,7 +89,7 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         screenSize = null
     }
 
-    fun updateSticky(anchorRect: Rect, gapDp: Int = 2) {
+    fun updateSticky(anchorRect: Rect) {
         if (!isInstalled) return
         val view = composeView ?: return
         val lp = layoutParams ?: return
@@ -96,40 +98,34 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         val w = view.width
         val h = view.height
         if (w == 0 || h == 0) {
-            view.post { updateSticky(anchorRect, gapDp) }
+            view.post { updateSticky(anchorRect) }
             return
         }
 
-        val screenSize = screenSize ?: wm.getScreenSize().also { screenSize = it }
-        val gap = gapDp.dp().toInt()
-        val centerX = anchorRect.left + anchorRect.width() / 2
-        val centerY = anchorRect.top + anchorRect.height() / 2
-        val isLeft = centerX < screenSize.width / 2
-        val isTop = centerY < screenSize.height / 2
+        val screen = screenSize ?: wm.getScreenSize().also { screenSize = it }
+        val screenW = screen.width
+        val screenH = screen.height
 
-        var targetX: Int
-        var targetY: Int
-        if (isTop && isLeft) {
-            targetX = anchorRect.right + gap
-            targetY = anchorRect.top
-        } else if (isTop && !isLeft) {
-            targetX = anchorRect.left - gap - w
-            targetY = anchorRect.top
-        } else if (!isTop && isLeft) {
-            targetX = anchorRect.right + gap
-            targetY = anchorRect.bottom - h
-        } else {
-            targetX = anchorRect.left - gap - w
-            targetY = anchorRect.bottom - h
-        }
+        val left = anchorRect.left
+        val top = anchorRect.top
+        val right = anchorRect.right
+        val bottom = anchorRect.bottom
 
-        targetX = targetX.coerceIn(0, screenSize.width - w)
-        targetY = targetY.coerceIn(0, screenSize.height - h)
+        val isLeft = (left + (right - left) / 2) < (screenW / 2)
+        val isTop = (top + (bottom - top) / 2) < (screenH / 2)
+
+        val targetX = if (isLeft) right + gapPx else left - gapPx - w
+        val targetY = if (isTop) top else bottom - h
+
+        val clampedX = targetX.coerceIn(0, screenW - w)
+        val clampedY = targetY.coerceIn(0, screenH - h)
 
         lp.gravity = Gravity.TOP or Gravity.START
-        lp.x = targetX
-        lp.y = targetY
-        runCatching { wm.updateViewLayout(view, lp) }
+        if (lp.x != clampedX || lp.y != clampedY) {
+            lp.x = clampedX
+            lp.y = clampedY
+            runCatching { wm.updateViewLayout(view, lp) }
+        }
     }
 
     fun uninstall() {
@@ -144,5 +140,9 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         composeView = null
         layoutParams = null
         isInstalled = false
+    }
+
+    companion object {
+        private const val GAP_STICKY = 2
     }
 }
