@@ -4,11 +4,12 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.Rect
-import android.util.Size
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.getSystemService
+import androidx.core.util.component1
+import androidx.core.util.component2
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -30,7 +31,6 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
     private val windowManager: WeakReference<WindowManager> =
         WeakReference(context.getSystemService())
 
-    private var screenSize: Size? = null
     private var composeView: ComposeView? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var isInstalled = false
@@ -96,7 +96,6 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         }.onFailure {
             isInstalled = false
         }
-        screenSize = null
     }
 
     fun updateSticky(anchorRect: Rect) {
@@ -111,24 +110,21 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
             view.post { updateSticky(anchorRect) }
             return
         }
-
-        val screen = screenSize ?: wm.getScreenSize().also { screenSize = it }
-        val screenW = screen.width
-        val screenH = screen.height
-
         val left = anchorRect.left
         val top = anchorRect.top
         val right = anchorRect.right
         val bottom = anchorRect.bottom + paddingBottomPx
 
-        val isLeft = (left + (right - left) / 2) < (screenW / 2)
-        val isTop = (top + (bottom - top) / 2) < (screenH / 2)
+        val (sw, sh) = wm.getScreenSize()
+
+        val isLeft = (left + (right - left) / 2) < (sw / 2)
+        val isTop = (top + (bottom - top) / 2) < (sh / 2)
 
         val targetX = if (isLeft) right + gapPx else left - gapPx - w
         val targetY = if (isTop) top else bottom - h
 
-        val clampedX = targetX.coerceIn(0, screenW - w)
-        val clampedY = targetY.coerceIn(0, screenH - h)
+        val clampedX = targetX.coerceIn(0, sw - w)
+        val clampedY = targetY.coerceIn(0, sh - h)
 
         lp.gravity = Gravity.TOP or Gravity.START
         if (lp.x != clampedX || lp.y != clampedY) {
