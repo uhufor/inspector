@@ -7,8 +7,10 @@ internal class FloatingViewDragHelper(
     private val screenSizeProvider: ScreenSizeProvider,
     private val delegate: FloatingViewDragHelperDelegate,
     dragTolerance: Int = DEFAULT_DRAG_TOLERANCE,
+    horizontalMargin: Int = 0,
 ) {
     private val dragToleranceDp: Int = dragTolerance.dp().toInt()
+    private val horizontalMarginPx: Int = horizontalMargin.dp().toInt()
     private var screenWidth: Int = 0
     private var screenHeight: Int = 0
     private var initialX: Int = 0
@@ -56,8 +58,11 @@ internal class FloatingViewDragHelper(
             }
 
             val viewSize = delegate.getSize()
-            newX = newX.coerceIn(0, screenWidth - viewSize.width)
-            newY = newY.coerceIn(0, screenHeight - viewSize.height)
+            newX = newX.coerceIn(
+                minimumValue = horizontalMarginPx,
+                maximumValue = screenWidth - viewSize.width - horizontalMarginPx
+            )
+            newY = newY.coerceIn(minimumValue = 0, maximumValue = screenHeight - viewSize.height)
 
             delegate.onChangePosition(newX, newY)
         }

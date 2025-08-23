@@ -3,21 +3,24 @@ package com.uhufor.inspector
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
-import android.os.Build
-import android.util.DisplayMetrics
+import android.graphics.Rect
 import android.util.Size
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.core.content.getSystemService
+import androidx.core.view.isVisible
 import com.uhufor.inspector.ui.TriggerLayout
+import com.uhufor.inspector.util.AnchorView
 import com.uhufor.inspector.util.FloatingViewDragHelper
 import com.uhufor.inspector.util.FloatingViewDragHelperDelegate
 import com.uhufor.inspector.util.ScreenSizeProvider
+import com.uhufor.inspector.util.getScreenSize
 import java.lang.ref.WeakReference
 
 internal class FloatingTrigger(
     context: Context,
     private val inspector: Inspector,
+    private val positionRectChangeListener: AnchorView.OnPositionRectChangeListener,
 ) {
     private val context: WeakReference<Context> = WeakReference(context)
     private val windowManager: WeakReference<WindowManager> =
@@ -35,7 +38,10 @@ internal class FloatingTrigger(
         val currentContext = context.get() ?: return
         val currentWindowManager = windowManager.get() ?: return
 
-        val triggerLayout = TriggerLayout(currentContext).also { this.triggerLayout = it }
+        val triggerLayout = TriggerLayout(currentContext).also {
+            this.triggerLayout = it
+            it.isVisible = false
+        }
         val triggerLayoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -88,7 +94,7 @@ internal class FloatingTrigger(
         val currentDragHelper = FloatingViewDragHelper(
             screenSizeProvider = object : ScreenSizeProvider {
                 override fun getSize(): Size {
-                    return this@FloatingTrigger.getScreenSize()
+                    return windowManager.get()?.getScreenSize() ?: Size(0, 0)
                 }
             },
             delegate = object : FloatingViewDragHelperDelegate {
@@ -113,8 +119,10 @@ internal class FloatingTrigger(
                         this@FloatingTrigger.triggerLayout,
                         triggerLayoutParams
                     )
+                    notifyAnchorChanged()
                 }
             },
+            horizontalMargin = HORIZONTAL_MARGIN
         ).also {
             dragHelper = it
         }
@@ -122,6 +130,22 @@ internal class FloatingTrigger(
 
         runCatching {
             currentWindowManager.addView(triggerLayout, triggerLayoutParams)
+            triggerLayout.post {
+                // set initial position
+                val screen = currentWindowManager.getScreenSize()
+                val w = triggerLayout.width
+                val h = triggerLayout.height
+                val initialX = w / 2
+                val initialY = ((screen.height - h) / 2).coerceIn(0, screen.height - h)
+
+                triggerLayoutParams.x = initialX
+                triggerLayoutParams.y = initialY
+                currentWindowManager.updateViewLayout(triggerLayout, triggerLayoutParams)
+
+                triggerLayout.isVisible = true
+
+                notifyAnchorChanged()
+            }
             isInstalled = true
         }.onFailure {
             isInstalled = false
@@ -147,17 +171,23 @@ internal class FloatingTrigger(
         )
     }
 
-    private fun getScreenSize(): Size {
-        val wm = windowManager.get() ?: return Size(0, 0)
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val windowMetrics = wm.currentWindowMetrics
-            Size(windowMetrics.bounds.width(), windowMetrics.bounds.height())
-        } else {
-            val displayMetrics = DisplayMetrics()
-            @Suppress("DEPRECATION")
-            wm.defaultDisplay.getMetrics(displayMetrics)
-            Size(displayMetrics.widthPixels, displayMetrics.heightPixels)
-        }
+    private fun buildAnchorRect(): Rect? {
+        val lp = triggerLayoutParams ?: return null
+        val view = triggerLayout ?: return null
+        val w = view.width
+        val h = view.height
+        if (w == 0 || h == 0) return null
+
+        return Rect(lp.x, lp.y, lp.x + w, lp.y + h)
+    }
+
+    private fun notifyAnchorChanged() {
+        val anchorRect = buildAnchorRect() ?: return
+        positionRectChangeListener.onPositionRectChange(anchorRect)
+    }
+
+    fun requestUpdateAnchor() {
+        notifyAnchorChanged()
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -184,5 +214,9 @@ internal class FloatingTrigger(
 
     fun refreshEnableState() {
         triggerLayout?.let(::updateTriggerLayoutEnableState)
+    }
+
+    companion object {
+        private const val HORIZONTAL_MARGIN = 10
     }
 }

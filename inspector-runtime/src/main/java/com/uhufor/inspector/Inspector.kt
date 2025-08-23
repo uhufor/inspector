@@ -2,6 +2,7 @@ package com.uhufor.inspector
 
 import android.content.Context
 import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.annotation.MainThread
@@ -13,6 +14,7 @@ import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.ui.FloatingDetailsView
 import com.uhufor.inspector.ui.OverlayCanvas
 import com.uhufor.inspector.util.ActivityTracker
+import com.uhufor.inspector.util.AnchorView
 import com.uhufor.inspector.util.checkPermission
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +41,12 @@ object Inspector {
     private val configProvider = object : ConfigProvider {
         override fun getConfig(): Config {
             return config
+        }
+    }
+
+    private val positionRectChangeListener = object : AnchorView.OnPositionRectChangeListener {
+        override fun onPositionRectChange(rect: Rect) {
+            floatingDetailsView?.updateSticky(rect)
         }
     }
 
@@ -149,10 +157,16 @@ object Inspector {
 
     private fun handleSelectionChanged(selectionState: SelectionState?, unitMode: UnitMode) {
         if (selectionState != null) {
+            var isNeedToBringToFront = false
             if (floatingDetailsView == null) {
                 floatingDetailsView = FloatingDetailsView(applicationContext)
+                isNeedToBringToFront = true
             }
             floatingDetailsView?.install(selectionState = selectionState, unitMode = unitMode)
+            floatingTrigger?.requestUpdateAnchor()
+            if (isNeedToBringToFront) {
+                floatingTrigger?.bringToFront()
+            }
         } else {
             floatingDetailsView?.uninstall()
             floatingDetailsView = null
@@ -196,7 +210,8 @@ object Inspector {
         if (floatingTrigger == null) {
             floatingTrigger = FloatingTrigger(
                 context = applicationContext,
-                inspector = this
+                inspector = this,
+                positionRectChangeListener = positionRectChangeListener,
             )
         }
 

@@ -3,10 +3,13 @@ package com.uhufor.inspector.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
+import android.graphics.Rect
+import android.util.Size
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.getSystemService
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -17,16 +20,23 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.uhufor.inspector.UnitMode
 import com.uhufor.inspector.engine.SelectionState
+import com.uhufor.inspector.util.dp
+import com.uhufor.inspector.util.getScreenSize
 import java.lang.ref.WeakReference
+import kotlin.math.roundToInt
 
 internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStateRegistryOwner {
     private val context: WeakReference<Context> = WeakReference(context)
     private val windowManager: WeakReference<WindowManager> =
         WeakReference(context.getSystemService())
 
+    private var screenSize: Size? = null
     private var composeView: ComposeView? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var isInstalled = false
+    private val gapPx: Int = GAP_STICKY.dp().roundToInt()
+    private val paddingHorizontalPx: Int = PADDING_HORIZONTAL.dp().roundToInt()
+    private val paddingBottomPx: Int = PADDING_BOTTOM.dp().roundToInt()
 
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
     override val savedStateRegistry: SavedStateRegistry
@@ -57,6 +67,13 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
             setContent {
                 ElementDetails(selectionState = selectionState, unitMode = unitMode)
             }
+            isVisible = false
+            setPadding(
+                paddingHorizontalPx,
+                0,
+                paddingHorizontalPx,
+                paddingBottomPx,
+            )
         }
 
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
@@ -68,9 +85,9 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            gravity = Gravity.TOP or Gravity.START
             x = 0
-            y = 100
+            y = 0
         }
 
         runCatching {
@@ -78,6 +95,50 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
             isInstalled = true
         }.onFailure {
             isInstalled = false
+        }
+        screenSize = null
+    }
+
+    fun updateSticky(anchorRect: Rect) {
+        if (!isInstalled) return
+        val view = composeView ?: return
+        val lp = layoutParams ?: return
+        val wm = windowManager.get() ?: return
+
+        val w = view.width
+        val h = view.height
+        if (w == 0 || h == 0) {
+            view.post { updateSticky(anchorRect) }
+            return
+        }
+
+        val screen = screenSize ?: wm.getScreenSize().also { screenSize = it }
+        val screenW = screen.width
+        val screenH = screen.height
+
+        val left = anchorRect.left
+        val top = anchorRect.top
+        val right = anchorRect.right
+        val bottom = anchorRect.bottom + paddingBottomPx
+
+        val isLeft = (left + (right - left) / 2) < (screenW / 2)
+        val isTop = (top + (bottom - top) / 2) < (screenH / 2)
+
+        val targetX = if (isLeft) right + gapPx else left - gapPx - w
+        val targetY = if (isTop) top else bottom - h
+
+        val clampedX = targetX.coerceIn(0, screenW - w)
+        val clampedY = targetY.coerceIn(0, screenH - h)
+
+        lp.gravity = Gravity.TOP or Gravity.START
+        if (lp.x != clampedX || lp.y != clampedY) {
+            lp.x = clampedX
+            lp.y = clampedY
+            runCatching { wm.updateViewLayout(view, lp) }
+        }
+
+        if (!view.isVisible) {
+            view.isVisible = true
         }
     }
 
@@ -93,5 +154,11 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         composeView = null
         layoutParams = null
         isInstalled = false
+    }
+
+    companion object {
+        private const val GAP_STICKY = 2
+        private const val PADDING_BOTTOM = 8
+        private const val PADDING_HORIZONTAL = 4
     }
 }
