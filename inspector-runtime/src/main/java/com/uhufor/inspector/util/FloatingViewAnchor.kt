@@ -7,4 +7,3 @@ internal interface AnchorView {
         fun onPositionRectChange(rect: Rect)
     }
 }
-

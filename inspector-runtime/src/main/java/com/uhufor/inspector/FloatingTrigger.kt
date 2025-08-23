@@ -131,6 +131,7 @@ internal class FloatingTrigger(
         runCatching {
             currentWindowManager.addView(triggerLayout, triggerLayoutParams)
             triggerLayout.post {
+                // set initial position
                 val screen = currentWindowManager.getScreenSize()
                 val w = triggerLayout.width
                 val h = triggerLayout.height

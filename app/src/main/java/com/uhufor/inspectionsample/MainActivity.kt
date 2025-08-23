@@ -86,6 +86,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        if (Inspector.isInspectionEnabled) {
+            Inspector.disableInspection()
+        }
         Inspector.hideFloatingTrigger()
     }
 }
