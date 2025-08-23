@@ -35,6 +35,8 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
     private var layoutParams: WindowManager.LayoutParams? = null
     private var isInstalled = false
     private val gapPx: Int = GAP_STICKY.dp().roundToInt()
+    private val paddingHorizontalPx: Int = PADDING_HORIZONTAL.dp().roundToInt()
+    private val paddingBottomPx: Int = PADDING_BOTTOM.dp().roundToInt()
 
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
     override val savedStateRegistry: SavedStateRegistry
@@ -66,6 +68,12 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
                 ElementDetails(selectionState = selectionState, unitMode = unitMode)
             }
             isVisible = false
+            setPadding(
+                paddingHorizontalPx,
+                0,
+                paddingHorizontalPx,
+                paddingBottomPx,
+            )
         }
 
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
@@ -111,7 +119,7 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         val left = anchorRect.left
         val top = anchorRect.top
         val right = anchorRect.right
-        val bottom = anchorRect.bottom
+        val bottom = anchorRect.bottom + paddingBottomPx
 
         val isLeft = (left + (right - left) / 2) < (screenW / 2)
         val isTop = (top + (bottom - top) / 2) < (screenH / 2)
@@ -150,5 +158,7 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
 
     companion object {
         private const val GAP_STICKY = 2
+        private const val PADDING_BOTTOM = 8
+        private const val PADDING_HORIZONTAL = 4
     }
 }
