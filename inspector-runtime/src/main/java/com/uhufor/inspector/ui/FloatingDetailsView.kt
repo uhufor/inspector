@@ -20,6 +20,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.uhufor.inspector.UnitMode
 import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.util.dp
+import com.uhufor.inspector.util.getScreenSize
 import java.lang.ref.WeakReference
 
 internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStateRegistryOwner {
@@ -27,6 +28,7 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
     private val windowManager: WeakReference<WindowManager> =
         WeakReference(context.getSystemService())
 
+    private var screenSize: Size? = null
     private var composeView: ComposeView? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var isInstalled = false
@@ -82,9 +84,10 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         }.onFailure {
             isInstalled = false
         }
+        screenSize = null
     }
 
-    fun updateSticky(anchorRect: Rect, screenSize: Size, gapDp: Int = 2) {
+    fun updateSticky(anchorRect: Rect, gapDp: Int = 2) {
         if (!isInstalled) return
         val view = composeView ?: return
         val lp = layoutParams ?: return
@@ -93,10 +96,11 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         val w = view.width
         val h = view.height
         if (w == 0 || h == 0) {
-            view.post { updateSticky(anchorRect, screenSize, gapDp) }
+            view.post { updateSticky(anchorRect, gapDp) }
             return
         }
 
+        val screenSize = screenSize ?: wm.getScreenSize().also { screenSize = it }
         val gap = gapDp.dp().toInt()
         val centerX = anchorRect.left + anchorRect.width() / 2
         val centerY = anchorRect.top + anchorRect.height() / 2

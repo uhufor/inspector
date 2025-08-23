@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.Rect
-import android.os.Build
-import android.util.DisplayMetrics
 import android.util.Size
 import android.view.Gravity
 import android.view.WindowManager
@@ -15,6 +13,7 @@ import com.uhufor.inspector.util.AnchorView
 import com.uhufor.inspector.util.FloatingViewDragHelper
 import com.uhufor.inspector.util.FloatingViewDragHelperDelegate
 import com.uhufor.inspector.util.ScreenSizeProvider
+import com.uhufor.inspector.util.getScreenSize
 import java.lang.ref.WeakReference
 
 internal class FloatingTrigger(
@@ -91,7 +90,7 @@ internal class FloatingTrigger(
         val currentDragHelper = FloatingViewDragHelper(
             screenSizeProvider = object : ScreenSizeProvider {
                 override fun getSize(): Size {
-                    return this@FloatingTrigger.getScreenSize()
+                    return windowManager.get()?.getScreenSize() ?: Size(0, 0)
                 }
             },
             delegate = object : FloatingViewDragHelperDelegate {
@@ -150,19 +149,6 @@ internal class FloatingTrigger(
             TriggerLayout.ButtonType.SEE_PROPERTY_DETAILS,
             inspector.isDetailsViewEnabled
         )
-    }
-
-    private fun getScreenSize(): Size {
-        val wm = windowManager.get() ?: return Size(0, 0)
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val windowMetrics = wm.currentWindowMetrics
-            Size(windowMetrics.bounds.width(), windowMetrics.bounds.height())
-        } else {
-            val displayMetrics = DisplayMetrics()
-            @Suppress("DEPRECATION")
-            wm.defaultDisplay.getMetrics(displayMetrics)
-            Size(displayMetrics.widthPixels, displayMetrics.heightPixels)
-        }
     }
 
     private fun buildAnchorRect(): Rect? {

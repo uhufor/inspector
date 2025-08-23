@@ -49,7 +49,7 @@ object Inspector {
 
     private val positionRectChangeListener = object : AnchorView.OnPositionRectChangeListener {
         override fun onPositionRectChange(rect: Rect) {
-            floatingDetailsView?.updateSticky(rect, getScreenSize())
+            floatingDetailsView?.updateSticky(rect)
         }
     }
 
@@ -168,19 +168,6 @@ object Inspector {
         } else {
             floatingDetailsView?.uninstall()
             floatingDetailsView = null
-        }
-    }
-
-    private fun getScreenSize(): Size {
-        val wm = windowManager ?: return Size(0, 0)
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val metrics = wm.currentWindowMetrics
-            Size(metrics.bounds.width(), metrics.bounds.height())
-        } else {
-            val dm = DisplayMetrics()
-            @Suppress("DEPRECATION")
-            wm.defaultDisplay.getMetrics(dm)
-            Size(dm.widthPixels, dm.heightPixels)
         }
     }
 
