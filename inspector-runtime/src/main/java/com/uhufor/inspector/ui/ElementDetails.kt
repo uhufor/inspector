@@ -93,7 +93,7 @@ internal fun ElementDetails(
 private fun SectionTitle(title: String) {
     Text(
         text = title,
-        fontSize = 9.sp,
+        fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 2.dp),
         textDecoration = TextDecoration.Underline,
@@ -106,12 +106,12 @@ private fun InfoRow(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(12.dp)
+            .height(14.dp)
             .padding(vertical = 1.dp),
     ) {
         Text(
             text = label,
-            fontSize = 8.sp,
+            fontSize = 9.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .fillMaxWidth(0.4f)
@@ -124,7 +124,7 @@ private fun InfoRow(label: String, value: String) {
         Spacer(modifier = Modifier.width(2.dp))
         Text(
             text = value,
-            fontSize = 7.sp,
+            fontSize = 9.sp,
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(weight = 1f, fill = true)
@@ -192,15 +192,15 @@ private fun BoxModel(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(margin[1], fontSize = 6.sp) // margin.top
+                Text(margin[1], fontSize = 8.sp) // margin.top
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         margin[0], // margin.left
-                        fontSize = 6.sp,
+                        fontSize = 8.sp,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.width(20.dp)
+                        modifier = Modifier.width(24.dp)
                     )
                     Spacer(modifier = Modifier.width(2.dp))
                     Box(
@@ -213,18 +213,18 @@ private fun BoxModel(
                             .padding(horizontal = 4.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(size, fontSize = 6.sp)
+                        Text(size, fontSize = 8.sp)
                     }
 
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         margin[2], // margin.right
-                        fontSize = 6.sp,
+                        fontSize = 8.sp,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.width(20.dp)
+                        modifier = Modifier.width(24.dp)
                     )
                 }
-                Text(margin[3], fontSize = 6.sp) // margin.bottom
+                Text(margin[3], fontSize = 8.sp) // margin.bottom
             }
         }
     }
