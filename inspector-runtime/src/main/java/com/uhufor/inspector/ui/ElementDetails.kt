@@ -2,6 +2,7 @@ package com.uhufor.inspector.ui
 
 import android.graphics.RectF
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,7 +64,7 @@ internal fun ElementDetails(
 
     Card(
         modifier = Modifier
-            .width(200.dp)
+            .width(148.dp)
             .height(180.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(4.dp)
@@ -124,7 +125,6 @@ private fun InfoRow(label: String, value: String) {
         Text(
             text = value,
             fontSize = 7.sp,
-            overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(weight = 1f, fill = true)
@@ -133,6 +133,7 @@ private fun InfoRow(label: String, value: String) {
                     shape = RoundedCornerShape(topEnd = 2.dp, bottomEnd = 2.dp)
                 )
                 .padding(horizontal = 2.dp)
+                .basicMarquee()
         )
     }
 }
