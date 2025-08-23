@@ -124,6 +124,10 @@ object Inspector {
             windowManager?.removeView(overlayCanvas)
         }
         overlayCanvas = null
+        floatingDetailsView?.uninstall()
+        floatingDetailsView = null
+        selectionChangedJob?.cancel()
+        selectionChangedJob = null
         inspectorEngine?.clearScan()
         inspectorEngine = null
         selectionState.value = null
