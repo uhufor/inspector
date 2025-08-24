@@ -28,15 +28,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.uhufor.inspector.UnitMode
@@ -265,31 +267,74 @@ private fun MeasurementMetricBox(
     bottomContent: @Composable BoxScope.() -> Unit,
     centerContent: @Composable BoxScope.() -> Unit,
     modifier: Modifier = Modifier,
+    lineColor: Color = Color.Gray,
+    strokeWidth: Dp = 1.dp,
+    segmentLength: Dp = 12.dp,
+    minCellHeight: Dp = 24.dp,
 ) {
+    val density = LocalDensity.current
+    val strokePx = remember(density, strokeWidth) { with(density) { strokeWidth.toPx() } }
+    val segPx = remember(density, segmentLength) { with(density) { segmentLength.toPx() } }
+    val halfSeg = remember(segPx) { segPx / 2f }
+
+    fun DrawScope.drawCenterV(color: Color, stroke: Float) {
+        val cx = size.width / 2f
+        drawLine(color, Offset(cx, 0f), Offset(cx, size.height), strokeWidth = stroke)
+    }
+
+    fun DrawScope.drawCenterH(color: Color, stroke: Float) {
+        val cy = size.height / 2f
+        drawLine(color, Offset(0f, cy), Offset(size.width, cy), strokeWidth = stroke)
+    }
+
+    fun DrawScope.drawTopSegment(color: Color, stroke: Float, halfSeg: Float) {
+        val cx = size.width / 2f
+        val x1 = (cx - halfSeg).coerceIn(0f, size.width)
+        val x2 = (cx + halfSeg).coerceIn(0f, size.width)
+        drawLine(color, Offset(x1, 0f), Offset(x2, 0f), strokeWidth = stroke)
+    }
+
+    fun DrawScope.drawBottomSegment(color: Color, stroke: Float, halfSeg: Float) {
+        val cx = size.width / 2f
+        val x1 = (cx - halfSeg).coerceIn(0f, size.width)
+        val x2 = (cx + halfSeg).coerceIn(0f, size.width)
+        drawLine(color, Offset(x1, size.height), Offset(x2, size.height), strokeWidth = stroke)
+    }
+
+    fun DrawScope.drawLeftSegment(color: Color, stroke: Float, halfSeg: Float) {
+        val cy = size.height / 2f
+        val y1 = (cy - halfSeg).coerceIn(0f, size.height)
+        val y2 = (cy + halfSeg).coerceIn(0f, size.height)
+        drawLine(color, Offset(0f, y1), Offset(0f, y2), strokeWidth = stroke)
+    }
+
+    fun DrawScope.drawRightSegment(color: Color, stroke: Float, halfSeg: Float) {
+        val cy = size.height / 2f
+        val y1 = (cy - halfSeg).coerceIn(0f, size.height)
+        val y2 = (cy + halfSeg).coerceIn(0f, size.height)
+        drawLine(color, Offset(size.width, y1), Offset(size.width, y2), strokeWidth = stroke)
+    }
+
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Box(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
 
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .heightIn(min = 24.dp)
-                    .drawBehind {
-                        val c = Color.Gray
-                        val stroke = 1.dp.toPx()
-                        val seg = 12.dp.toPx()
-                        val cx = size.width / 2f
-                        val x1 = (cx - seg / 2f).coerceIn(0f, size.width)
-                        val x2 = (cx + seg / 2f).coerceIn(0f, size.width)
-                        drawLine(c, Offset(cx, 0f), Offset(cx, size.height), strokeWidth = stroke)
-                        drawLine(c, Offset(x1, 0f), Offset(x2, 0f), strokeWidth = stroke)
+                    .heightIn(min = minCellHeight)
+                    .drawWithCache {
+                        onDrawBehind {
+                            drawCenterV(lineColor, strokePx)
+                            drawTopSegment(lineColor, strokePx, halfSeg)
+                        }
                     }
             ) { topContent() }
 
-            Box(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
         }
 
         Row(
@@ -299,68 +344,38 @@ private fun MeasurementMetricBox(
             Box(
                 modifier = Modifier
                     .weight(0.5f)
-                    .heightIn(min = 24.dp)
-                    .drawBehind {
-                        val c = Color.Gray
-                        val stroke = 1.dp.toPx()
-                        val seg = 12.dp.toPx()
-                        val cy = size.height / 2f
-                        val y1 = (cy - seg / 2f).coerceIn(0f, size.height)
-                        val y2 = (cy + seg / 2f).coerceIn(0f, size.height)
-                        drawLine(c, Offset(0f, cy), Offset(size.width, cy), strokeWidth = stroke)
-                        drawLine(c, Offset(0f, y1), Offset(0f, y2), strokeWidth = stroke)
+                    .heightIn(min = minCellHeight)
+                    .drawWithCache {
+                        onDrawBehind {
+                            drawCenterH(lineColor, strokePx)
+                            drawLeftSegment(lineColor, strokePx, halfSeg)
+                        }
                     }
             ) { leftContent() }
 
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .heightIn(min = 24.dp)
-                    .drawBehind {
-                        val c = Color.Gray
-                        val stroke = 1.dp.toPx()
-                        val seg = 12.dp.toPx()
-                        val cx = size.width / 2f
-                        val cy = size.height / 2f
-                        val x1 = (cx - seg / 2f).coerceIn(0f, size.width)
-                        val x2 = (cx + seg / 2f).coerceIn(0f, size.width)
-                        val y1 = (cy - seg / 2f).coerceIn(0f, size.height)
-                        val y2 = (cy + seg / 2f).coerceIn(0f, size.height)
-                        drawLine(c, Offset(x1, 0f), Offset(x2, 0f), strokeWidth = stroke)
-                        drawLine(
-                            c,
-                            Offset(size.width, y1),
-                            Offset(size.width, y2),
-                            strokeWidth = stroke
-                        )
-                        drawLine(
-                            c,
-                            Offset(x1, size.height),
-                            Offset(x2, size.height),
-                            strokeWidth = stroke
-                        )
-                        drawLine(c, Offset(0f, y1), Offset(0f, y2), strokeWidth = stroke)
+                    .heightIn(min = minCellHeight)
+                    .drawWithCache {
+                        onDrawBehind {
+                            drawTopSegment(lineColor, strokePx, halfSeg)
+                            drawRightSegment(lineColor, strokePx, halfSeg)
+                            drawBottomSegment(lineColor, strokePx, halfSeg)
+                            drawLeftSegment(lineColor, strokePx, halfSeg)
+                        }
                     }
             ) { centerContent() }
 
             Box(
                 modifier = Modifier
                     .weight(0.5f)
-                    .heightIn(min = 24.dp)
-                    .drawBehind {
-                        val c = Color.Gray
-                        val stroke = 1.dp.toPx()
-                        val seg = 12.dp.toPx()
-                        val cy = size.height / 2f
-                        val y1 = (cy - seg / 2f).coerceIn(0f, size.height)
-                        val y2 = (cy + seg / 2f).coerceIn(0f, size.height)
-                        drawLine(c, Offset(0f, cy), Offset(size.width, cy), strokeWidth = stroke)
-                        drawLine(
-                            c,
-                            Offset(size.width, y1),
-                            Offset(size.width, y2),
-                            strokeWidth = stroke
-                        )
+                    .heightIn(min = minCellHeight)
+                    .drawWithCache {
+                        onDrawBehind {
+                            drawCenterH(lineColor, strokePx)
+                            drawRightSegment(lineColor, strokePx, halfSeg)
+                        }
                     }
             ) { rightContent() }
         }
@@ -369,30 +384,21 @@ private fun MeasurementMetricBox(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Box(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
 
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .heightIn(min = 24.dp)
-                    .drawBehind {
-                        val c = Color.Gray
-                        val stroke = 1.dp.toPx()
-                        val seg = 12.dp.toPx()
-                        val cx = size.width / 2f
-                        val x1 = (cx - seg / 2f).coerceIn(0f, size.width)
-                        val x2 = (cx + seg / 2f).coerceIn(0f, size.width)
-                        drawLine(c, Offset(cx, 0f), Offset(cx, size.height), strokeWidth = stroke)
-                        drawLine(
-                            c,
-                            Offset(x1, size.height),
-                            Offset(x2, size.height),
-                            strokeWidth = stroke
-                        )
+                    .heightIn(min = minCellHeight)
+                    .drawWithCache {
+                        onDrawBehind {
+                            drawCenterV(lineColor, strokePx)
+                            drawBottomSegment(lineColor, strokePx, halfSeg)
+                        }
                     }
             ) { bottomContent() }
 
-            Box(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
