@@ -6,6 +6,11 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.view.Gravity
 import android.view.WindowManager
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.getSystemService
 import androidx.core.util.component1
@@ -21,6 +26,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.uhufor.inspector.UnitMode
 import com.uhufor.inspector.engine.SelectionState
+import com.uhufor.inspector.engine.ViewMutator
 import com.uhufor.inspector.util.dp
 import com.uhufor.inspector.util.getScreenSize
 import java.lang.ref.WeakReference
@@ -46,6 +52,12 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
     override val lifecycle: Lifecycle
         get() = lifecycleRegistry
 
+    private var onRefresh: (() -> Unit)? = null
+
+    fun setOnRefresh(callback: (() -> Unit)?) {
+        onRefresh = callback
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     fun install(selectionState: SelectionState, unitMode: UnitMode) {
         val currentContext = context.get() ?: return
@@ -53,7 +65,23 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
 
         if (isInstalled) {
             composeView?.setContent {
-                ElementDetails(selectionState = selectionState, unitMode = unitMode)
+                var editMode by remember { mutableStateOf(false) }
+                LaunchedEffect(selectionState.id) {
+                    editMode = false
+                    setFocusable(false)
+                }
+                ElementDetails(
+                    selectionState = selectionState,
+                    unitMode = unitMode,
+                    isEditMode = editMode,
+                    onEditModeChange = { editMode = it },
+                    onRequestFocusable = { setFocusable(it) },
+                    onApplyMarginPadding = { ml, mt, mr, mb, pl, pt, pr, pb ->
+                        ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
+                        ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
+                        ViewMutator.runAfterNextLayout(selectionState.id) { onRefresh?.invoke() }
+                    }
+                )
             }
             return
         }
@@ -65,7 +93,23 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
             setViewTreeLifecycleOwner(this@FloatingDetailsView)
             setViewTreeSavedStateRegistryOwner(this@FloatingDetailsView)
             setContent {
-                ElementDetails(selectionState = selectionState, unitMode = unitMode)
+                var editMode by remember { mutableStateOf(false) }
+                LaunchedEffect(selectionState.id) {
+                    editMode = false
+                    setFocusable(false)
+                }
+                ElementDetails(
+                    selectionState = selectionState,
+                    unitMode = unitMode,
+                    isEditMode = editMode,
+                    onEditModeChange = { editMode = it },
+                    onRequestFocusable = { setFocusable(it) },
+                    onApplyMarginPadding = { ml, mt, mr, mb, pl, pt, pr, pb ->
+                        ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
+                        ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
+                        ViewMutator.runAfterNextLayout(selectionState.id) { onRefresh?.invoke() }
+                    }
+                )
             }
             isVisible = false
             setPadding(

@@ -49,36 +49,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.uhufor.inspector.Inspector
 import com.uhufor.inspector.UnitMode
 import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.engine.UiNodeActionProperties
 import com.uhufor.inspector.engine.UiNodeProperties
 import com.uhufor.inspector.engine.UiNodeStyleProperties
 import com.uhufor.inspector.engine.UiNodeType
-import com.uhufor.inspector.engine.ViewMutator
 import kotlin.math.roundToInt
 
 @Composable
 internal fun ElementDetails(
     selectionState: SelectionState,
     unitMode: UnitMode,
+    isEditMode: Boolean,
+    onEditModeChange: (Boolean) -> Unit,
+    onRequestFocusable: (Boolean) -> Unit,
+    onApplyMarginPadding: (Int, Int, Int, Int, Int, Int, Int, Int) -> Unit,
 ) {
     val density = LocalDensity.current.density
-    // TODO: hoist the state of edit mode
-    var editMode by remember(selectionState.id) { mutableStateOf(false) }
+    val editMode = isEditMode
 
-    val size = remember(selectionState.properties.size, unitMode) {
-        val size = selectionState.properties.size
-        when (unitMode) {
-            UnitMode.DP -> {
-                "${(size.width / density).roundToInt()}dp x ${(size.height / density).roundToInt()}dp"
-            }
-
-            UnitMode.PX -> {
-                "${size.width}px x ${size.height}px"
-            }
-        }
+    val size = remember(selectionState.properties.size, unitMode, density) {
+        formatSizeString(selectionState.properties.size, unitMode, density)
     }
 
     Card(
@@ -107,9 +99,8 @@ internal fun ElementDetails(
                     selectionState,
                     unitMode,
                     onEditRequest = {
-                        // TODO: remove dependency of Inspector from UI code
-                        Inspector.setDetailsViewFocusable(true)
-                        editMode = true
+                        onRequestFocusable(true)
+                        onEditModeChange(true)
                     }
                 )
                 Actions(selectionState)
@@ -120,17 +111,13 @@ internal fun ElementDetails(
                     initialPadding = selectionState.properties.padding,
                     unitMode = unitMode,
                     onCancel = {
-                        // TODO: remove dependency of Inspector from UI code
-                        Inspector.setDetailsViewFocusable(false)
-                        editMode = false
+                        onRequestFocusable(false)
+                        onEditModeChange(false)
                     },
                     onApply = { ml, mt, mr, mb, pl, pt, pr, pb ->
-                        // TODO: remove dependency of Inspector from UI code
-                        ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
-                        ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
-                        ViewMutator.runAfterNextLayout(selectionState.id) { Inspector.refresh() }
-                        Inspector.setDetailsViewFocusable(false)
-                        editMode = false
+                        onApplyMarginPadding(ml, mt, mr, mb, pl, pt, pr, pb)
+                        onRequestFocusable(false)
+                        onEditModeChange(false)
                     }
                 )
             }
@@ -193,38 +180,12 @@ private fun Measurement(
     unitMode: UnitMode,
 ) {
     val density = LocalDensity.current.density
-    val size = remember(selectionState.properties.size, unitMode) {
-        val size = selectionState.properties.size
-        when (unitMode) {
-            UnitMode.DP -> {
-                "${(size.width / density).roundToInt()}dp x ${(size.height / density).roundToInt()}dp"
-            }
-
-            UnitMode.PX -> {
-                "${size.width}px x ${size.height}px"
-            }
-        }
+    val size = remember(selectionState.properties.size, unitMode, density) {
+        formatSizeString(selectionState.properties.size, unitMode, density)
     }
 
-    val margin = remember(selectionState.properties.distance, unitMode) {
-        val margin = selectionState.properties.distance
-        buildList {
-            when (unitMode) {
-                UnitMode.DP -> {
-                    add("${(margin.left / density).roundToInt()}dp")
-                    add("${(margin.top / density).roundToInt()}dp")
-                    add("${(margin.right / density).roundToInt()}dp")
-                    add("${(margin.bottom / density).roundToInt()}dp")
-                }
-
-                UnitMode.PX -> {
-                    add("${margin.left.roundToInt()}px")
-                    add("${margin.top.roundToInt()}px")
-                    add("${margin.right.roundToInt()}px")
-                    add("${margin.bottom.roundToInt()}px")
-                }
-            }
-        }
+    val margin = remember(selectionState.properties.distance, unitMode, density) {
+        selectionState.properties.distance.formatAsList(unitMode, density)
     }
 
     Spacer(modifier = Modifier.height(8.dp))
@@ -452,46 +413,12 @@ private fun MarginPadding(
     val density = LocalDensity.current.density
     val isView = selectionState.properties.type == UiNodeType.VIEW
 
-    val margin = remember(selectionState.properties.margin, unitMode) {
-        val margin = selectionState.properties.margin
-        buildList {
-            when (unitMode) {
-                UnitMode.DP -> {
-                    add("${(margin.left / density).roundToInt()}dp")
-                    add("${(margin.top / density).roundToInt()}dp")
-                    add("${(margin.right / density).roundToInt()}dp")
-                    add("${(margin.bottom / density).roundToInt()}dp")
-                }
-
-                UnitMode.PX -> {
-                    add("${margin.left.roundToInt()}px")
-                    add("${margin.top.roundToInt()}px")
-                    add("${margin.right.roundToInt()}px")
-                    add("${margin.bottom.roundToInt()}px")
-                }
-            }
-        }
+    val margin = remember(selectionState.properties.margin, unitMode, density) {
+        selectionState.properties.margin.formatAsList(unitMode, density)
     }
 
-    val padding = remember(selectionState.properties.padding, unitMode) {
-        val padding = selectionState.properties.padding
-        buildList {
-            when (unitMode) {
-                UnitMode.DP -> {
-                    add("${(padding.left / density).roundToInt()}dp")
-                    add("${(padding.top / density).roundToInt()}dp")
-                    add("${(padding.right / density).roundToInt()}dp")
-                    add("${(padding.bottom / density).roundToInt()}dp")
-                }
-
-                UnitMode.PX -> {
-                    add("${padding.left.roundToInt()}px")
-                    add("${padding.top.roundToInt()}px")
-                    add("${padding.right.roundToInt()}px")
-                    add("${padding.bottom.roundToInt()}px")
-                }
-            }
-        }
+    val padding = remember(selectionState.properties.padding, unitMode, density) {
+        selectionState.properties.padding.formatAsList(unitMode, density)
     }
 
     Spacer(modifier = Modifier.height(8.dp))
@@ -667,15 +594,47 @@ private fun EditMarginPadding(
         UnitMode.PX -> (v.roundToInt()).toString()
     }
 
-    var ml by remember(initialMargin, unitMode) { mutableStateOf(format(initialMargin.left)) }
-    var mt by remember(initialMargin, unitMode) { mutableStateOf(format(initialMargin.top)) }
-    var mr by remember(initialMargin, unitMode) { mutableStateOf(format(initialMargin.right)) }
-    var mb by remember(initialMargin, unitMode) { mutableStateOf(format(initialMargin.bottom)) }
+    var ml by remember(
+        initialMargin,
+        unitMode,
+        density
+    ) { mutableStateOf(format(initialMargin.left)) }
+    var mt by remember(
+        initialMargin,
+        unitMode,
+        density
+    ) { mutableStateOf(format(initialMargin.top)) }
+    var mr by remember(
+        initialMargin,
+        unitMode,
+        density
+    ) { mutableStateOf(format(initialMargin.right)) }
+    var mb by remember(
+        initialMargin,
+        unitMode,
+        density
+    ) { mutableStateOf(format(initialMargin.bottom)) }
 
-    var pl by remember(initialPadding, unitMode) { mutableStateOf(format(initialPadding.left)) }
-    var pt by remember(initialPadding, unitMode) { mutableStateOf(format(initialPadding.top)) }
-    var pr by remember(initialPadding, unitMode) { mutableStateOf(format(initialPadding.right)) }
-    var pb by remember(initialPadding, unitMode) { mutableStateOf(format(initialPadding.bottom)) }
+    var pl by remember(
+        initialPadding,
+        unitMode,
+        density
+    ) { mutableStateOf(format(initialPadding.left)) }
+    var pt by remember(
+        initialPadding,
+        unitMode,
+        density
+    ) { mutableStateOf(format(initialPadding.top)) }
+    var pr by remember(
+        initialPadding,
+        unitMode,
+        density
+    ) { mutableStateOf(format(initialPadding.right)) }
+    var pb by remember(
+        initialPadding,
+        unitMode,
+        density
+    ) { mutableStateOf(format(initialPadding.bottom)) }
 
     Column(
         modifier = Modifier
@@ -863,6 +822,7 @@ private fun Int.toHexString(): String = Integer.toHexString(this).uppercase().pa
 @Preview(showBackground = true)
 @Composable
 internal fun ElementDetailPreview() {
+    var isEditMode by remember { mutableStateOf(false) }
     val selectionState = SelectionState(
         id = 0,
         bounds = RectF(0f, 0f, 200f, 100f),
@@ -889,7 +849,12 @@ internal fun ElementDetailPreview() {
         )
     )
     ElementDetails(
-        selectionState = selectionState, unitMode = UnitMode.DP
+        selectionState = selectionState,
+        unitMode = UnitMode.DP,
+        isEditMode = isEditMode,
+        onEditModeChange = { isEditMode = it },
+        onRequestFocusable = {},
+        onApplyMarginPadding = { _, _, _, _, _, _, _, _ -> }
     )
 }
 
@@ -902,5 +867,33 @@ internal fun EditMarginPaddingPreview() {
         unitMode = UnitMode.DP,
         onCancel = {},
         onApply = { _, _, _, _, _, _, _, _ -> }
+    )
+}
+
+private fun formatSizeString(
+    size: android.util.Size,
+    unitMode: UnitMode,
+    density: Float,
+): String = when (unitMode) {
+    UnitMode.DP -> "${(size.width / density).roundToInt()}dp x ${(size.height / density).roundToInt()}dp"
+    UnitMode.PX -> "${size.width}px x ${size.height}px"
+}
+
+private fun RectF.formatAsList(
+    unitMode: UnitMode,
+    density: Float,
+): List<String> = when (unitMode) {
+    UnitMode.DP -> listOf(
+        "${(left / density).roundToInt()}dp",
+        "${(top / density).roundToInt()}dp",
+        "${(right / density).roundToInt()}dp",
+        "${(bottom / density).roundToInt()}dp",
+    )
+
+    UnitMode.PX -> listOf(
+        "${left.roundToInt()}px",
+        "${top.roundToInt()}px",
+        "${right.roundToInt()}px",
+        "${bottom.roundToInt()}px",
     )
 }
