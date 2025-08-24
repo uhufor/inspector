@@ -1,8 +1,6 @@
 package com.uhufor.inspector.engine
 
-import android.graphics.Color
 import android.graphics.RectF
-import android.graphics.Typeface
 import android.util.Size
 
 internal data class SelectionState(
@@ -44,7 +42,9 @@ internal data class UiNodeProperties(
     val type: UiNodeType,
     val id: String,
     val size: Size,
+    val distance: RectF,
     val margin: RectF,
+    val padding: RectF,
     val actions: Set<UiNodeActionProperties> = emptySet(),
     val styles: Set<UiNodeStyleProperties> = emptySet(),
 ) {

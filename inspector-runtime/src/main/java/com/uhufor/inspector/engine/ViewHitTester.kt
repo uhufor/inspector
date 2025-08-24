@@ -3,6 +3,7 @@ package com.uhufor.inspector.engine
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.os.Build
 import android.util.Size
@@ -10,6 +11,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Checkable
 import android.widget.TextView
+import androidx.core.view.marginBottom
+import androidx.core.view.marginLeft
+import androidx.core.view.marginRight
+import androidx.core.view.marginTop
 
 internal object ViewHitTester {
     private const val MIN_VIEW_SIZE = 1
@@ -112,7 +117,9 @@ internal object ViewHitTester {
                 type = UiNodeType.VIEW,
                 id = getResourceId(view),
                 size = Size(view.width, view.height),
-                margin = view.marginBetweenParent(),
+                distance = view.getDistanceFromParent(),
+                margin = view.getMargin(),
+                padding = view.getPadding(),
                 actions = buildSet {
                     if (view.isClickable) {
                         add(UiNodeActionProperties.CLICKABLE)
@@ -155,6 +162,10 @@ internal object ViewHitTester {
                                     }
                                 }
 
+                                is GradientDrawable -> {
+                                    drawable.color?.defaultColor
+                                }
+
                                 else -> {
                                     null
                                 }
@@ -181,7 +192,8 @@ internal object ViewHitTester {
         }.getOrDefault(NO_ID)
     }
 
-    private fun View.marginBetweenParent(): RectF {
+    // TODO: change name to distance
+    private fun View.getDistanceFromParent(): RectF {
         val parent = parent as? View ?: return RectF()
 
         val viewLocation = IntArray(2)
@@ -205,6 +217,24 @@ internal object ViewHitTester {
             (viewTop - parentTop).toFloat(),
             (parentRight - viewRight).toFloat(),
             (parentBottom - viewBottom).toFloat()
+        )
+    }
+
+    private fun View.getMargin(): RectF {
+        return RectF(
+            marginLeft.toFloat(),
+            marginTop.toFloat(),
+            marginRight.toFloat(),
+            marginBottom.toFloat()
+        )
+    }
+
+    private fun View.getPadding(): RectF {
+        return RectF(
+            paddingLeft.toFloat(),
+            paddingTop.toFloat(),
+            paddingRight.toFloat(),
+            paddingBottom.toFloat()
         )
     }
 }

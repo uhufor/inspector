@@ -91,7 +91,7 @@ internal fun ElementDetails(
             InfoRow("Size", size)
 
             Measurement(selectionState, unitMode)
-            BoxModel(selectionState, unitMode)
+            MarginPadding(selectionState, unitMode)
             Actions(selectionState)
             Styles(selectionState)
         }
@@ -166,8 +166,8 @@ private fun Measurement(
         }
     }
 
-    val margin = remember(selectionState.properties.margin, unitMode) {
-        val margin = selectionState.properties.margin
+    val margin = remember(selectionState.properties.distance, unitMode) {
+        val margin = selectionState.properties.distance
         buildList {
             when (unitMode) {
                 UnitMode.DP -> {
@@ -189,7 +189,7 @@ private fun Measurement(
 
     Spacer(modifier = Modifier.height(8.dp))
     Column(modifier = Modifier.fillMaxWidth()) {
-        SectionTitle("Measurement")
+        SectionTitle("Distance")
         Spacer(modifier = Modifier.height(2.dp))
 
         MeasurementMetricBox(
@@ -404,23 +404,11 @@ private fun MeasurementMetricBox(
 }
 
 @Composable
-private fun BoxModel(
+private fun MarginPadding(
     selectionState: SelectionState,
     unitMode: UnitMode,
 ) {
     val density = LocalDensity.current.density
-    val size = remember(selectionState.properties.size, unitMode) {
-        val size = selectionState.properties.size
-        when (unitMode) {
-            UnitMode.DP -> {
-                "${(size.width / density).roundToInt()}dp x ${(size.height / density).roundToInt()}dp"
-            }
-
-            UnitMode.PX -> {
-                "${size.width}px x ${size.height}px"
-            }
-        }
-    }
 
     val margin = remember(selectionState.properties.margin, unitMode) {
         val margin = selectionState.properties.margin
@@ -438,6 +426,27 @@ private fun BoxModel(
                     add("${margin.top.roundToInt()}px")
                     add("${margin.right.roundToInt()}px")
                     add("${margin.bottom.roundToInt()}px")
+                }
+            }
+        }
+    }
+
+    val padding = remember(selectionState.properties.padding, unitMode) {
+        val padding = selectionState.properties.padding
+        buildList {
+            when (unitMode) {
+                UnitMode.DP -> {
+                    add("${(padding.left / density).roundToInt()}dp")
+                    add("${(padding.top / density).roundToInt()}dp")
+                    add("${(padding.right / density).roundToInt()}dp")
+                    add("${(padding.bottom / density).roundToInt()}dp")
+                }
+
+                UnitMode.PX -> {
+                    add("${padding.left.roundToInt()}px")
+                    add("${padding.top.roundToInt()}px")
+                    add("${padding.right.roundToInt()}px")
+                    add("${padding.bottom.roundToInt()}px")
                 }
             }
         }
@@ -471,14 +480,32 @@ private fun BoxModel(
                     Box(
                         modifier = Modifier
                             .weight(weight = 1.0f, fill = true)
-                            .fillMaxWidth(0.7f)
+                            .height(48.dp)
                             .padding(horizontal = 2.dp, vertical = 4.dp)
                             .border(1.dp, Color.Gray)
                             .background(Color(0xFFCCFFCC))
-                            .padding(horizontal = 4.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center
+                            .padding(horizontal = 4.dp, vertical = 4.dp),
                     ) {
-                        Text(size, fontSize = 8.sp)
+                        Text(
+                            padding[1], // padding.top
+                            fontSize = 8.sp,
+                            modifier = Modifier.align(Alignment.TopCenter)
+                        )
+                        Text(
+                            padding[0], // padding.left
+                            fontSize = 8.sp,
+                            modifier = Modifier.align(Alignment.CenterStart)
+                        )
+                        Text(
+                            padding[2], // padding.right
+                            fontSize = 8.sp,
+                            modifier = Modifier.align(Alignment.CenterEnd)
+                        )
+                        Text(
+                            padding[3], // padding.bottom
+                            fontSize = 8.sp,
+                            modifier = Modifier.align(Alignment.BottomCenter)
+                        )
                     }
 
                     Spacer(modifier = Modifier.width(2.dp))
@@ -583,7 +610,9 @@ internal fun ElementDetailPreview() {
             type = UiNodeType.VIEW,
             id = "app:id/showDetail",
             size = android.util.Size(200, 100),
-            margin = RectF(11f, 10f, 5f, 5f),
+            distance = RectF(11f, 10f, 5f, 5f),
+            margin = RectF(16f, 16f, 16f, 16f),
+            padding = RectF(2f, 8f, 2f, 10f),
             actions = setOf(
                 UiNodeActionProperties.CLICKABLE
             ),
