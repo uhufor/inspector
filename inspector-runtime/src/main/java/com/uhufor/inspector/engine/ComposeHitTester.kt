@@ -1,7 +1,6 @@
 package com.uhufor.inspector.engine
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.graphics.RectF
 import android.util.Size
 import android.view.View
@@ -130,7 +129,9 @@ internal object ComposeHitTester {
             type = UiNodeType.COMPOSE,
             id = id.toString(),
             size = layoutInfo.run { Size(width, height) },
-            margin = marginBetweenParent(),
+            distance = getDistanceFromParent(),
+            margin = RectF(),
+            padding = RectF(),
             actions = buildSet {
                 if (config.getOrNull(SemanticsActions.OnClick) != null) {
                     add(UiNodeActionProperties.CLICKABLE)
@@ -163,7 +164,7 @@ internal object ComposeHitTester {
             }
         )
 
-    private fun SemanticsNode.marginBetweenParent(): RectF {
+    private fun SemanticsNode.getDistanceFromParent(): RectF {
         val parentBounds = parent?.boundsInWindow ?: return RectF()
         val childBounds = boundsInWindow
 

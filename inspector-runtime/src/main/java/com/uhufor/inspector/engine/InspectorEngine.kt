@@ -222,7 +222,7 @@ internal class InspectorEngine(
         return primarySelection?.run {
             copy(
                 properties = properties.copy(
-                    margin = RelativeMeasurement.getRelativeBounds(primary, secondary)
+                    distance = RelativeMeasurement.getRelativeBounds(primary, secondary)
                 )
             )
         }
