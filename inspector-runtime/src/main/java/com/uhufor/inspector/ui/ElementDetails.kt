@@ -1,4 +1,5 @@
 @file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.uhufor.inspector.ui
 
 import android.graphics.RectF
@@ -6,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +28,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -83,6 +88,7 @@ internal fun ElementDetails(
             InfoRow("ID (${selectionState.properties.type.value})", selectionState.properties.id)
             InfoRow("Size", size)
 
+            Measurement(selectionState, unitMode)
             BoxModel(selectionState, unitMode)
             Actions(selectionState)
             Styles(selectionState)
@@ -140,7 +146,7 @@ private fun InfoRow(label: String, value: String) {
 }
 
 @Composable
-private fun BoxModel(
+private fun Measurement(
     selectionState: SelectionState,
     unitMode: UnitMode,
 ) {
@@ -182,6 +188,258 @@ private fun BoxModel(
     Spacer(modifier = Modifier.height(8.dp))
     Column(modifier = Modifier.fillMaxWidth()) {
         SectionTitle("Measurement")
+        Spacer(modifier = Modifier.height(2.dp))
+
+        MeasurementMetricBox(
+            {
+                Text(
+                    text = margin[0],
+                    fontSize = 8.sp,
+                    modifier = Modifier
+                        .background(Color(0xFFFFFFCC))
+                        .padding(1.dp)
+                        .align(Alignment.Center)
+                )
+            },
+            {
+                Text(
+                    text = margin[1],
+                    fontSize = 8.sp,
+                    modifier = Modifier
+                        .background(Color(0xFFFFFFCC))
+                        .padding(1.dp)
+                        .align(Alignment.Center)
+                )
+            },
+            {
+                Text(
+                    text = margin[2],
+                    fontSize = 8.sp,
+                    modifier = Modifier
+                        .background(Color(0xFFFFFFCC))
+                        .padding(1.dp)
+                        .align(Alignment.Center)
+                )
+            },
+            {
+                Text(
+                    text = margin[3],
+                    fontSize = 8.sp,
+                    modifier = Modifier
+                        .background(Color(0xFFFFFFCC))
+                        .padding(1.dp)
+                        .align(Alignment.Center)
+                )
+            },
+            {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                ) {
+                    Text(
+                        text = size,
+                        fontSize = 8.sp,
+                        modifier = Modifier
+                            .background(Color(0xFFCCFFCC))
+                            .padding(2.dp)
+                            .align(Alignment.Center)
+                    )
+                }
+            },
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    color = Color(0xCCFEFEFE),
+                    shape = RoundedCornerShape(2.dp)
+                )
+                .padding(4.dp)
+        )
+    }
+}
+
+@Composable
+private fun MeasurementMetricBox(
+    leftContent: @Composable BoxScope.() -> Unit,
+    topContent: @Composable BoxScope.() -> Unit,
+    rightContent: @Composable BoxScope.() -> Unit,
+    bottomContent: @Composable BoxScope.() -> Unit,
+    centerContent: @Composable BoxScope.() -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Box(modifier = Modifier.weight(1f))
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 24.dp)
+                    .drawBehind {
+                        val c = Color.Gray
+                        val stroke = 1.dp.toPx()
+                        val seg = 12.dp.toPx()
+                        val cx = size.width / 2f
+                        val x1 = (cx - seg / 2f).coerceIn(0f, size.width)
+                        val x2 = (cx + seg / 2f).coerceIn(0f, size.width)
+                        drawLine(c, Offset(cx, 0f), Offset(cx, size.height), strokeWidth = stroke)
+                        drawLine(c, Offset(x1, 0f), Offset(x2, 0f), strokeWidth = stroke)
+                    }
+            ) { topContent() }
+
+            Box(modifier = Modifier.weight(1f))
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(0.5f)
+                    .heightIn(min = 24.dp)
+                    .drawBehind {
+                        val c = Color.Gray
+                        val stroke = 1.dp.toPx()
+                        val seg = 12.dp.toPx()
+                        val cy = size.height / 2f
+                        val y1 = (cy - seg / 2f).coerceIn(0f, size.height)
+                        val y2 = (cy + seg / 2f).coerceIn(0f, size.height)
+                        drawLine(c, Offset(0f, cy), Offset(size.width, cy), strokeWidth = stroke)
+                        drawLine(c, Offset(0f, y1), Offset(0f, y2), strokeWidth = stroke)
+                    }
+            ) { leftContent() }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 24.dp)
+                    .drawBehind {
+                        val c = Color.Gray
+                        val stroke = 1.dp.toPx()
+                        val seg = 12.dp.toPx()
+                        val cx = size.width / 2f
+                        val cy = size.height / 2f
+                        val x1 = (cx - seg / 2f).coerceIn(0f, size.width)
+                        val x2 = (cx + seg / 2f).coerceIn(0f, size.width)
+                        val y1 = (cy - seg / 2f).coerceIn(0f, size.height)
+                        val y2 = (cy + seg / 2f).coerceIn(0f, size.height)
+                        drawLine(c, Offset(x1, 0f), Offset(x2, 0f), strokeWidth = stroke)
+                        drawLine(
+                            c,
+                            Offset(size.width, y1),
+                            Offset(size.width, y2),
+                            strokeWidth = stroke
+                        )
+                        drawLine(
+                            c,
+                            Offset(x1, size.height),
+                            Offset(x2, size.height),
+                            strokeWidth = stroke
+                        )
+                        drawLine(c, Offset(0f, y1), Offset(0f, y2), strokeWidth = stroke)
+                    }
+            ) { centerContent() }
+
+            Box(
+                modifier = Modifier
+                    .weight(0.5f)
+                    .heightIn(min = 24.dp)
+                    .drawBehind {
+                        val c = Color.Gray
+                        val stroke = 1.dp.toPx()
+                        val seg = 12.dp.toPx()
+                        val cy = size.height / 2f
+                        val y1 = (cy - seg / 2f).coerceIn(0f, size.height)
+                        val y2 = (cy + seg / 2f).coerceIn(0f, size.height)
+                        drawLine(c, Offset(0f, cy), Offset(size.width, cy), strokeWidth = stroke)
+                        drawLine(
+                            c,
+                            Offset(size.width, y1),
+                            Offset(size.width, y2),
+                            strokeWidth = stroke
+                        )
+                    }
+            ) { rightContent() }
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Box(modifier = Modifier.weight(1f))
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 24.dp)
+                    .drawBehind {
+                        val c = Color.Gray
+                        val stroke = 1.dp.toPx()
+                        val seg = 12.dp.toPx()
+                        val cx = size.width / 2f
+                        val x1 = (cx - seg / 2f).coerceIn(0f, size.width)
+                        val x2 = (cx + seg / 2f).coerceIn(0f, size.width)
+                        drawLine(c, Offset(cx, 0f), Offset(cx, size.height), strokeWidth = stroke)
+                        drawLine(
+                            c,
+                            Offset(x1, size.height),
+                            Offset(x2, size.height),
+                            strokeWidth = stroke
+                        )
+                    }
+            ) { bottomContent() }
+
+            Box(modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun BoxModel(
+    selectionState: SelectionState,
+    unitMode: UnitMode,
+) {
+    val density = LocalDensity.current.density
+    val size = remember(selectionState.properties.size, unitMode) {
+        val size = selectionState.properties.size
+        when (unitMode) {
+            UnitMode.DP -> {
+                "${(size.width / density).roundToInt()}dp x ${(size.height / density).roundToInt()}dp"
+            }
+
+            UnitMode.PX -> {
+                "${size.width}px x ${size.height}px"
+            }
+        }
+    }
+
+    val margin = remember(selectionState.properties.margin, unitMode) {
+        val margin = selectionState.properties.margin
+        buildList {
+            when (unitMode) {
+                UnitMode.DP -> {
+                    add("${(margin.left / density).roundToInt()}dp")
+                    add("${(margin.top / density).roundToInt()}dp")
+                    add("${(margin.right / density).roundToInt()}dp")
+                    add("${(margin.bottom / density).roundToInt()}dp")
+                }
+
+                UnitMode.PX -> {
+                    add("${margin.left.roundToInt()}px")
+                    add("${margin.top.roundToInt()}px")
+                    add("${margin.right.roundToInt()}px")
+                    add("${margin.bottom.roundToInt()}px")
+                }
+            }
+        }
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionTitle("Margin / Padding")
         Spacer(modifier = Modifier.height(2.dp))
 
         Box(
