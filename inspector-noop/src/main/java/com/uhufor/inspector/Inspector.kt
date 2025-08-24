@@ -25,6 +25,10 @@ object Inspector {
     val isDetailsViewEnabled: Boolean
         get() = showDetailsView
 
+    fun refresh() = Unit
+
     fun showFloatingTrigger() = Unit
     fun hideFloatingTrigger() = Unit
+
+    fun setDetailsViewFocusable(focusable: Boolean) = Unit
 }

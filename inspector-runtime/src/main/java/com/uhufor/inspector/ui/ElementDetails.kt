@@ -6,6 +6,7 @@ import android.graphics.RectF
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -20,12 +21,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -33,7 +39,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,13 +49,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.uhufor.inspector.Inspector
 import com.uhufor.inspector.UnitMode
 import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.engine.UiNodeActionProperties
 import com.uhufor.inspector.engine.UiNodeProperties
 import com.uhufor.inspector.engine.UiNodeStyleProperties
 import com.uhufor.inspector.engine.UiNodeType
-import com.uhufor.inspector.ui.compose.rememberLowDecayFling
+import com.uhufor.inspector.engine.ViewMutator
 import kotlin.math.roundToInt
 
 @Composable
@@ -56,6 +65,8 @@ internal fun ElementDetails(
     unitMode: UnitMode,
 ) {
     val density = LocalDensity.current.density
+    // TODO: hoist the state of edit mode
+    var editMode by remember(selectionState.id) { mutableStateOf(false) }
 
     val size = remember(selectionState.properties.size, unitMode) {
         val size = selectionState.properties.size
@@ -81,19 +92,48 @@ internal fun ElementDetails(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(4.dp)
-                .verticalScroll(
-                    state = rememberScrollState(),
-                    flingBehavior = rememberLowDecayFling(friction = 0.8F)
-                )
+                .verticalScroll(state = rememberScrollState())
         ) {
-            SectionTitle("Details")
-            InfoRow("ID (${selectionState.properties.type.value})", selectionState.properties.id)
-            InfoRow("Size", size)
+            if (!editMode) {
+                SectionTitle("Details")
+                InfoRow(
+                    "ID (${selectionState.properties.type.value})",
+                    selectionState.properties.id
+                )
+                InfoRow("Size", size)
 
-            Measurement(selectionState, unitMode)
-            MarginPadding(selectionState, unitMode)
-            Actions(selectionState)
-            Styles(selectionState)
+                Measurement(selectionState, unitMode)
+                MarginPadding(
+                    selectionState,
+                    unitMode,
+                    onEditRequest = {
+                        // TODO: remove dependency of Inspector from UI code
+                        Inspector.setDetailsViewFocusable(true)
+                        editMode = true
+                    }
+                )
+                Actions(selectionState)
+                Styles(selectionState)
+            } else {
+                EditMarginPadding(
+                    initialMargin = selectionState.properties.margin,
+                    initialPadding = selectionState.properties.padding,
+                    unitMode = unitMode,
+                    onCancel = {
+                        // TODO: remove dependency of Inspector from UI code
+                        Inspector.setDetailsViewFocusable(false)
+                        editMode = false
+                    },
+                    onApply = { ml, mt, mr, mb, pl, pt, pr, pb ->
+                        // TODO: remove dependency of Inspector from UI code
+                        ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
+                        ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
+                        ViewMutator.runAfterNextLayout(selectionState.id) { Inspector.refresh() }
+                        Inspector.setDetailsViewFocusable(false)
+                        editMode = false
+                    }
+                )
+            }
         }
     }
 }
@@ -407,8 +447,10 @@ private fun MeasurementMetricBox(
 private fun MarginPadding(
     selectionState: SelectionState,
     unitMode: UnitMode,
+    onEditRequest: () -> Unit,
 ) {
     val density = LocalDensity.current.density
+    val isView = selectionState.properties.type == UiNodeType.VIEW
 
     val margin = remember(selectionState.properties.margin, unitMode) {
         val margin = selectionState.properties.margin
@@ -454,7 +496,21 @@ private fun MarginPadding(
 
     Spacer(modifier = Modifier.height(8.dp))
     Column(modifier = Modifier.fillMaxWidth()) {
-        SectionTitle("Margin / Padding")
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            SectionTitle("Margin / Padding")
+            Spacer(modifier = Modifier.weight(1f))
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .background(color = Color(0xFFDDEEDD), shape = RoundedCornerShape(4.dp))
+                    .clickable(enabled = isView, onClick = onEditRequest)
+                    .padding(horizontal = 10.dp, vertical = 2.dp)
+            ) {
+                Text(text = "Edit", fontSize = 8.sp, fontWeight = FontWeight.Bold)
+            }
+        }
         Spacer(modifier = Modifier.height(2.dp))
 
         Box(
@@ -466,12 +522,12 @@ private fun MarginPadding(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(margin[1], fontSize = 8.sp) // margin.top
+                Text(margin[1], fontSize = 8.sp)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        margin[0], // margin.left
+                        margin[0],
                         fontSize = 8.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.width(24.dp)
@@ -487,22 +543,22 @@ private fun MarginPadding(
                             .padding(horizontal = 4.dp, vertical = 4.dp),
                     ) {
                         Text(
-                            padding[1], // padding.top
+                            padding[1],
                             fontSize = 8.sp,
                             modifier = Modifier.align(Alignment.TopCenter)
                         )
                         Text(
-                            padding[0], // padding.left
+                            padding[0],
                             fontSize = 8.sp,
                             modifier = Modifier.align(Alignment.CenterStart)
                         )
                         Text(
-                            padding[2], // padding.right
+                            padding[2],
                             fontSize = 8.sp,
                             modifier = Modifier.align(Alignment.CenterEnd)
                         )
                         Text(
-                            padding[3], // padding.bottom
+                            padding[3],
                             fontSize = 8.sp,
                             modifier = Modifier.align(Alignment.BottomCenter)
                         )
@@ -510,13 +566,13 @@ private fun MarginPadding(
 
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
-                        margin[2], // margin.right
+                        margin[2],
                         fontSize = 8.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.width(24.dp)
                     )
                 }
-                Text(margin[3], fontSize = 8.sp) // margin.bottom
+                Text(margin[3], fontSize = 8.sp)
             }
         }
     }
@@ -597,6 +653,211 @@ private fun Styles(selectionState: SelectionState) {
     }
 }
 
+@Composable
+private fun EditMarginPadding(
+    initialMargin: RectF,
+    initialPadding: RectF,
+    unitMode: UnitMode,
+    onCancel: () -> Unit,
+    onApply: (Int, Int, Int, Int, Int, Int, Int, Int) -> Unit,
+) {
+    val density = LocalDensity.current.density
+    fun format(v: Float): String = when (unitMode) {
+        UnitMode.DP -> ((v / density).roundToInt()).toString()
+        UnitMode.PX -> (v.roundToInt()).toString()
+    }
+
+    var ml by remember(initialMargin, unitMode) { mutableStateOf(format(initialMargin.left)) }
+    var mt by remember(initialMargin, unitMode) { mutableStateOf(format(initialMargin.top)) }
+    var mr by remember(initialMargin, unitMode) { mutableStateOf(format(initialMargin.right)) }
+    var mb by remember(initialMargin, unitMode) { mutableStateOf(format(initialMargin.bottom)) }
+
+    var pl by remember(initialPadding, unitMode) { mutableStateOf(format(initialPadding.left)) }
+    var pt by remember(initialPadding, unitMode) { mutableStateOf(format(initialPadding.top)) }
+    var pr by remember(initialPadding, unitMode) { mutableStateOf(format(initialPadding.right)) }
+    var pb by remember(initialPadding, unitMode) { mutableStateOf(format(initialPadding.bottom)) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dp)
+    ) {
+        SectionTitle("Edit Margin/Padding")
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Spacer(
+                modifier = Modifier
+                    .height(8.dp)
+                    .weight(0.6f)
+            )
+            Text(
+                text = "Margin",
+                fontSize = 8.sp,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "Padding",
+                fontSize = 8.sp,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        // left
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(2.dp)
+        ) {
+            Text(
+                text = "Left",
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(0.6f)
+            )
+            SmallNumberField(ml, { ml = it }, modifier = Modifier.weight(1f))
+            SmallNumberField(pl, { pl = it }, modifier = Modifier.weight(1f))
+        }
+        // top
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(2.dp)
+        ) {
+            Text(
+                text = "Top",
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(0.6f)
+            )
+            SmallNumberField(mt, { mt = it }, modifier = Modifier.weight(1f))
+            SmallNumberField(pt, { pt = it }, modifier = Modifier.weight(1f))
+        }
+        // right
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(2.dp)
+        ) {
+            Text(
+                text = "Right",
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(0.6f)
+            )
+            SmallNumberField(mr, { mr = it }, modifier = Modifier.weight(1f))
+            SmallNumberField(pr, { pr = it }, modifier = Modifier.weight(1f))
+        }
+        // bottom
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(2.dp)
+        ) {
+            Text(
+                text = "Bottom",
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(0.6f)
+            )
+            SmallNumberField(mb, { mb = it }, modifier = Modifier.weight(1f))
+            SmallNumberField(pb, { pb = it }, modifier = Modifier.weight(1f))
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            SmallButton(
+                text = "Cancel",
+                onClick = onCancel,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp)
+            )
+
+            Spacer(modifier = Modifier.width(4.dp))
+
+            SmallButton(
+                text = "Apply",
+                onClick = {
+                    fun parse(s: String): Float = s.toFloatOrNull() ?: 0f
+                    val f = if (unitMode == UnitMode.DP) density else 1f
+                    val mlPx = (parse(ml) * f).roundToInt()
+                    val mtPx = (parse(mt) * f).roundToInt()
+                    val mrPx = (parse(mr) * f).roundToInt()
+                    val mbPx = (parse(mb) * f).roundToInt()
+                    val plPx = (parse(pl) * f).roundToInt()
+                    val ptPx = (parse(pt) * f).roundToInt()
+                    val prPx = (parse(pr) * f).roundToInt()
+                    val pbPx = (parse(pb) * f).roundToInt()
+                    onApply(mlPx, mtPx, mrPx, mbPx, plPx, ptPx, prPx, pbPx)
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SmallNumberField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .width(36.dp)
+            .height(20.dp)
+            .padding(vertical = 0.5.dp, horizontal = 2.dp)
+            .background(Color(0xFFEFEFEF), shape = RoundedCornerShape(2.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            textStyle = TextStyle(
+                color = Color(0xFF111111),
+                fontSize = 9.sp,
+                textAlign = TextAlign.Center
+            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 2.dp)
+        )
+    }
+}
+
+@Composable
+private fun SmallButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .background(color = Color(0xFFDDEEDD), shape = RoundedCornerShape(4.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 6.dp)
+    ) {
+        Text(text = text, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
 private fun Int.toHexString(): String = Integer.toHexString(this).uppercase().padStart(8, '0')
 
 @Preview(showBackground = true)
@@ -629,5 +890,17 @@ internal fun ElementDetailPreview() {
     )
     ElementDetails(
         selectionState = selectionState, unitMode = UnitMode.DP
+    )
+}
+
+@Preview(showBackground = true, widthDp = 148, heightDp = 180)
+@Composable
+internal fun EditMarginPaddingPreview() {
+    EditMarginPadding(
+        initialMargin = RectF(16f, 16f, 16f, 16f),
+        initialPadding = RectF(4f, 8f, 4f, 8f),
+        unitMode = UnitMode.DP,
+        onCancel = {},
+        onApply = { _, _, _, _, _, _, _, _ -> }
     )
 }
