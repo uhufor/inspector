@@ -167,24 +167,28 @@ internal class InspectorEngine(
     }
 
     fun scanAllElements() {
+        UiNodeViewRegistry.clear()
         val rootView: View = getDecorView() ?: return
 
         val location = IntArray(2)
         rootView.getLocationOnScreen(location)
         offsetOnScreen.set(location[0].toFloat(), location[1].toFloat())
 
+        dfsElements.clear()
         val elements = mutableListOf<SelectionState>()
 
         elements.addAll(ComposeHitTester.scanAllElements(rootView))
         elements.addAll(ViewHitTester.scanAllElements(rootView))
 
         allElements = elements
+        rebindSelections()
         dfsElements.addAll(buildDfsOrderedList())
         notifyOnChangeSelectionState()
         invalidate()
     }
 
     fun clearScan() {
+        UiNodeViewRegistry.clear()
         allElements = emptyList()
         dfsElements.clear()
         selection = null
@@ -295,5 +299,17 @@ internal class InspectorEngine(
             dfsVisit(root)
         }
         return orderedList
+    }
+
+    private fun rebindSelections() {
+        selection?.let { current ->
+            allElements.find { it.id == current.id }?.let { selection = it }
+        }
+        primarySelection?.let { current ->
+            allElements.find { it.id == current.id }?.let { primarySelection = it }
+        }
+        secondarySelection?.let { current ->
+            allElements.find { it.id == current.id }?.let { secondarySelection = it }
+        }
     }
 }

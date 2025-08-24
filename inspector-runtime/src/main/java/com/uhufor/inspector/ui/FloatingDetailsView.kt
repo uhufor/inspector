@@ -152,6 +152,37 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         isInstalled = false
     }
 
+    fun setFocusable(focusable: Boolean) {
+        if (!isInstalled) return
+        val view = composeView ?: return
+        val lp = layoutParams ?: return
+        val wm = windowManager.get() ?: return
+
+        view.isFocusableInTouchMode = focusable
+        view.isFocusable = focusable
+
+        val prev = lp.flags
+        var flags = prev
+        if (focusable) {
+            flags = flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+            flags = flags and WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM.inv()
+            lp.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING or
+                    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
+        } else {
+            flags = flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+            flags = flags or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+            lp.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN
+        }
+        if (flags != prev) {
+            lp.flags = flags
+        }
+        runCatching { wm.updateViewLayout(view, lp) }
+
+        if (focusable) {
+            view.requestFocus()
+        }
+    }
+
     companion object {
         private const val GAP_STICKY = 2
         private const val PADDING_BOTTOM = 8

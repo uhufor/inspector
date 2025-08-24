@@ -144,6 +144,12 @@ object Inspector {
         }
     }
 
+    @MainThread
+    fun refresh() {
+        if (!installed || !isInspectionEnabled) return
+        inspectorEngine?.scanAllElements()
+    }
+
     private fun startObservingSelectionChanges() {
         selectionChangedJob?.cancel()
         selectionChangedJob = coroutineScope.launch {
@@ -206,6 +212,11 @@ object Inspector {
 
     val isDetailsViewEnabled: Boolean
         get() = config.showDetailsView
+
+    @MainThread
+    fun setDetailsViewFocusable(focusable: Boolean) {
+        floatingDetailsView?.setFocusable(focusable)
+    }
 
     @MainThread
     fun showFloatingTrigger() {
