@@ -156,6 +156,13 @@ internal class OverlayCanvas @JvmOverloads constructor(
         return super.onKeyUp(keyCode, event)
     }
 
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        if (w > 0 && h > 0 && (w != oldw || h != oldh)) {
+            internalEngine?.clearScan()
+            internalEngine?.scanAllElements()
+        }
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
