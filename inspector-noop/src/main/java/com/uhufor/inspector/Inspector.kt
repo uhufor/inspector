@@ -29,6 +29,4 @@ object Inspector {
 
     fun showFloatingTrigger() = Unit
     fun hideFloatingTrigger() = Unit
-
-    fun setDetailsViewFocusable(focusable: Boolean) = Unit
 }

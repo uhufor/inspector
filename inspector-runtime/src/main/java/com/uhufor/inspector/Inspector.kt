@@ -215,11 +215,6 @@ object Inspector {
         get() = config.showDetailsView
 
     @MainThread
-    fun setDetailsViewFocusable(focusable: Boolean) {
-        floatingDetailsView?.setFocusable(focusable)
-    }
-
-    @MainThread
     fun showFloatingTrigger() {
         if (!installed) return
 
