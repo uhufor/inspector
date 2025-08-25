@@ -263,51 +263,37 @@ internal object RelativeMeasurement {
                 )
             }
         } else {
-            val horizontalY = primary.top + primary.height() / 2
-            if (secondary.left > primary.right) {
+            val centerY = primary.top + primary.height() / 2f
+            val isRight = secondary.left >= primary.right
+            val hStartX = if (isRight) primary.right else secondary.right
+            val hEndX = if (isRight) secondary.left else primary.left
+            val dx = hEndX - hStartX
+            if (dx > 0f) {
                 distances.add(
                     Distance(
-                        startX = primary.right,
-                        startY = horizontalY,
-                        endX = secondary.left,
-                        endY = horizontalY,
-                        value = secondary.left - primary.right,
-                        type = DistanceType.HORIZONTAL
-                    )
-                )
-            } else {
-                distances.add(
-                    Distance(
-                        startX = primary.left,
-                        startY = horizontalY,
-                        endX = secondary.right,
-                        endY = horizontalY,
-                        value = primary.left - secondary.right,
+                        startX = hStartX,
+                        startY = centerY,
+                        endX = hEndX,
+                        endY = centerY,
+                        value = dx,
                         type = DistanceType.HORIZONTAL
                     )
                 )
             }
 
-            val verticalX = primary.left + primary.width() / 2
-            if (secondary.top > primary.bottom) {
+            val centerX = primary.left + primary.width() / 2f
+            val isBelow = secondary.top >= primary.bottom
+            val vStartY = if (isBelow) primary.bottom else secondary.bottom
+            val vEndY = if (isBelow) secondary.top else primary.top
+            val dy = vEndY - vStartY
+            if (dy > 0f) {
                 distances.add(
                     Distance(
-                        startX = verticalX,
-                        startY = primary.bottom,
-                        endX = verticalX,
-                        endY = secondary.top,
-                        value = secondary.top - primary.bottom,
-                        type = DistanceType.VERTICAL
-                    )
-                )
-            } else {
-                distances.add(
-                    Distance(
-                        startX = verticalX,
-                        startY = primary.top,
-                        endX = verticalX,
-                        endY = secondary.bottom,
-                        value = primary.top - secondary.bottom,
+                        startX = centerX,
+                        startY = vStartY,
+                        endX = centerX,
+                        endY = vEndY,
+                        value = dy,
                         type = DistanceType.VERTICAL
                     )
                 )
