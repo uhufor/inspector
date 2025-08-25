@@ -67,7 +67,6 @@ internal fun ElementDetails(
     onApplyMarginPadding: (Int, Int, Int, Int, Int, Int, Int, Int) -> Unit,
 ) {
     val density = LocalDensity.current.density
-    val editMode = isEditMode
 
     val size = remember(selectionState.properties.size, unitMode, density) {
         formatSizeString(selectionState.properties.size, unitMode, density)
@@ -86,7 +85,7 @@ internal fun ElementDetails(
                 .padding(4.dp)
                 .verticalScroll(state = rememberScrollState())
         ) {
-            if (!editMode) {
+            if (!isEditMode) {
                 SectionTitle("Details")
                 InfoRow(
                     "ID (${selectionState.properties.type.value})",
