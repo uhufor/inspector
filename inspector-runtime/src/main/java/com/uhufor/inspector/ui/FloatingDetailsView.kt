@@ -75,7 +75,7 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
                     unitMode = unitMode,
                     isEditMode = editMode,
                     onEditModeChange = { editMode = it },
-                    onRequestFocusable = { setFocusable(it) },
+                    onRequestFocusable = { this@FloatingDetailsView.setFocusable(it) },
                     onApplyMarginPadding = { ml, mt, mr, mb, pl, pt, pr, pb ->
                         ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
                         ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
@@ -103,7 +103,7 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
                     unitMode = unitMode,
                     isEditMode = editMode,
                     onEditModeChange = { editMode = it },
-                    onRequestFocusable = { setFocusable(it) },
+                    onRequestFocusable = { this@FloatingDetailsView.setFocusable(it) },
                     onApplyMarginPadding = { ml, mt, mr, mb, pl, pt, pr, pb ->
                         ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
                         ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
