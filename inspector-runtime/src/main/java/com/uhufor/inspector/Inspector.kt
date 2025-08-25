@@ -172,6 +172,7 @@ object Inspector {
                 floatingDetailsView = FloatingDetailsView(applicationContext)
                 isNeedToBringToFront = true
             }
+            floatingDetailsView?.setOnRefresh { refresh() }
             floatingDetailsView?.install(selectionState = selectionState, unitMode = unitMode)
             floatingTrigger?.requestUpdateAnchor()
             if (isNeedToBringToFront) {
