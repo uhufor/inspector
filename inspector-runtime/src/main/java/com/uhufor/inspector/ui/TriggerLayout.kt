@@ -1,5 +1,6 @@
 package com.uhufor.inspector.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
@@ -82,22 +83,47 @@ internal class TriggerLayout @JvmOverloads constructor(
     }
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
-        when (event.action) {
+        return when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 dragHelper?.onDown(event)
+                false
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                dragHelper?.onMove(event) == true
+            }
+
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                dragHelper?.onUp() == true
+            }
+
+            else -> false
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        return when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                dragHelper?.onDown(event)
+                true
             }
 
             MotionEvent.ACTION_MOVE -> {
                 dragHelper?.onMove(event)
+                true
             }
 
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 dragHelper?.onUp()
+                if (event.action == MotionEvent.ACTION_UP) {
+                    performClick()
+                }
+                true
             }
 
-            else -> Unit
+            else -> super.onTouchEvent(event)
         }
-        return false
     }
 
     internal enum class ButtonType {
