@@ -46,12 +46,6 @@ internal class TriggerLayout @JvmOverloads constructor(
                 binding.toggleDensity.text = if (enable) DENSITY_DP_TEXT else DENSITY_PX_TEXT
             }
 
-            ButtonType.DFS -> {
-                binding.toggleDfsTraverse.setTextColor(
-                    if (enable) Color.RED else Color.BLACK
-                )
-            }
-
             ButtonType.SEE_PROPERTY_DETAILS -> {
                 binding.toggleSeePropertyDetails.setTextColor(
                     if (enable) Color.RED else Color.BLACK
@@ -69,11 +63,6 @@ internal class TriggerLayout @JvmOverloads constructor(
         binding.toggleDensity.setOnClickListener {
             if (dragHelper?.isDragging == false) {
                 listener(ButtonType.DP)
-            }
-        }
-        binding.toggleDfsTraverse.setOnClickListener {
-            if (dragHelper?.isDragging == false) {
-                listener(ButtonType.DFS)
             }
         }
         binding.toggleSeePropertyDetails.setOnClickListener {
@@ -130,7 +119,6 @@ internal class TriggerLayout @JvmOverloads constructor(
     internal enum class ButtonType {
         INSPECTION,
         DP,
-        DFS,
         SEE_PROPERTY_DETAILS,
     }
 

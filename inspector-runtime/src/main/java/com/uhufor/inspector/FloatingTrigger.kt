@@ -72,16 +72,6 @@ internal class FloatingTrigger(
                     )
                 }
 
-                TriggerLayout.ButtonType.DFS -> {
-                    inspector.setTraverseType(
-                        if (inspector.getTraverseType() == TraverseType.DFS) {
-                            TraverseType.HIERARCHICAL
-                        } else {
-                            TraverseType.DFS
-                        }
-                    )
-                }
-
                 TriggerLayout.ButtonType.SEE_PROPERTY_DETAILS -> {
                     inspector.enableDetailsView(
                         !inspector.isDetailsViewEnabled
@@ -160,10 +150,6 @@ internal class FloatingTrigger(
         triggerLayout.setButtonEnableState(
             TriggerLayout.ButtonType.DP,
             inspector.getUnitMode() == UnitMode.DP
-        )
-        triggerLayout.setButtonEnableState(
-            TriggerLayout.ButtonType.DFS,
-            inspector.getTraverseType() == TraverseType.DFS
         )
         triggerLayout.setButtonEnableState(
             TriggerLayout.ButtonType.SEE_PROPERTY_DETAILS,
