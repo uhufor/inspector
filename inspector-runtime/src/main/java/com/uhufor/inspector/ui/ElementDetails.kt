@@ -48,13 +48,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.uhufor.inspector.UnitMode
 import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.engine.UiNodeActionProperties
 import com.uhufor.inspector.engine.UiNodeProperties
 import com.uhufor.inspector.engine.UiNodeStyleProperties
 import com.uhufor.inspector.engine.UiNodeType
+import com.uhufor.inspector.util.compose.nsp
 import kotlin.math.roundToInt
 
 @Composable
@@ -128,7 +128,7 @@ internal fun ElementDetails(
 private fun SectionTitle(title: String) {
     Text(
         text = title,
-        fontSize = 11.sp,
+        fontSize = 11.nsp,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 2.dp),
         textDecoration = TextDecoration.Underline,
@@ -146,7 +146,7 @@ private fun InfoRow(label: String, value: String) {
     ) {
         Text(
             text = label,
-            fontSize = 9.sp,
+            fontSize = 9.nsp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .fillMaxWidth(0.4f)
@@ -159,7 +159,7 @@ private fun InfoRow(label: String, value: String) {
         Spacer(modifier = Modifier.width(2.dp))
         Text(
             text = value,
-            fontSize = 9.sp,
+            fontSize = 9.nsp,
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(weight = 1f, fill = true)
@@ -196,7 +196,7 @@ private fun Measurement(
             {
                 Text(
                     text = margin[0],
-                    fontSize = 8.sp,
+                    fontSize = 8.nsp,
                     modifier = Modifier
                         .background(Color(0xFFFFFFCC))
                         .padding(1.dp)
@@ -206,7 +206,7 @@ private fun Measurement(
             {
                 Text(
                     text = margin[1],
-                    fontSize = 8.sp,
+                    fontSize = 8.nsp,
                     modifier = Modifier
                         .background(Color(0xFFFFFFCC))
                         .padding(1.dp)
@@ -216,7 +216,7 @@ private fun Measurement(
             {
                 Text(
                     text = margin[2],
-                    fontSize = 8.sp,
+                    fontSize = 8.nsp,
                     modifier = Modifier
                         .background(Color(0xFFFFFFCC))
                         .padding(1.dp)
@@ -226,7 +226,7 @@ private fun Measurement(
             {
                 Text(
                     text = margin[3],
-                    fontSize = 8.sp,
+                    fontSize = 8.nsp,
                     modifier = Modifier
                         .background(Color(0xFFFFFFCC))
                         .padding(1.dp)
@@ -240,7 +240,7 @@ private fun Measurement(
                 ) {
                     Text(
                         text = size,
-                        fontSize = 8.sp,
+                        fontSize = 8.nsp,
                         modifier = Modifier
                             .background(Color(0xFFCCFFCC))
                             .padding(2.dp)
@@ -434,7 +434,7 @@ private fun MarginPadding(
                     .clickable(enabled = isView, onClick = onEditRequest)
                     .padding(horizontal = 10.dp, vertical = 2.dp)
             ) {
-                Text(text = "Edit", fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                Text(text = "Edit", fontSize = 8.nsp, fontWeight = FontWeight.Bold)
             }
         }
         Spacer(modifier = Modifier.height(2.dp))
@@ -448,13 +448,13 @@ private fun MarginPadding(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(margin[1], fontSize = 8.sp)
+                Text(margin[1], fontSize = 8.nsp)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         margin[0],
-                        fontSize = 8.sp,
+                        fontSize = 8.nsp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.width(24.dp)
                     )
@@ -470,22 +470,22 @@ private fun MarginPadding(
                     ) {
                         Text(
                             padding[1],
-                            fontSize = 8.sp,
+                            fontSize = 8.nsp,
                             modifier = Modifier.align(Alignment.TopCenter)
                         )
                         Text(
                             padding[0],
-                            fontSize = 8.sp,
+                            fontSize = 8.nsp,
                             modifier = Modifier.align(Alignment.CenterStart)
                         )
                         Text(
                             padding[2],
-                            fontSize = 8.sp,
+                            fontSize = 8.nsp,
                             modifier = Modifier.align(Alignment.CenterEnd)
                         )
                         Text(
                             padding[3],
-                            fontSize = 8.sp,
+                            fontSize = 8.nsp,
                             modifier = Modifier.align(Alignment.BottomCenter)
                         )
                     }
@@ -493,12 +493,12 @@ private fun MarginPadding(
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         margin[2],
-                        fontSize = 8.sp,
+                        fontSize = 8.nsp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.width(24.dp)
                     )
                 }
-                Text(margin[3], fontSize = 8.sp)
+                Text(margin[3], fontSize = 8.nsp)
             }
         }
     }
@@ -653,14 +653,14 @@ private fun EditMarginPadding(
             )
             Text(
                 text = "Margin",
-                fontSize = 8.sp,
+                fontSize = 8.nsp,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
             Text(
                 text = "Padding",
-                fontSize = 8.sp,
+                fontSize = 8.nsp,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
@@ -676,7 +676,7 @@ private fun EditMarginPadding(
         ) {
             Text(
                 text = "Left",
-                fontSize = 8.sp,
+                fontSize = 8.nsp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(0.6f)
             )
@@ -692,7 +692,7 @@ private fun EditMarginPadding(
         ) {
             Text(
                 text = "Top",
-                fontSize = 8.sp,
+                fontSize = 8.nsp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(0.6f)
             )
@@ -708,7 +708,7 @@ private fun EditMarginPadding(
         ) {
             Text(
                 text = "Right",
-                fontSize = 8.sp,
+                fontSize = 8.nsp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(0.6f)
             )
@@ -724,7 +724,7 @@ private fun EditMarginPadding(
         ) {
             Text(
                 text = "Bottom",
-                fontSize = 8.sp,
+                fontSize = 8.nsp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(0.6f)
             )
@@ -788,7 +788,7 @@ private fun SmallNumberField(
             singleLine = true,
             textStyle = TextStyle(
                 color = Color(0xFF111111),
-                fontSize = 9.sp,
+                fontSize = 9.nsp,
                 textAlign = TextAlign.Center
             ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -812,7 +812,7 @@ private fun SmallButton(
             .clickable(onClick = onClick)
             .padding(vertical = 6.dp)
     ) {
-        Text(text = text, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        Text(text = text, fontSize = 9.nsp, fontWeight = FontWeight.Bold)
     }
 }
 
