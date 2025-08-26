@@ -44,6 +44,9 @@ internal class TriggerLayout @JvmOverloads constructor(
 
             ButtonType.DP -> {
                 binding.toggleDensity.text = if (enable) DENSITY_DP_TEXT else DENSITY_PX_TEXT
+                binding.toggleDensity.setTextColor(
+                    if (enable) Color.RED else Color.BLACK
+                )
             }
 
             ButtonType.SEE_PROPERTY_DETAILS -> {
