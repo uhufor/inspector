@@ -14,7 +14,7 @@ internal class Config {
             _unitModeFlow.value = value
         }
 
-    private val _traverseType = MutableStateFlow<TraverseType>(TraverseType.HIERARCHICAL)
+    private val _traverseType = MutableStateFlow<TraverseType>(TraverseType.DFS)
     val traverseTypeFlow = _traverseType.asStateFlow()
     var traverseType: TraverseType
         get() = _traverseType.value

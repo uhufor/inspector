@@ -1,5 +1,6 @@
 package com.uhufor.inspector.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
@@ -7,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.setPadding
+import com.uhufor.inspector.R
 import com.uhufor.inspector.databinding.LayoutTriggerBinding
 import com.uhufor.inspector.util.FloatingViewDragHelper
 import com.uhufor.inspector.util.dp
@@ -23,9 +25,9 @@ internal class TriggerLayout @JvmOverloads constructor(
     private var dragHelper: FloatingViewDragHelper? = null
 
     init {
-        binding.root.setBackgroundColor(Color.WHITE)
+        binding.root.setBackgroundResource(R.drawable.bg_trigger_rounded)
         binding.root.elevation = LAYOUT_ELEVATION.dp()
-        setPadding(LAYOUT_PADDING)
+        binding.root.setPadding(LAYOUT_PADDING)
     }
 
     fun setFloatingViewDragHelper(helper: FloatingViewDragHelper) {
@@ -42,10 +44,7 @@ internal class TriggerLayout @JvmOverloads constructor(
 
             ButtonType.DP -> {
                 binding.toggleDensity.text = if (enable) DENSITY_DP_TEXT else DENSITY_PX_TEXT
-            }
-
-            ButtonType.DFS -> {
-                binding.toggleDfsTraverse.setTextColor(
+                binding.toggleDensity.setTextColor(
                     if (enable) Color.RED else Color.BLACK
                 )
             }
@@ -69,11 +68,6 @@ internal class TriggerLayout @JvmOverloads constructor(
                 listener(ButtonType.DP)
             }
         }
-        binding.toggleDfsTraverse.setOnClickListener {
-            if (dragHelper?.isDragging == false) {
-                listener(ButtonType.DFS)
-            }
-        }
         binding.toggleSeePropertyDetails.setOnClickListener {
             if (dragHelper?.isDragging == false) {
                 listener(ButtonType.SEE_PROPERTY_DETAILS)
@@ -82,37 +76,60 @@ internal class TriggerLayout @JvmOverloads constructor(
     }
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
-        when (event.action) {
+        return when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 dragHelper?.onDown(event)
+                false
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                dragHelper?.onMove(event) == true
+            }
+
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                dragHelper?.onUp() == true
+            }
+
+            else -> false
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        return when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                dragHelper?.onDown(event)
+                true
             }
 
             MotionEvent.ACTION_MOVE -> {
                 dragHelper?.onMove(event)
+                true
             }
 
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 dragHelper?.onUp()
+                if (event.action == MotionEvent.ACTION_UP) {
+                    performClick()
+                }
+                true
             }
 
-            else -> Unit
+            else -> super.onTouchEvent(event)
         }
-        return false
     }
 
     internal enum class ButtonType {
         INSPECTION,
         DP,
-        DFS,
         SEE_PROPERTY_DETAILS,
     }
 
     companion object {
-        private const val LAYOUT_ELEVATION = 4
+        private const val LAYOUT_ELEVATION = 8
         private const val LAYOUT_PADDING = 12
         private const val INSPECTION_ENABLE_COLOR = 0x44FF0000
         private const val DENSITY_DP_TEXT = "DP"
         private const val DENSITY_PX_TEXT = "PX"
     }
 }
-
