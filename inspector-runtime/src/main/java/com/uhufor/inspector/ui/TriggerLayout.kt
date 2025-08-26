@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.setPadding
+import com.uhufor.inspector.R
 import com.uhufor.inspector.databinding.LayoutTriggerBinding
 import com.uhufor.inspector.util.FloatingViewDragHelper
 import com.uhufor.inspector.util.dp
@@ -24,9 +25,9 @@ internal class TriggerLayout @JvmOverloads constructor(
     private var dragHelper: FloatingViewDragHelper? = null
 
     init {
-        binding.root.setBackgroundColor(Color.WHITE)
+        binding.root.setBackgroundResource(R.drawable.bg_trigger_rounded)
         binding.root.elevation = LAYOUT_ELEVATION.dp()
-        setPadding(LAYOUT_PADDING)
+        binding.root.setPadding(LAYOUT_PADDING)
     }
 
     fun setFloatingViewDragHelper(helper: FloatingViewDragHelper) {
@@ -134,11 +135,10 @@ internal class TriggerLayout @JvmOverloads constructor(
     }
 
     companion object {
-        private const val LAYOUT_ELEVATION = 4
+        private const val LAYOUT_ELEVATION = 8
         private const val LAYOUT_PADDING = 12
         private const val INSPECTION_ENABLE_COLOR = 0x44FF0000
         private const val DENSITY_DP_TEXT = "DP"
         private const val DENSITY_PX_TEXT = "PX"
     }
 }
-
