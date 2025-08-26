@@ -81,7 +81,7 @@ internal fun ElementDetails(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(4.dp)
                 .verticalScroll(state = rememberScrollState())
         ) {
@@ -732,7 +732,7 @@ private fun EditMarginPadding(
             SmallNumberField(pb, { pb = it }, modifier = Modifier.weight(1f))
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         Row(modifier = Modifier.fillMaxWidth()) {
             SmallButton(
