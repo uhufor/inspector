@@ -150,6 +150,7 @@ private fun InfoRow(label: String, value: String) {
             fontSize = 9.dvsp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
+                .fillMaxHeight()
                 .fillMaxWidth(0.4f)
                 .background(
                     Color(0xCCC0C0C0),
@@ -169,7 +170,7 @@ private fun InfoRow(label: String, value: String) {
                     shape = RoundedCornerShape(topEnd = 2.dp, bottomEnd = 2.dp)
                 )
                 .padding(horizontal = 2.dvdp)
-                .basicMarquee()
+                .basicMarquee(iterations = 5)
         )
     }
 }
