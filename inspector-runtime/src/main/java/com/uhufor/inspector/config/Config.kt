@@ -22,11 +22,19 @@ internal class Config {
             _traverseType.value = value
         }
 
-    private val _showDetailsView = MutableStateFlow<Boolean>(false)
-    val showDetailsViewFlow = _showDetailsView.asStateFlow()
-    var showDetailsView: Boolean
-        get() = _showDetailsView.value
+    private val _enableDetailsView = MutableStateFlow<Boolean>(false)
+    val enableDetailsViewFlow = _enableDetailsView.asStateFlow()
+    var enableDetailsView: Boolean
+        get() = _enableDetailsView.value
         set(value) {
-            _showDetailsView.value = value
+            _enableDetailsView.value = value
+        }
+
+    private val _detailsViewUiScale = MutableStateFlow(1.0f)
+    val detailsViewUiScaleFlow = _detailsViewUiScale.asStateFlow()
+    var detailsViewUiScale: Float
+        get() = _detailsViewUiScale.value
+        set(value) {
+            _detailsViewUiScale.value = value
         }
 }
