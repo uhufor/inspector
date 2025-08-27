@@ -28,7 +28,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,9 +54,8 @@ import com.uhufor.inspector.engine.UiNodeActionProperties
 import com.uhufor.inspector.engine.UiNodeProperties
 import com.uhufor.inspector.engine.UiNodeStyleProperties
 import com.uhufor.inspector.engine.UiNodeType
-import com.uhufor.inspector.ui.compose.LocalDetailsViewUiScale
 import com.uhufor.inspector.ui.compose.dvdp
-import com.uhufor.inspector.util.compose.dvsp
+import com.uhufor.inspector.ui.compose.dvsp
 import kotlin.math.roundToInt
 
 @Composable

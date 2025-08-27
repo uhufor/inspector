@@ -1,11 +1,10 @@
-package com.uhufor.inspector.util.compose
+package com.uhufor.inspector.ui.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-import com.uhufor.inspector.ui.compose.LocalDetailsViewUiScale
 
 @Stable
 inline val TextUnit.dvsp
