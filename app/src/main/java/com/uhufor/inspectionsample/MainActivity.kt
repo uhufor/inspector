@@ -2,6 +2,8 @@ package com.uhufor.inspectionsample
 
 import android.os.Bundle
 import android.view.View
+import android.widget.SeekBar
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -64,6 +66,35 @@ class MainActivity : AppCompatActivity() {
             PersonListDialogFragment.createDialog(context = this)
                 .show()
         }
+
+        setupDetailsViewUiScale()
+    }
+
+    private fun setupDetailsViewUiScale() {
+        val uiScaleTextView = findViewById<TextView>(R.id.uiScale)
+        val uiScaleSeekBar = findViewById<SeekBar>(R.id.uiScaleSeekBar)
+
+        val initialScale = Inspector.getDetailsViewUiScale().coerceIn(0.8f, 1.2f)
+        uiScaleTextView.text = "UI Scale: %.2f".format(initialScale)
+        uiScaleSeekBar.progress = (initialScale * 100f).toInt().coerceIn(80, 120)
+
+        uiScaleSeekBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean,
+                ) {
+                    val currentValue = progress.coerceIn(80, 120)
+                    val uiScale = currentValue.toFloat() / 100f
+                    uiScaleTextView.text = "UI Scale: %.2f".format(uiScale)
+                    Inspector.setDetailsViewUiScale(uiScale)
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+                override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+            }
+        )
     }
 
     private fun disableInspectionIfNeeded(savedInstanceState: Bundle?) {

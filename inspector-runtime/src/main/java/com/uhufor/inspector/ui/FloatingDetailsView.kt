@@ -1,11 +1,11 @@
 package com.uhufor.inspector.ui
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.view.Gravity
 import android.view.WindowManager
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +27,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.uhufor.inspector.UnitMode
 import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.engine.ViewMutator
+import com.uhufor.inspector.ui.compose.LocalDetailsViewUiScale
 import com.uhufor.inspector.util.dp
 import com.uhufor.inspector.util.getScreenSize
 import java.lang.ref.WeakReference
@@ -58,8 +59,7 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         onRefresh = callback
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    fun install(selectionState: SelectionState, unitMode: UnitMode) {
+    fun install(selectionState: SelectionState, unitMode: UnitMode, uiScale: Float) {
         val currentContext = context.get() ?: return
         val currentWindowManager = windowManager.get() ?: return
 
@@ -70,18 +70,20 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
                     editMode = false
                     setFocusable(false)
                 }
-                ElementDetails(
-                    selectionState = selectionState,
-                    unitMode = unitMode,
-                    isEditMode = editMode,
-                    onEditModeChange = { editMode = it },
-                    onRequestFocusable = { this@FloatingDetailsView.setFocusable(it) },
-                    onApplyMarginPadding = { ml, mt, mr, mb, pl, pt, pr, pb ->
-                        ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
-                        ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
-                        ViewMutator.runAfterNextLayout(selectionState.id) { onRefresh?.invoke() }
-                    }
-                )
+                CompositionLocalProvider(LocalDetailsViewUiScale provides uiScale) {
+                    ElementDetails(
+                        selectionState = selectionState,
+                        unitMode = unitMode,
+                        isEditMode = editMode,
+                        onEditModeChange = { editMode = it },
+                        onRequestFocusable = { this@FloatingDetailsView.setFocusable(it) },
+                        onApplyMarginPadding = { ml, mt, mr, mb, pl, pt, pr, pb ->
+                            ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
+                            ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
+                            ViewMutator.runAfterNextLayout(selectionState.id) { onRefresh?.invoke() }
+                        }
+                    )
+                }
             }
             return
         }
@@ -98,18 +100,20 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
                     editMode = false
                     setFocusable(false)
                 }
-                ElementDetails(
-                    selectionState = selectionState,
-                    unitMode = unitMode,
-                    isEditMode = editMode,
-                    onEditModeChange = { editMode = it },
-                    onRequestFocusable = { this@FloatingDetailsView.setFocusable(it) },
-                    onApplyMarginPadding = { ml, mt, mr, mb, pl, pt, pr, pb ->
-                        ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
-                        ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
-                        ViewMutator.runAfterNextLayout(selectionState.id) { onRefresh?.invoke() }
-                    }
-                )
+                CompositionLocalProvider(LocalDetailsViewUiScale provides uiScale) {
+                    ElementDetails(
+                        selectionState = selectionState,
+                        unitMode = unitMode,
+                        isEditMode = editMode,
+                        onEditModeChange = { editMode = it },
+                        onRequestFocusable = { this@FloatingDetailsView.setFocusable(it) },
+                        onApplyMarginPadding = { ml, mt, mr, mb, pl, pt, pr, pb ->
+                            ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
+                            ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
+                            ViewMutator.runAfterNextLayout(selectionState.id) { onRefresh?.invoke() }
+                        }
+                    )
+                }
             }
             isVisible = false
             setPadding(

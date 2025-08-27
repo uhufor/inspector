@@ -156,16 +156,25 @@ object Inspector {
             combine(
                 selectionState,
                 config.unitModeFlow,
-                config.showDetailsViewFlow
-            ) { selectionState, unitMode, showDetailsView ->
-                selectionState.takeIf { showDetailsView } to unitMode
-            }.collectLatest { (selectionState, unitMode) ->
-                handleSelectionChanged(selectionState, unitMode)
+                config.enableDetailsViewFlow,
+                config.detailsViewUiScaleFlow,
+            ) { selectionState, unitMode, showDetailsView, uiScale ->
+                Triple(
+                    first = selectionState.takeIf { showDetailsView },
+                    second = unitMode,
+                    third = uiScale
+                )
+            }.collectLatest { (selectionState, unitMode, scale) ->
+                handleSelectionChanged(selectionState, unitMode, scale)
             }
         }
     }
 
-    private fun handleSelectionChanged(selectionState: SelectionState?, unitMode: UnitMode) {
+    private fun handleSelectionChanged(
+        selectionState: SelectionState?,
+        unitMode: UnitMode,
+        uiScale: Float,
+    ) {
         if (selectionState != null) {
             var isNeedToBringToFront = false
             if (floatingDetailsView == null) {
@@ -173,7 +182,11 @@ object Inspector {
                 isNeedToBringToFront = true
             }
             floatingDetailsView?.setOnRefresh { refresh() }
-            floatingDetailsView?.install(selectionState = selectionState, unitMode = unitMode)
+            floatingDetailsView?.install(
+                selectionState = selectionState,
+                unitMode = unitMode,
+                uiScale = uiScale
+            )
             floatingTrigger?.requestUpdateAnchor()
             if (isNeedToBringToFront) {
                 floatingTrigger?.bringToFront()
@@ -206,13 +219,26 @@ object Inspector {
     }
 
     fun enableDetailsView(enabled: Boolean) {
-        if (config.showDetailsView == enabled) return
+        if (config.enableDetailsView == enabled) return
 
-        config.showDetailsView = enabled
+        config.enableDetailsView = enabled
     }
 
     val isDetailsViewEnabled: Boolean
-        get() = config.showDetailsView
+        get() = config.enableDetailsView
+
+    fun setDetailsViewUiScale(newScale: Float) {
+        val coercedScale = newScale.coerceIn(0.8f..1.2f)
+        if (config.detailsViewUiScale == coercedScale) return
+
+        config.detailsViewUiScale = coercedScale
+        // TODO: check
+        floatingTrigger?.requestUpdateAnchor()
+    }
+
+    fun getDetailsViewUiScale(): Float {
+        return config.detailsViewUiScale
+    }
 
     @MainThread
     fun showFloatingTrigger() {
