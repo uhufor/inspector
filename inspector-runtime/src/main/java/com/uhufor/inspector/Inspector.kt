@@ -182,7 +182,11 @@ object Inspector {
                 isNeedToBringToFront = true
             }
             floatingDetailsView?.setOnRefresh { refresh() }
-            floatingDetailsView?.install(selectionState = selectionState, unitMode = unitMode)
+            floatingDetailsView?.install(
+                selectionState = selectionState,
+                unitMode = unitMode,
+                uiScale = uiScale
+            )
             floatingTrigger?.requestUpdateAnchor()
             if (isNeedToBringToFront) {
                 floatingTrigger?.bringToFront()
