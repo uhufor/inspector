@@ -1,23 +1,28 @@
 package com.uhufor.inspector.util.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import com.uhufor.inspector.ui.compose.LocalDetailsViewUiScale
 
-// Non scaled pixel
-val TextUnit.nsp
+@Stable
+inline val TextUnit.dvsp
     @Composable
-    get() = (this.value / LocalDensity.current.fontScale).sp
+    get() = (this.value / LocalDensity.current.fontScale * LocalDetailsViewUiScale.current).sp
 
-val Int.nsp
+@Stable
+inline val Int.dvsp
     @Composable
-    get() = this.sp.nsp
+    get() = this.sp.dvsp
 
-val Float.nsp
+@Stable
+inline val Double.dvsp
     @Composable
-    get() = this.sp.nsp
+    get() = this.sp.dvsp
 
-val Double.nsp
+@Stable
+inline val Float.dvsp
     @Composable
-    get() = this.sp.nsp
+    get() = this.sp.dvsp
