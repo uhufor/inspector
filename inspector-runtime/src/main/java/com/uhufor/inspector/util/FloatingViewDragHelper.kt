@@ -1,5 +1,6 @@
 package com.uhufor.inspector.util
 
+import android.util.Size
 import android.view.MotionEvent
 import kotlin.math.abs
 
@@ -33,13 +34,25 @@ internal class FloatingViewDragHelper(
 
     fun onDown(event: MotionEvent) {
         updateScreenDimensions()
-        delegate.getPosition().let { (x, y) ->
+        getInitialPosition(
+            viewPosition = delegate.getPosition(),
+            viewSize = delegate.getSize()
+        ).let { (x, y) ->
             initialX = x
             initialY = y
         }
         initialTouchX = event.rawX
         initialTouchY = event.rawY
         isDragging = false
+    }
+
+    private fun getInitialPosition(viewPosition: Pair<Int, Int>, viewSize: Size): Pair<Int, Int> {
+        val (x, y) = viewPosition
+        val xMax = (screenWidth - viewSize.width - horizontalMarginPx)
+            .coerceAtLeast(horizontalMarginPx)
+        val yMax = (screenHeight - viewSize.height).coerceAtLeast(0)
+
+        return x.coerceIn(horizontalMarginPx, xMax) to y.coerceIn(0, yMax)
     }
 
     fun onMove(event: MotionEvent): Boolean {
