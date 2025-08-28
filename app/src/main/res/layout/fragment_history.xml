@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="Work Experience"
+            android:text="@string/history_title"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textColor="@color/purple_500" />
 
@@ -30,18 +30,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Senior Software Engineer - Tech Solutions Inc."
+                android:text="@string/exp1_title"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="March 2020 - Present" />
+                android:text="@string/exp1_period" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- Lead development of Android applications.\n- Design and implement new features." />
+                android:text="@string/exp1_desc" />
         </LinearLayout>
 
         <View
@@ -60,18 +60,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Software Engineer - Innovatech Ltd."
+                android:text="@string/exp2_title"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="July 2018 - February 2020" />
+                android:text="@string/exp2_period" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- Developed and maintained mobile applications.\n- Collaborated with cross-functional teams." />
+                android:text="@string/exp2_desc" />
         </LinearLayout>
 
         <View
@@ -90,18 +90,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Junior Developer - Startup Coders LLC"
+                android:text="@string/exp3_title"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="January 2017 - June 2018" />
+                android:text="@string/exp3_period" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- Contributed to early-stage mobile service development.\n- Implemented features based on user feedback." />
+                android:text="@string/exp3_desc" />
         </LinearLayout>
 
         <View
@@ -120,18 +120,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Software Development Intern - Future Systems Co."
+                android:text="@string/exp4_title"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="June 2016 - December 2016" />
+                android:text="@string/exp4_period" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- Assisted in software testing and QA processes.\n- Supported development documentation." />
+                android:text="@string/exp4_desc" />
         </LinearLayout>
 
         <View
@@ -150,18 +150,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Android Developer - MobileFirst Corp."
+                android:text="@string/exp5_title"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="May 2015 - May 2016" />
+                android:text="@string/exp5_period" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- Focused on native Android app development.\n- Participated in code reviews and agile sprints." />
+                android:text="@string/exp5_desc" />
         </LinearLayout>
 
         <View
@@ -180,18 +180,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="QA Engineer - TestPerfect Inc."
+                android:text="@string/exp6_title"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="August 2014 - April 2015" />
+                android:text="@string/exp6_period" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- Executed test cases and reported bugs.\n- Developed automated test scripts." />
+                android:text="@string/exp6_desc" />
         </LinearLayout>
 
         <View
@@ -210,18 +210,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Technical Support Specialist - HelpDesk Pro"
+                android:text="@string/exp7_title"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="January 2014 - July 2014" />
+                android:text="@string/exp7_period" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- Provided technical assistance to customers.\n- Troubleshot software and hardware issues." />
+                android:text="@string/exp7_desc" />
         </LinearLayout>
 
         <View
@@ -240,18 +240,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Web Developer (Part-Time) - Creative Web Designs"
+                android:text="@string/exp8_title"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="September 2013 - December 2013" />
+                android:text="@string/exp8_period" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- Developed and maintained client websites.\n- Worked with HTML, CSS, and JavaScript." />
+                android:text="@string/exp8_desc" />
         </LinearLayout>
 
         <View
@@ -270,18 +270,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="IT Intern - Global Corp"
+                android:text="@string/exp9_title"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="June 2013 - August 2013" />
+                android:text="@string/exp9_period" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- Assisted IT department with daily tasks.\n- Gained exposure to network administration." />
+                android:text="@string/exp9_desc" />
         </LinearLayout>
 
         <View
@@ -299,18 +299,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Freelance App Developer"
+                android:text="@string/exp10_title"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="January 2012 - May 2013" />
+                android:text="@string/exp10_period" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="- Developed small mobile apps for clients.\n- Managed projects from conception to deployment." />
+                android:text="@string/exp10_desc" />
         </LinearLayout>
 
     </LinearLayout>

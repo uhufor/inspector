@@ -12,10 +12,10 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#AA000000"
+        android:background="@color/black_alpha_aa"
         android:padding="4dp"
-        android:text="Android UI Inspection Sample"
-        android:textColor="#FFFFFF"
+        android:text="@string/main_title"
+        android:textColor="@color/white"
         android:textSize="16sp"
         android:textStyle="bold" />
 
@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:foreground="?attr/selectableItemBackground"
-            android:text="XML UI" />
+            android:text="@string/btn_xml_ui" />
 
         <Button
             android:id="@+id/showComposeUi"
@@ -41,7 +41,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:foreground="?attr/selectableItemBackground"
-            android:text="Compose UI" />
+            android:text="@string/btn_compose_ui" />
 
     </LinearLayout>
 
@@ -51,7 +51,7 @@
         android:layout_height="wrap_content"
         android:foreground="?attr/selectableItemBackground"
         android:paddingBottom="8dp"
-        android:text="XML and Compose UI" />
+        android:text="@string/btn_xml_and_compose_ui" />
 
     <LinearLayout
         style="?android:attr/buttonBarStyle"
@@ -89,7 +89,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:includeFontPadding="false"
-            android:text="Prop Scale: 1.00"
+            android:text="@string/ui_scale_initial"
             android:textSize="14sp" />
 
         <SeekBar
@@ -109,7 +109,7 @@
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
         android:layout_marginVertical="10dp"
-        android:background="#CC000000" />
+        android:background="@color/black_alpha_cc" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -122,7 +122,7 @@
             android:id="@+id/lt"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#33CC0000"
+            android:background="@color/red_20a"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -130,7 +130,7 @@
             android:id="@+id/t"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#33CC0000"
+            android:background="@color/red_20a"
             app:layout_constraintEnd_toStartOf="@+id/rt"
             app:layout_constraintStart_toEndOf="@+id/lt"
             app:layout_constraintTop_toTopOf="parent" />
@@ -139,7 +139,7 @@
             android:id="@+id/rt"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#33CC0000"
+            android:background="@color/red_20a"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -147,7 +147,7 @@
             android:id="@+id/ult"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#33CCCC00"
+            android:background="@color/yellow_20a"
             app:layout_constraintEnd_toStartOf="@id/t"
             app:layout_constraintTop_toBottomOf="@id/t" />
 
@@ -155,7 +155,7 @@
             android:id="@+id/urt"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#33CCCC00"
+            android:background="@color/yellow_20a"
             app:layout_constraintBottom_toBottomOf="@+id/ult"
             app:layout_constraintEnd_toStartOf="@+id/rt"
             app:layout_constraintStart_toEndOf="@+id/t"
@@ -165,7 +165,7 @@
             android:id="@+id/lc"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#3300CC00"
+            android:background="@color/green_20a"
             app:layout_constraintBottom_toBottomOf="@+id/c"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/c" />
@@ -174,7 +174,7 @@
             android:id="@+id/c"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#3300CC00"
+            android:background="@color/green_20a"
             app:layout_constraintBottom_toTopOf="@+id/b"
             app:layout_constraintEnd_toStartOf="@+id/rt"
             app:layout_constraintStart_toEndOf="@+id/lt"
@@ -184,7 +184,7 @@
             android:id="@+id/rc"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#3300CC00"
+            android:background="@color/green_20a"
             app:layout_constraintBottom_toBottomOf="@+id/c"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/c" />
@@ -193,7 +193,7 @@
             android:id="@+id/lb"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#330000CC"
+            android:background="@color/blue_20a"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
@@ -201,7 +201,7 @@
             android:id="@+id/b"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#330000CC"
+            android:background="@color/blue_20a"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/rt"
             app:layout_constraintStart_toEndOf="@+id/lt" />
@@ -210,7 +210,7 @@
             android:id="@+id/rb"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#330000CC"
+            android:background="@color/blue_20a"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -218,7 +218,7 @@
             android:id="@+id/arb"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#3300CCCC"
+            android:background="@color/cyan_20a"
             app:layout_constraintBottom_toTopOf="@id/b"
             app:layout_constraintStart_toEndOf="@id/b" />
 
@@ -226,7 +226,7 @@
             android:id="@+id/alb"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="#3300CCCC"
+            android:background="@color/cyan_20a"
             app:layout_constraintBottom_toBottomOf="@+id/lb"
             app:layout_constraintEnd_toStartOf="@+id/b"
             app:layout_constraintStart_toEndOf="@+id/lb"
