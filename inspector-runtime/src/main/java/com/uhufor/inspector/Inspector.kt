@@ -64,7 +64,7 @@ object Inspector {
         }
 
         windowManager = applicationContext.getSystemService()
-        ActivityTracker.register(applicationContext)
+        ActivityTracker.register(context)
         installed = true
     }
 
