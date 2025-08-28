@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="trigger_bg">#FFF0F0F0</color>
+    <color name="toggle_density_bg">#8866FF66</color>
+    <color name="toggle_props_bg">#88FFFF66</color>
+</resources>

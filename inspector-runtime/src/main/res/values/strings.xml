@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="toggle_density_label">DP</string>
+    <string name="toggle_properties_label">Prop</string>
+    <string name="cd_toggle_properties">See Properties</string>
+</resources>
