@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.view.View
 import android.util.Size
 import android.view.Gravity
 import android.view.WindowManager
@@ -15,6 +16,7 @@ import com.uhufor.inspector.util.FloatingViewDragHelper
 import com.uhufor.inspector.util.FloatingViewDragHelperDelegate
 import com.uhufor.inspector.util.ScreenSizeProvider
 import com.uhufor.inspector.util.getScreenSize
+import com.uhufor.inspector.util.dp
 import java.lang.ref.WeakReference
 
 internal class FloatingTrigger(
@@ -29,6 +31,10 @@ internal class FloatingTrigger(
     private var triggerLayout: TriggerLayout? = null
     private var triggerLayoutParams: WindowManager.LayoutParams? = null
     private var dragHelper: FloatingViewDragHelper? = null
+
+    private val onLayoutChangeListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        clampToBounds()
+    }
 
     private var isInstalled = false
 
@@ -121,7 +127,6 @@ internal class FloatingTrigger(
         runCatching {
             currentWindowManager.addView(triggerLayout, triggerLayoutParams)
             triggerLayout.post {
-                // set initial position
                 val screen = currentWindowManager.getScreenSize()
                 val w = triggerLayout.width
                 val h = triggerLayout.height
@@ -133,6 +138,7 @@ internal class FloatingTrigger(
                 currentWindowManager.updateViewLayout(triggerLayout, triggerLayoutParams)
 
                 triggerLayout.isVisible = true
+                triggerLayout.addOnLayoutChangeListener(onLayoutChangeListener)
 
                 notifyAnchorChanged()
             }
@@ -183,6 +189,7 @@ internal class FloatingTrigger(
         runCatching {
             windowManager.get()?.removeView(triggerLayout)
         }
+        triggerLayout?.removeOnLayoutChangeListener(onLayoutChangeListener)
         triggerLayout = null
         triggerLayoutParams = null
         dragHelper = null
@@ -200,6 +207,31 @@ internal class FloatingTrigger(
 
     fun refreshEnableState() {
         triggerLayout?.let(::updateTriggerLayoutEnableState)
+    }
+
+    private fun clampToBounds() {
+        val lp = triggerLayoutParams ?: return
+        val view = triggerLayout ?: return
+        val wm = windowManager.get() ?: return
+
+        val screen = wm.getScreenSize()
+        val w = view.width
+        val h = view.height
+        if (w == 0 || h == 0) return
+
+        val hMarginPx = HORIZONTAL_MARGIN.dp().toInt()
+        val maxX = (screen.width - w - hMarginPx).coerceAtLeast(hMarginPx)
+        val maxY = (screen.height - h).coerceAtLeast(0)
+
+        val newX = lp.x.coerceIn(hMarginPx, maxX)
+        val newY = lp.y.coerceIn(0, maxY)
+
+        if (newX != lp.x || newY != lp.y) {
+            lp.x = newX
+            lp.y = newY
+            runCatching { wm.updateViewLayout(view, lp) }
+            notifyAnchorChanged()
+        }
     }
 
     companion object {
