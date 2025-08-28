@@ -9,11 +9,14 @@ object Inspector {
     private var unitMode: UnitMode = UnitMode.DP
     private var traverseType: TraverseType = TraverseType.HIERARCHICAL
     private var showDetailsView: Boolean = false
+    private var detailsViewUiScale: Float = 1.0f
 
     fun install(context: Context) = Unit
     fun enableInspection() { isInspectionEnabled = true }
     fun disableInspection() { isInspectionEnabled = false }
     fun toggleInspection() { isInspectionEnabled = !isInspectionEnabled }
+
+    fun refresh() = Unit
 
     fun setUnitMode(mode: UnitMode) { unitMode = mode }
     fun getUnitMode(): UnitMode = unitMode
@@ -25,7 +28,8 @@ object Inspector {
     val isDetailsViewEnabled: Boolean
         get() = showDetailsView
 
-    fun refresh() = Unit
+    fun setDetailsViewUiScale(newScale: Float) { detailsViewUiScale = newScale }
+    fun getDetailsViewUiScale(): Float = detailsViewUiScale
 
     fun showFloatingTrigger() = Unit
     fun hideFloatingTrigger() = Unit
