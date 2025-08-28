@@ -14,6 +14,10 @@ internal object ActivityTracker : Application.ActivityLifecycleCallbacks {
 
     fun register(context: Context) {
         (context.applicationContext as? Application)?.registerActivityLifecycleCallbacks(this)
+
+        if (context is Activity) {
+            updateTopActivity(context)
+        }
     }
 
     override fun onActivityStarted(activity: Activity) {
