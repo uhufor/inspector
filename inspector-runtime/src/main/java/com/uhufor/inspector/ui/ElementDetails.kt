@@ -441,15 +441,19 @@ private fun MarginPadding(
             modifier = Modifier.fillMaxWidth()
         ) {
             SectionTitle("Margin / Padding")
+
             Spacer(modifier = Modifier.weight(1f))
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .background(color = Color(0xFFDDEEDD), shape = RoundedCornerShape(4.dp))
-                    .clickable(enabled = isView, onClick = onEditRequest)
-                    .padding(horizontal = 10.dvdp, vertical = 2.dvdp)
-            ) {
-                Text(text = "Edit", fontSize = 8.dvsp, fontWeight = FontWeight.Bold)
+
+            if (selectionState.properties.type == UiNodeType.VIEW) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .background(color = Color(0xFFDDEEDD), shape = RoundedCornerShape(4.dp))
+                        .clickable(enabled = isView, onClick = onEditRequest)
+                        .padding(horizontal = 10.dvdp, vertical = 2.dvdp)
+                ) {
+                    Text(text = "Edit", fontSize = 8.dvsp, fontWeight = FontWeight.Bold)
+                }
             }
         }
         Spacer(modifier = Modifier.height(2.dvdp))
