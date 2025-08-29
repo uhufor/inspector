@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="inspector_title_details">Details</string>
+    <string name="inspector_label_id">ID</string>
+    <string name="inspector_title_distance">Distance</string>
+    <string name="inspector_title_margin_padding">Margin / Padding</string>
+    <string name="inspector_action_edit">Edit</string>
+    <string name="inspector_title_actions">Actions</string>
+    <string name="inspector_title_styles">Styles</string>
+    <string name="inspector_title_edit_margin_padding">Edit Margin/Padding</string>
+    <string name="inspector_column_margin">Margin</string>
+    <string name="inspector_column_padding">Padding</string>
+    <string name="inspector_side_left">Left</string>
+    <string name="inspector_side_top">Top</string>
+    <string name="inspector_side_right">Right</string>
+    <string name="inspector_side_bottom">Bottom</string>
+    <string name="inspector_btn_cancel">Cancel</string>
+    <string name="inspector_btn_apply">Apply</string>
+    <string name="inspector_style_bg_type">Bg Type</string>
+    <string name="inspector_style_bg_color">Bg Color</string>
+    <string name="inspector_style_text">Text</string>
+    <string name="inspector_style_text_color">Text Color</string>
+    <string name="inspector_style_text_size">Text Size</string>
+    <string name="inspector_style_text_style">Text Style</string>
+    <string name="inspector_style_bold">Bold</string>
+    <string name="inspector_style_italic">Italic</string>
+    <string name="inspector_value_true">true</string>
+</resources>
