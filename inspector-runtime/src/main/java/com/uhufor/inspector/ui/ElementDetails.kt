@@ -1,12 +1,16 @@
-@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalFoundationApi::class)
 
 package com.uhufor.inspector.ui
 
 import android.graphics.RectF
+import android.util.Size
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -18,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,7 +43,9 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -48,6 +55,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.uhufor.inspector.R
 import com.uhufor.inspector.UnitMode
 import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.engine.UiNodeActionProperties
@@ -67,12 +75,6 @@ internal fun ElementDetails(
     onRequestFocusable: (Boolean) -> Unit,
     onApplyMarginPadding: (Int, Int, Int, Int, Int, Int, Int, Int) -> Unit,
 ) {
-    val density = LocalDensity.current.density
-
-    val size = remember(selectionState.properties.size, unitMode, density) {
-        formatSizeString(selectionState.properties.size, unitMode, density)
-    }
-
     Card(
         modifier = Modifier
             .width(148.dvdp)
@@ -87,12 +89,21 @@ internal fun ElementDetails(
                 .verticalScroll(state = rememberScrollState())
         ) {
             if (!isEditMode) {
-                SectionTitle("Details")
-                InfoRow(
-                    "ID (${selectionState.properties.type.value})",
-                    selectionState.properties.id
-                )
-                InfoRow("Size", size)
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    SectionTitle("Details")
+                    if (selectionState.properties.type == UiNodeType.COMPOSE) {
+                        Image(
+                            painterResource(R.drawable.ic_compose),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(10.dvdp),
+                        )
+                    }
+                }
+                InfoRow("ID", selectionState.properties.id)
 
                 Measurement(selectionState, unitMode)
                 MarginPadding(
@@ -833,7 +844,7 @@ internal fun ElementDetailPreview() {
         properties = UiNodeProperties(
             type = UiNodeType.VIEW,
             id = "app:id/showDetail",
-            size = android.util.Size(200, 100),
+            size = Size(200, 100),
             distance = RectF(11f, 10f, 5f, 5f),
             margin = RectF(16f, 16f, 16f, 16f),
             padding = RectF(2f, 8f, 2f, 10f),
@@ -874,7 +885,7 @@ internal fun EditMarginPaddingPreview() {
 }
 
 private fun formatSizeString(
-    size: android.util.Size,
+    size: Size,
     unitMode: UnitMode,
     density: Float,
 ): String = when (unitMode) {
