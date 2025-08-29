@@ -45,7 +45,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -95,7 +97,7 @@ internal fun ElementDetails(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    SectionTitle("Details")
+                    SectionTitle(stringResource(R.string.inspector_title_details))
                     if (selectionState.properties.type == UiNodeType.COMPOSE) {
                         Image(
                             painterResource(R.drawable.ic_compose),
@@ -105,7 +107,7 @@ internal fun ElementDetails(
                         )
                     }
                 }
-                InfoRow("ID", selectionState.properties.id)
+                InfoRow(stringResource(R.string.inspector_label_id), selectionState.properties.id)
 
                 Measurement(selectionState, unitMode)
                 MarginPadding(
@@ -166,7 +168,7 @@ private fun InfoRow(label: String, value: String) {
                 .fillMaxHeight()
                 .fillMaxWidth(0.4f)
                 .background(
-                    Color(0xCCC0C0C0),
+                    colorResource(R.color.inspector_label_bg),
                     shape = RoundedCornerShape(topStart = 2.dp, bottomStart = 2.dp)
                 )
                 .padding(horizontal = 2.dvdp)
@@ -179,7 +181,7 @@ private fun InfoRow(label: String, value: String) {
                 .fillMaxHeight()
                 .weight(weight = 1f, fill = true)
                 .background(
-                    Color(0xCCFEFEFE),
+                    colorResource(R.color.inspector_value_bg),
                     shape = RoundedCornerShape(topEnd = 2.dp, bottomEnd = 2.dp)
                 )
                 .padding(horizontal = 2.dvdp)
@@ -204,7 +206,7 @@ private fun Measurement(
 
     Spacer(modifier = Modifier.height(8.dvdp))
     Column(modifier = Modifier.fillMaxWidth()) {
-        SectionTitle("Distance")
+        SectionTitle(stringResource(R.string.inspector_title_distance))
         Spacer(modifier = Modifier.height(2.dvdp))
 
         MeasurementMetricBox(
@@ -213,7 +215,7 @@ private fun Measurement(
                     text = margin[0],
                     fontSize = 8.dvsp,
                     modifier = Modifier
-                        .background(Color(0xFFFFFFCC))
+                        .background(colorResource(R.color.inspector_distance_margin_bg))
                         .padding(1.dvdp)
                         .align(Alignment.Center)
                 )
@@ -223,7 +225,7 @@ private fun Measurement(
                     text = margin[1],
                     fontSize = 8.dvsp,
                     modifier = Modifier
-                        .background(Color(0xFFFFFFCC))
+                        .background(colorResource(R.color.inspector_distance_margin_bg))
                         .padding(1.dvdp)
                         .align(Alignment.Center)
                 )
@@ -233,7 +235,7 @@ private fun Measurement(
                     text = margin[2],
                     fontSize = 8.dvsp,
                     modifier = Modifier
-                        .background(Color(0xFFFFFFCC))
+                        .background(colorResource(R.color.inspector_distance_margin_bg))
                         .padding(1.dvdp)
                         .align(Alignment.Center)
                 )
@@ -243,7 +245,7 @@ private fun Measurement(
                     text = margin[3],
                     fontSize = 8.dvsp,
                     modifier = Modifier
-                        .background(Color(0xFFFFFFCC))
+                        .background(colorResource(R.color.inspector_distance_margin_bg))
                         .padding(1.dvdp)
                         .align(Alignment.Center)
                 )
@@ -257,7 +259,7 @@ private fun Measurement(
                         text = size,
                         fontSize = 8.dvsp,
                         modifier = Modifier
-                            .background(Color(0xFFCCFFCC))
+                            .background(colorResource(R.color.inspector_distance_size_bg))
                             .padding(2.dvdp)
                             .align(Alignment.Center)
                     )
@@ -266,10 +268,11 @@ private fun Measurement(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    color = Color(0xCCFEFEFE),
+                    color = colorResource(R.color.inspector_value_bg),
                     shape = RoundedCornerShape(2.dp)
                 )
-                .padding(4.dvdp)
+                .padding(4.dvdp),
+            lineColor = colorResource(R.color.inspector_distance_line)
         )
     }
 }
@@ -442,7 +445,7 @@ private fun MarginPadding(
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
-            SectionTitle("Margin / Padding")
+            SectionTitle(stringResource(R.string.inspector_title_margin_padding))
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -450,11 +453,18 @@ private fun MarginPadding(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .background(color = Color(0xFFDDEEDD), shape = RoundedCornerShape(4.dp))
+                        .background(
+                            color = colorResource(R.color.inspector_button_bg),
+                            shape = RoundedCornerShape(4.dp)
+                        )
                         .clickable(enabled = isView, onClick = onEditRequest)
                         .padding(horizontal = 10.dvdp, vertical = 2.dvdp)
                 ) {
-                    Text(text = "Edit", fontSize = 8.dvsp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(R.string.inspector_action_edit),
+                        fontSize = 8.dvsp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -462,9 +472,9 @@ private fun MarginPadding(
 
         Box(
             modifier = Modifier
-                .background(Color(0xFFFFFFCC))
+                .background(colorResource(R.color.inspector_distance_margin_bg))
                 .fillMaxWidth()
-                .border(1.dvdp, Color.Gray)
+                .border(1.dvdp, colorResource(R.color.inspector_distance_line))
                 .padding(4.dvdp),
             contentAlignment = Alignment.Center
         ) {
@@ -485,8 +495,8 @@ private fun MarginPadding(
                             .weight(weight = 1.0f, fill = true)
                             .height(48.dvdp)
                             .padding(horizontal = 2.dvdp, vertical = 4.dvdp)
-                            .border(1.dvdp, Color.Gray)
-                            .background(Color(0xFFCCFFCC))
+                            .border(1.dvdp, colorResource(R.color.inspector_distance_line))
+                            .background(colorResource(R.color.inspector_distance_size_bg))
                             .padding(horizontal = 4.dvdp, vertical = 4.dvdp),
                     ) {
                         Text(
@@ -529,9 +539,9 @@ private fun MarginPadding(
 private fun Actions(selectionState: SelectionState) {
     if (selectionState.properties.actions.isNotEmpty()) {
         Spacer(modifier = Modifier.height(8.dvdp))
-        SectionTitle("Actions")
+        SectionTitle(stringResource(R.string.inspector_title_actions))
         selectionState.properties.actions.forEach { action ->
-            InfoRow(action.value, "true")
+            InfoRow(action.value, stringResource(R.string.inspector_value_true))
         }
     }
 }
@@ -543,19 +553,19 @@ private fun Styles(selectionState: SelectionState) {
             density to fontScale
         }
         Spacer(modifier = Modifier.height(8.dvdp))
-        SectionTitle("Styles")
+        SectionTitle(stringResource(R.string.inspector_title_styles))
         selectionState.properties.styles.forEach { style ->
             when (style) {
                 is UiNodeStyleProperties.ColorStyle -> {
                     style.backgroundType?.let { backgroundType ->
                         InfoRow(
-                            "Bg Type",
+                            stringResource(R.string.inspector_style_bg_type),
                             backgroundType
                         )
                     }
                     style.backgroundColor?.let { backgroundColor ->
                         InfoRow(
-                            "Bg Color",
+                            stringResource(R.string.inspector_style_bg_color),
                             "#${backgroundColor.toHexString()}"
                         )
                     }
@@ -563,12 +573,12 @@ private fun Styles(selectionState: SelectionState) {
 
                 is UiNodeStyleProperties.TextStyle -> {
                     InfoRow(
-                        "Text",
+                        stringResource(R.string.inspector_style_text),
                         style.text
                     )
                     style.textColor?.let { textColor ->
                         InfoRow(
-                            "Text Color",
+                            stringResource(R.string.inspector_style_text_color),
                             "#${textColor.toHexString()}"
                         )
                     }
@@ -576,21 +586,19 @@ private fun Styles(selectionState: SelectionState) {
                         val sizeInDp = textSize / density
                         val sizeInSp = sizeInDp / fontScale
                         InfoRow(
-                            "Text Size",
+                            stringResource(R.string.inspector_style_text_size),
                             "${sizeInSp.roundToInt()}sp, ${sizeInDp.roundToInt()}dp, ${textSize.roundToInt()}px"
                         )
                     }
                     if (style.isBold || style.isItalic) {
+                        val bold = stringResource(R.string.inspector_style_bold)
+                        val italic = stringResource(R.string.inspector_style_italic)
                         val typefaceStyles = buildList {
-                            if (style.isBold) {
-                                add("Bold")
-                            }
-                            if (style.isItalic) {
-                                add("Italic")
-                            }
+                            if (style.isBold) add(bold)
+                            if (style.isItalic) add(italic)
                         }
                         InfoRow(
-                            "Text Style",
+                            stringResource(R.string.inspector_style_text_style),
                             typefaceStyles.joinToString(", ")
                         )
                     }
@@ -661,7 +669,7 @@ private fun EditMarginPadding(
             .fillMaxWidth()
             .padding(4.dvdp)
     ) {
-        SectionTitle("Edit Margin/Padding")
+        SectionTitle(stringResource(R.string.inspector_title_edit_margin_padding))
         Spacer(modifier = Modifier.height(8.dvdp))
 
         Row(
@@ -673,14 +681,14 @@ private fun EditMarginPadding(
                     .weight(0.6f)
             )
             Text(
-                text = "Margin",
+                text = stringResource(R.string.inspector_column_margin),
                 fontSize = 8.dvsp,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
             Text(
-                text = "Padding",
+                text = stringResource(R.string.inspector_column_padding),
                 fontSize = 8.dvsp,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
@@ -689,16 +697,26 @@ private fun EditMarginPadding(
         }
         Spacer(modifier = Modifier.height(4.dvdp))
 
-        EditFieldRow("Left", ml, { ml = it }, pl, { pl = it })
-        EditFieldRow("Top", mt, { mt = it }, pt, { pt = it })
-        EditFieldRow("Right", mr, { mr = it }, pr, { pr = it })
-        EditFieldRow("Bottom", mb, { mb = it }, pb, { pb = it })
+        EditFieldRow(stringResource(R.string.inspector_side_left), ml, { ml = it }, pl, { pl = it })
+        EditFieldRow(stringResource(R.string.inspector_side_top), mt, { mt = it }, pt, { pt = it })
+        EditFieldRow(
+            stringResource(R.string.inspector_side_right),
+            mr,
+            { mr = it },
+            pr,
+            { pr = it })
+        EditFieldRow(
+            stringResource(R.string.inspector_side_bottom),
+            mb,
+            { mb = it },
+            pb,
+            { pb = it })
 
         Spacer(modifier = Modifier.height(2.dvdp))
 
         Row(modifier = Modifier.fillMaxWidth()) {
             SmallButton(
-                text = "Cancel",
+                text = stringResource(R.string.inspector_btn_cancel),
                 onClick = onCancel,
                 modifier = Modifier
                     .weight(1f)
@@ -708,7 +726,7 @@ private fun EditMarginPadding(
             Spacer(modifier = Modifier.width(4.dvdp))
 
             SmallButton(
-                text = "Apply",
+                text = stringResource(R.string.inspector_btn_apply),
                 onClick = {
                     fun parse(s: String): Float = s.toFloatOrNull() ?: 0f
                     val f = if (unitMode == UnitMode.DP) density else 1f
@@ -741,7 +759,10 @@ private fun SmallNumberField(
             .width(36.dvdp)
             .height(20.dvdp)
             .padding(vertical = 0.5.dvdp, horizontal = 2.dvdp)
-            .background(Color(0xFFEFEFEF), shape = RoundedCornerShape(2.dp)),
+            .background(
+                colorResource(R.color.inspector_number_field_bg),
+                shape = RoundedCornerShape(2.dp)
+            ),
         contentAlignment = Alignment.Center
     ) {
         BasicTextField(
@@ -749,7 +770,7 @@ private fun SmallNumberField(
             onValueChange = onValueChange,
             singleLine = true,
             textStyle = TextStyle(
-                color = Color(0xFF111111),
+                color = colorResource(R.color.inspector_number_field_text),
                 fontSize = 9.dvsp,
                 textAlign = TextAlign.Center
             ),
@@ -798,7 +819,10 @@ private fun SmallButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .background(color = Color(0xFFDDEEDD), shape = RoundedCornerShape(4.dp))
+            .background(
+                color = colorResource(R.color.inspector_button_bg),
+                shape = RoundedCornerShape(4.dp)
+            )
             .clickable(onClick = onClick)
             .padding(vertical = 6.dvdp)
     ) {

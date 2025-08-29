@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="inspector_label_bg">#CCC0C0C0</color>
+    <color name="inspector_value_bg">#CCFEFEFE</color>
+    <color name="inspector_distance_margin_bg">#FFFFFFCC</color>
+    <color name="inspector_distance_size_bg">#FFCCFFCC</color>
+    <color name="inspector_button_bg">#FFDDEEDD</color>
+    <color name="inspector_number_field_bg">#FFEFEFEF</color>
+    <color name="inspector_number_field_text">#FF111111</color>
+    <color name="inspector_distance_line">#FF888888</color>
+</resources>
