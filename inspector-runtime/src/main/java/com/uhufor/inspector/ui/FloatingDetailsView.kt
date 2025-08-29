@@ -8,6 +8,7 @@ import android.view.WindowManager
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -59,32 +60,19 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
         onRefresh = callback
     }
 
+    private var selectionStateState by mutableStateOf<SelectionState?>(null)
+    private var unitModeState by mutableStateOf(UnitMode.DP)
+    private var uiScaleState by mutableFloatStateOf(1f)
+
     fun install(selectionState: SelectionState, unitMode: UnitMode, uiScale: Float) {
         val currentContext = context.get() ?: return
         val currentWindowManager = windowManager.get() ?: return
 
+        selectionStateState = selectionState
+        unitModeState = unitMode
+        uiScaleState = uiScale
+
         if (isInstalled) {
-            composeView?.setContent {
-                var editMode by remember { mutableStateOf(false) }
-                LaunchedEffect(selectionState.id) {
-                    editMode = false
-                    setFocusable(false)
-                }
-                CompositionLocalProvider(LocalDetailsViewUiScale provides uiScale) {
-                    ElementDetails(
-                        selectionState = selectionState,
-                        unitMode = unitMode,
-                        isEditMode = editMode,
-                        onEditModeChange = { editMode = it },
-                        onRequestFocusable = { this@FloatingDetailsView.setFocusable(it) },
-                        onApplyMarginPadding = { ml, mt, mr, mb, pl, pt, pr, pb ->
-                            ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
-                            ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
-                            ViewMutator.runAfterNextLayout(selectionState.id) { onRefresh?.invoke() }
-                        }
-                    )
-                }
-            }
             return
         }
 
@@ -96,10 +84,16 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
             setViewTreeSavedStateRegistryOwner(this@FloatingDetailsView)
             setContent {
                 var editMode by remember { mutableStateOf(false) }
+
+                val selectionState = selectionStateState ?: return@setContent
+                val unitMode = unitModeState
+                val uiScale = uiScaleState
+
                 LaunchedEffect(selectionState.id) {
                     editMode = false
                     setFocusable(false)
                 }
+
                 CompositionLocalProvider(LocalDetailsViewUiScale provides uiScale) {
                     ElementDetails(
                         selectionState = selectionState,
