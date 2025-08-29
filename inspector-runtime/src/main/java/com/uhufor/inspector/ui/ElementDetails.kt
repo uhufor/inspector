@@ -66,6 +66,8 @@ import com.uhufor.inspector.ui.compose.dvdp
 import com.uhufor.inspector.ui.compose.dvsp
 import kotlin.math.roundToInt
 
+private val NumberKeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+
 @Composable
 internal fun ElementDetails(
     selectionState: SelectionState,
@@ -686,70 +688,11 @@ private fun EditMarginPadding(
             )
         }
         Spacer(modifier = Modifier.height(4.dvdp))
-        // left
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(2.dvdp)
-        ) {
-            Text(
-                text = "Left",
-                fontSize = 8.dvsp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(0.6f)
-            )
-            SmallNumberField(ml, { ml = it }, modifier = Modifier.weight(1f))
-            SmallNumberField(pl, { pl = it }, modifier = Modifier.weight(1f))
-        }
-        // top
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(2.dvdp)
-        ) {
-            Text(
-                text = "Top",
-                fontSize = 8.dvsp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(0.6f)
-            )
-            SmallNumberField(mt, { mt = it }, modifier = Modifier.weight(1f))
-            SmallNumberField(pt, { pt = it }, modifier = Modifier.weight(1f))
-        }
-        // right
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(2.dvdp)
-        ) {
-            Text(
-                text = "Right",
-                fontSize = 8.dvsp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(0.6f)
-            )
-            SmallNumberField(mr, { mr = it }, modifier = Modifier.weight(1f))
-            SmallNumberField(pr, { pr = it }, modifier = Modifier.weight(1f))
-        }
-        // bottom
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(2.dvdp)
-        ) {
-            Text(
-                text = "Bottom",
-                fontSize = 8.dvsp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(0.6f)
-            )
-            SmallNumberField(mb, { mb = it }, modifier = Modifier.weight(1f))
-            SmallNumberField(pb, { pb = it }, modifier = Modifier.weight(1f))
-        }
+
+        EditFieldRow("Left", ml, { ml = it }, pl, { pl = it })
+        EditFieldRow("Top", mt, { mt = it }, pt, { pt = it })
+        EditFieldRow("Right", mr, { mr = it }, pr, { pr = it })
+        EditFieldRow("Bottom", mb, { mb = it }, pb, { pb = it })
 
         Spacer(modifier = Modifier.height(2.dvdp))
 
@@ -810,11 +753,39 @@ private fun SmallNumberField(
                 fontSize = 9.dvsp,
                 textAlign = TextAlign.Center
             ),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardOptions = NumberKeyboardOptions,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 2.dvdp)
         )
+    }
+}
+
+@Composable
+private fun EditFieldRow(
+    label: String,
+    marginValue: String,
+    onMarginChange: (String) -> Unit,
+    paddingValue: String,
+    onPaddingChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    labelWeight: Float = 0.6f,
+    fieldWeight: Float = 1f,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(2.dvdp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 8.dvsp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(labelWeight)
+        )
+        SmallNumberField(marginValue, onMarginChange, modifier = Modifier.weight(fieldWeight))
+        SmallNumberField(paddingValue, onPaddingChange, modifier = Modifier.weight(fieldWeight))
     }
 }
 
