@@ -44,6 +44,14 @@ object Inspector {
         }
     }
 
+    private var commonBackHandler: OverlayCanvas.BackKeyListener =
+        object : OverlayCanvas.BackKeyListener {
+            override fun onBackPressed() {
+                disableInspection()
+                floatingTrigger?.refreshEnableState()
+            }
+        }
+
     private val positionRectChangeListener = object : AnchorView.OnPositionRectChangeListener {
         override fun onPositionRectChange(rect: Rect) {
             floatingDetailsView?.updateSticky(rect)
@@ -84,14 +92,9 @@ object Inspector {
         val canvas = OverlayCanvas(
             context = activity,
         ).apply {
+            backKeyListener = commonBackHandler
             setConfigProvider(configProvider)
             setEngine(engine)
-            backKeyListener = object : OverlayCanvas.BackKeyListener {
-                override fun onBackPressed() {
-                    disableInspection()
-                    floatingTrigger?.refreshEnableState()
-                }
-            }
         }
         overlayCanvas = canvas
 
@@ -108,7 +111,7 @@ object Inspector {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
         windowManager?.addView(overlayCanvas, params)
-
+        floatingTrigger?.setBackKeyListener(commonBackHandler)
         inspectorEngine?.scanAllElements()
         floatingTrigger?.bringToFront()
         startObservingSelectionChanges()
@@ -179,6 +182,7 @@ object Inspector {
             var isNeedToBringToFront = false
             if (floatingDetailsView == null) {
                 floatingDetailsView = FloatingDetailsView(applicationContext)
+                floatingDetailsView?.setBackKeyListener(commonBackHandler)
                 isNeedToBringToFront = true
             }
             floatingDetailsView?.setOnRefresh { refresh() }
@@ -193,6 +197,7 @@ object Inspector {
             }
         } else {
             floatingDetailsView?.uninstall()
+            floatingDetailsView?.setBackKeyListener(null)
             floatingDetailsView = null
         }
     }
@@ -250,6 +255,7 @@ object Inspector {
                 inspector = this,
                 positionRectChangeListener = positionRectChangeListener,
             )
+            floatingTrigger?.setBackKeyListener(commonBackHandler)
         }
 
         floatingTrigger?.install()
@@ -258,6 +264,7 @@ object Inspector {
     @MainThread
     fun hideFloatingTrigger() {
         floatingTrigger?.uninstall()
+        floatingTrigger?.setBackKeyListener(null)
         floatingTrigger = null
     }
 }

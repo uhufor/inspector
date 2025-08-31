@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -23,15 +24,22 @@ internal class TriggerLayout @JvmOverloads constructor(
         LayoutTriggerBinding.inflate(LayoutInflater.from(context), this)
 
     private var dragHelper: FloatingViewDragHelper? = null
+    private var backKeyListener: OverlayCanvas.BackKeyListener? = null
 
     init {
         binding.root.setBackgroundResource(R.drawable.bg_trigger_rounded)
         binding.root.elevation = LAYOUT_ELEVATION.dp()
         binding.root.setPadding(LAYOUT_PADDING)
+        isFocusable = true
+        isFocusableInTouchMode = true
     }
 
     fun setFloatingViewDragHelper(helper: FloatingViewDragHelper) {
         dragHelper = helper
+    }
+
+    fun setBackKeyListener(listener: OverlayCanvas.BackKeyListener?) {
+        backKeyListener = listener
     }
 
     fun setButtonEnableState(buttonType: ButtonType, enable: Boolean) {
@@ -117,6 +125,14 @@ internal class TriggerLayout @JvmOverloads constructor(
 
             else -> super.onTouchEvent(event)
         }
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            backKeyListener?.onBackPressed()
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
     }
 
     internal enum class ButtonType {

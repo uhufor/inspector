@@ -2,7 +2,9 @@ package com.uhufor.inspector.engine
 
 import android.app.Activity
 import android.graphics.PointF
+import android.os.Build
 import android.view.View
+import android.view.WindowInsets
 import com.uhufor.inspector.TraverseType
 import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.util.SwipeGestureDetector
@@ -172,6 +174,13 @@ internal class InspectorEngine(
 
         val location = IntArray(2)
         rootView.getLocationOnScreen(location)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Add navigation bar width offset when the orientation rotates to the right.
+            // In landscape mode, the system places the navigation bar on the left side.
+            rootView.rootWindowInsets.getInsets(WindowInsets.Type.navigationBars()).let {
+                location[0] = location[0] - it.left
+            }
+        }
         offsetOnScreen.set(location[0].toFloat(), location[1].toFloat())
 
         dfsElements.clear()
