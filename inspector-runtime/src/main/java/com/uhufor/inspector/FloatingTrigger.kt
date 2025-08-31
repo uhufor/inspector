@@ -10,6 +10,7 @@ import android.view.WindowManager
 import androidx.annotation.MainThread
 import androidx.core.content.getSystemService
 import androidx.core.view.isVisible
+import com.uhufor.inspector.ui.OverlayCanvas
 import com.uhufor.inspector.ui.TriggerLayout
 import com.uhufor.inspector.util.AnchorView
 import com.uhufor.inspector.util.FloatingViewDragHelper
@@ -29,12 +30,18 @@ internal class FloatingTrigger(
     private var triggerLayout: TriggerLayout? = null
     private var triggerLayoutParams: WindowManager.LayoutParams? = null
     private var dragHelper: FloatingViewDragHelper? = null
+    private var backKeyListener: OverlayCanvas.BackKeyListener? = null
 
     private val onLayoutChangeListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
         clampToBounds()
     }
 
     private var isInstalled = false
+
+    fun setBackKeyListener(listener: OverlayCanvas.BackKeyListener?) {
+        backKeyListener = listener
+        triggerLayout?.setBackKeyListener(listener)
+    }
 
     @MainThread
     fun install() {
@@ -147,6 +154,7 @@ internal class FloatingTrigger(
     private fun createTriggerLayout(context: Context): TriggerLayout {
         return TriggerLayout(context).also {
             this.triggerLayout = it
+            it.setBackKeyListener(backKeyListener)
             it.isVisible = false
         }
     }

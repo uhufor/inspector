@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -34,7 +35,10 @@ import com.uhufor.inspector.util.getScreenSize
 import java.lang.ref.WeakReference
 import kotlin.math.roundToInt
 
-internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStateRegistryOwner {
+internal class FloatingDetailsView(
+    context: Context,
+) : LifecycleOwner,
+    SavedStateRegistryOwner {
     private val context: WeakReference<Context> = WeakReference(context)
     private val windowManager: WeakReference<WindowManager> =
         WeakReference(context.getSystemService())
@@ -54,15 +58,21 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
     override val lifecycle: Lifecycle
         get() = lifecycleRegistry
 
+    private var selectionStateState by mutableStateOf<SelectionState?>(null)
+    private var unitModeState by mutableStateOf(UnitMode.DP)
+    private var uiScaleState by mutableFloatStateOf(1f)
+    private var cancelEdit: (() -> Boolean)? = null
+
     private var onRefresh: (() -> Unit)? = null
+    private var backKeyListener: OverlayCanvas.BackKeyListener? = null
 
     fun setOnRefresh(callback: (() -> Unit)?) {
         onRefresh = callback
     }
 
-    private var selectionStateState by mutableStateOf<SelectionState?>(null)
-    private var unitModeState by mutableStateOf(UnitMode.DP)
-    private var uiScaleState by mutableFloatStateOf(1f)
+    fun setBackKeyListener(listener: OverlayCanvas.BackKeyListener?) {
+        backKeyListener = listener
+    }
 
     fun install(selectionState: SelectionState, unitMode: UnitMode, uiScale: Float) {
         val currentContext = context.get() ?: return
@@ -92,6 +102,14 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
                 LaunchedEffect(selectionState.id) {
                     editMode = false
                     setFocusable(false)
+                }
+                cancelEdit = {
+                    if (editMode) {
+                        editMode = false
+                        true
+                    } else {
+                        false
+                    }
                 }
 
                 CompositionLocalProvider(LocalDetailsViewUiScale provides uiScale) {
@@ -210,10 +228,22 @@ internal class FloatingDetailsView(context: Context) : LifecycleOwner, SavedStat
             flags = flags and WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM.inv()
             lp.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING or
                     WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
+
+            view.setOnKeyListener { _, keyCode, event ->
+                if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
+                    if (cancelEdit?.invoke() != true) {
+                        backKeyListener?.onBackPressed()
+                    }
+                    true
+                } else false
+            }
+
         } else {
             flags = flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
             flags = flags or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
             lp.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN
+
+            view.setOnKeyListener(null)
         }
         if (flags != prev) {
             lp.flags = flags
