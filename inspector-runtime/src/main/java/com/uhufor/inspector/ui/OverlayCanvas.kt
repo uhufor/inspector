@@ -157,8 +157,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        if (w > 0 && h > 0 && (w != oldw || h != oldh)) {
-            internalEngine?.clearScan()
+        if (w > 0 && h > 0 && oldw != 0 && oldh != 0 && (w != oldw || h != oldh)) {
             internalEngine?.scanAllElements()
         }
     }
