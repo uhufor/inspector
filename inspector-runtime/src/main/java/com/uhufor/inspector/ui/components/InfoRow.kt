@@ -20,6 +20,7 @@ import com.uhufor.inspector.R
 import com.uhufor.inspector.ui.compose.dvdp
 import com.uhufor.inspector.ui.compose.dvsp
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun InfoRow(
     label: String,
