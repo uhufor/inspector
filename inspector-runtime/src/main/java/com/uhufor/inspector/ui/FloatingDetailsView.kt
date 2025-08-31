@@ -8,10 +8,10 @@ import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.getSystemService
@@ -32,6 +32,7 @@ import com.uhufor.inspector.engine.ViewMutator
 import com.uhufor.inspector.ui.compose.LocalDetailsViewUiScale
 import com.uhufor.inspector.util.dp
 import com.uhufor.inspector.util.getScreenSize
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.lang.ref.WeakReference
 import kotlin.math.roundToInt
 
@@ -66,6 +67,8 @@ internal class FloatingDetailsView(
     private var onRefresh: (() -> Unit)? = null
     private var backKeyListener: OverlayCanvas.BackKeyListener? = null
 
+    private val editModeFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
     fun setOnRefresh(callback: (() -> Unit)?) {
         onRefresh = callback
     }
@@ -93,19 +96,21 @@ internal class FloatingDetailsView(
             setViewTreeLifecycleOwner(this@FloatingDetailsView)
             setViewTreeSavedStateRegistryOwner(this@FloatingDetailsView)
             setContent {
-                var editMode by remember { mutableStateOf(false) }
+                val editMode = editModeFlow.collectAsState().value
 
                 val selectionState = selectionStateState ?: return@setContent
                 val unitMode = unitModeState
                 val uiScale = uiScaleState
 
                 LaunchedEffect(selectionState.id) {
-                    editMode = false
-                    setFocusable(false)
+                    setDetailsMode()
+                }
+                LaunchedEffect(editMode) {
+                    updateViewParams(editMode)
                 }
                 cancelEdit = {
                     if (editMode) {
-                        editMode = false
+                        setDetailsMode()
                         true
                     } else {
                         false
@@ -117,8 +122,10 @@ internal class FloatingDetailsView(
                         selectionState = selectionState,
                         unitMode = unitMode,
                         isEditMode = editMode,
-                        onEditModeChange = { editMode = it },
-                        onRequestFocusable = { this@FloatingDetailsView.setFocusable(it) },
+                        onEditModeChange = { editModeFlow.value = it },
+                        onRequestFocusable = {
+                            if (it) setEditMode() else setDetailsMode()
+                        },
                         onApplyMarginPadding = { ml, mt, mr, mb, pl, pt, pr, pb ->
                             ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
                             ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
@@ -202,56 +209,91 @@ internal class FloatingDetailsView(
         if (!isInstalled) return
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         composeView?.let {
+            it.setOnKeyListener(null)
             it.disposeComposition()
-            runCatching {
-                windowManager.get()?.removeView(it)
-            }
+            runCatching { windowManager.get()?.removeView(it) }
         }
+        editModeFlow.value = false
+        cancelEdit = null
+        backKeyListener = null
         composeView = null
         layoutParams = null
         isInstalled = false
     }
 
-    fun setFocusable(focusable: Boolean) {
+    private fun setEditMode() {
+        editModeFlow.value = true
+    }
+
+    private fun setDetailsMode() {
+        editModeFlow.value = false
+    }
+
+    private fun updateViewParams(isEditMode: Boolean) {
         if (!isInstalled) return
+
         val view = composeView ?: return
-        val lp = layoutParams ?: return
-        val wm = windowManager.get() ?: return
+        val currentLayoutParams = layoutParams ?: return
+        val currentWindowManager = windowManager.get() ?: return
 
-        view.isFocusableInTouchMode = focusable
-        view.isFocusable = focusable
+        applyViewFocusability(view = view, isFocusable = isEditMode)
+        applyKeyListener(view = view, isEditMode = isEditMode)
 
-        val prev = lp.flags
-        var flags = prev
-        if (focusable) {
-            flags = flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
-            flags = flags and WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM.inv()
-            lp.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING or
+        val prevFlags = currentLayoutParams.flags
+        val prevSoftInputMode = currentLayoutParams.softInputMode
+        val newFlags = computeWindowFlags(prevFlags = prevFlags, isEditMode = isEditMode)
+        configureSoftInput(lp = currentLayoutParams, isEditMode = isEditMode)
+
+        val softChanged = currentLayoutParams.softInputMode != prevSoftInputMode
+        val flagsChanged = newFlags != prevFlags
+        if (flagsChanged) currentLayoutParams.flags = newFlags
+        if (softChanged || flagsChanged) {
+            runCatching { currentWindowManager.updateViewLayout(view, currentLayoutParams) }
+        }
+
+        if (isEditMode) {
+            view.requestFocus()
+        }
+    }
+
+    private fun applyViewFocusability(view: ComposeView, isFocusable: Boolean) {
+        view.isFocusableInTouchMode = isFocusable
+        view.isFocusable = isFocusable
+    }
+
+    private fun computeWindowFlags(prevFlags: Int, isEditMode: Boolean): Int {
+        return if (isEditMode) {
+            prevFlags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv() and
+                    WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM.inv()
+        } else {
+            prevFlags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+        }
+    }
+
+    private fun configureSoftInput(lp: WindowManager.LayoutParams, isEditMode: Boolean) {
+        lp.softInputMode = if (isEditMode) {
+            WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING or
                     WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
+        } else {
+            WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN
+        }
+    }
 
+    private fun applyKeyListener(view: ComposeView, isEditMode: Boolean) {
+        if (isEditMode) {
             view.setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
                     if (cancelEdit?.invoke() != true) {
                         backKeyListener?.onBackPressed()
                     }
                     true
-                } else false
+                } else {
+                    false
+                }
             }
-
         } else {
-            flags = flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-            flags = flags or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
-            lp.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN
-
             view.setOnKeyListener(null)
-        }
-        if (flags != prev) {
-            lp.flags = flags
-        }
-        runCatching { wm.updateViewLayout(view, lp) }
-
-        if (focusable) {
-            view.requestFocus()
         }
     }
 
