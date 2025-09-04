@@ -1,6 +1,7 @@
 package com.uhufor.inspector
 
 import android.content.Context
+import com.uhufor.inspector.config.RelativeGuideStyle
 
 object Inspector {
     var isInspectionEnabled: Boolean = false
@@ -10,6 +11,7 @@ object Inspector {
     private var traverseType: TraverseType = TraverseType.HIERARCHICAL
     private var showDetailsView: Boolean = false
     private var detailsViewUiScale: Float = 1.0f
+    private var relativeGuideStyle: RelativeGuideStyle = RelativeGuideStyle.STANDARD
 
     fun install(context: Context) = Unit
     fun enableInspection() { isInspectionEnabled = true }
@@ -25,11 +27,13 @@ object Inspector {
     fun getTraverseType(): TraverseType = traverseType
 
     fun enableDetailsView(enabled: Boolean) { showDetailsView = enabled }
-    val isDetailsViewEnabled: Boolean
-        get() = showDetailsView
+    val isDetailsViewEnabled: Boolean = showDetailsView
 
     fun setDetailsViewUiScale(newScale: Float) { detailsViewUiScale = newScale }
     fun getDetailsViewUiScale(): Float = detailsViewUiScale
+
+    fun setRelativeGuideStyle(style: RelativeGuideStyle) { relativeGuideStyle = style }
+    fun getRelativeGuideStyle(): RelativeGuideStyle = relativeGuideStyle
 
     fun showFloatingTrigger() = Unit
     fun hideFloatingTrigger() = Unit
