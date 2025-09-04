@@ -37,4 +37,12 @@ internal class Config {
         set(value) {
             _detailsViewUiScale.value = value
         }
+
+    private val _relativeGuideStyle = MutableStateFlow(RelativeGuideStyle.STANDARD)
+    val relativeGuideStyleFlow = _relativeGuideStyle.asStateFlow()
+    var relativeGuideStyle: RelativeGuideStyle
+        get() = _relativeGuideStyle.value
+        set(value) {
+            _relativeGuideStyle.value = value
+        }
 }

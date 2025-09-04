@@ -15,9 +15,11 @@ import androidx.core.graphics.toColorInt
 import androidx.core.graphics.withTranslation
 import com.uhufor.inspector.config.Config
 import com.uhufor.inspector.config.ConfigProvider
+import com.uhufor.inspector.config.RelativeGuideStyle
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.engine.MeasurementMode
 import com.uhufor.inspector.engine.SelectionState
+import com.uhufor.inspector.engine.Edge
 import com.uhufor.inspector.util.SwipeGestureDetector
 import com.uhufor.inspector.util.UnitConverter
 import com.uhufor.inspector.util.dp
@@ -181,10 +183,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         internalEngine?.allElements?.forEach { element ->
             val borderColor = applyAlpha(getColorForElement(element), 0.5f)
             drawElementBorder(
-                canvas,
-                element.bounds,
-                element.properties.isClickable,
-                borderColor
+                canvas = canvas,
+                bounds = element.bounds,
+                useThickBorder = false,
+                borderColor = borderColor
             )
         }
     }
@@ -196,10 +198,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
     ) {
         val complementaryColor = getComplementaryColor(elementBaseColor)
         drawElementBorder(
-            canvas,
-            selection.bounds,
-            selection.properties.isClickable,
-            complementaryColor
+            canvas = canvas,
+            bounds = selection.bounds,
+            useThickBorder = selection.properties.isClickable,
+            borderColor = complementaryColor
         )
         drawElementSizeInfo(canvas, selection.bounds, elementBaseColor, complementaryColor)
     }
@@ -438,15 +440,159 @@ internal class OverlayCanvas @JvmOverloads constructor(
         val distances = internalEngine?.getRelativeDistances() ?: return
         if (distances.isEmpty()) return
 
+        val primary = internalEngine?.primarySelection
+        val secondary = internalEngine?.secondarySelection
+        val primaryColor = primary?.let { getColorForElement(it) } ?: BG_COLOR_RED.toColorInt()
+        val secondaryColor = secondary?.let { getColorForElement(it) } ?: BG_COLOR_BLUE.toColorInt()
+        val style = cfg.relativeGuideStyle
+
         distances.forEach { distance ->
-            drawDistanceLine(
-                canvas,
-                distance.startX,
-                distance.startY,
-                distance.endX,
-                distance.endY,
-                UnitConverter.format(distance.value, dm, cfg.unitMode)
-            )
+            val text = UnitConverter.format(distance.value, dm, cfg.unitMode)
+
+            when (style) {
+                RelativeGuideStyle.MINI -> {
+                    drawDistanceLine(
+                        canvas,
+                        distance.startX,
+                        distance.startY,
+                        distance.endX,
+                        distance.endY,
+                        text
+                    )
+                }
+                RelativeGuideStyle.STANDARD -> {
+                    val gap = if (distance.type == com.uhufor.inspector.engine.DistanceType.VERTICAL) {
+                        kotlin.math.abs(distance.endY - distance.startY)
+                    } else {
+                        kotlin.math.abs(distance.endX - distance.startX)
+                    }
+                    val thresholdPx = MIN_GAP_FOR_EDGE_DP.dp()
+                    val isNarrow = gap < thresholdPx
+                    if (!isNarrow) {
+                        if (primary != null && distance.primaryEdge != null) {
+                            drawEdgeHighlight(canvas, primary.bounds, distance.primaryEdge, primaryColor, distance)
+                        }
+                        if (secondary != null && distance.secondaryEdge != null) {
+                            drawEdgeHighlight(canvas, secondary.bounds, distance.secondaryEdge, secondaryColor, distance)
+                        }
+                    }
+                    drawDistanceLine(
+                        canvas,
+                        distance.startX,
+                        distance.startY,
+                        distance.endX,
+                        distance.endY,
+                        text
+                    )
+                }
+                RelativeGuideStyle.VERBOSE -> {
+                    if (primary != null && secondary != null && distance.primaryEdge != null && distance.secondaryEdge != null) {
+                        drawVerboseGuides(canvas, primary.bounds, secondary.bounds, distance)
+                    }
+                    drawDistanceLine(
+                        canvas,
+                        distance.startX,
+                        distance.startY,
+                        distance.endX,
+                        distance.endY,
+                        text
+                    )
+                }
+            }
+        }
+    }
+
+    private fun drawVerboseGuides(
+        canvas: Canvas,
+        primary: RectF,
+        secondary: RectF,
+        distance: com.uhufor.inspector.engine.Distance,
+    ) {
+        val p = paintDistanceLine
+        val oldAlpha = p.alpha
+        p.alpha = (0.5f * 255).toInt()
+        when (distance.type) {
+            com.uhufor.inspector.engine.DistanceType.VERTICAL -> {
+                val y1 = when (distance.primaryEdge) {
+                    Edge.TOP -> primary.top
+                    Edge.BOTTOM -> primary.bottom
+                    else -> primary.bottom
+                }
+                val y2 = when (distance.secondaryEdge) {
+                    Edge.TOP -> secondary.top
+                    Edge.BOTTOM -> secondary.bottom
+                    else -> secondary.top
+                }
+                val startX = kotlin.math.min(primary.left, secondary.left)
+                val endX = kotlin.math.max(primary.right, secondary.right)
+                canvas.drawLine(startX, y1, endX, y1, p)
+                canvas.drawLine(startX, y2, endX, y2, p)
+            }
+            com.uhufor.inspector.engine.DistanceType.HORIZONTAL -> {
+                val x1 = when (distance.primaryEdge) {
+                    Edge.LEFT -> primary.left
+                    Edge.RIGHT -> primary.right
+                    else -> primary.right
+                }
+                val x2 = when (distance.secondaryEdge) {
+                    Edge.LEFT -> secondary.left
+                    Edge.RIGHT -> secondary.right
+                    else -> secondary.left
+                }
+                val startY = kotlin.math.min(primary.top, secondary.top)
+                val endY = kotlin.math.max(primary.bottom, secondary.bottom)
+                canvas.drawLine(x1, startY, x1, endY, p)
+                canvas.drawLine(x2, startY, x2, endY, p)
+            }
+        }
+        p.alpha = oldAlpha
+    }
+
+    private fun drawEdgeHighlight(
+        canvas: Canvas,
+        rect: RectF,
+        edge: Edge,
+        color: Int,
+        distance: com.uhufor.inspector.engine.Distance,
+        lengthFactor: Float = 0.20f,
+        strokeScale: Float = 1.0f,
+    ) {
+        val lenMax = 24f.dp()
+        val stroke = thickBorderWidth * strokeScale
+        paintBorder.withBorderWidth(stroke) { paint ->
+            paint.withColor(color) { p ->
+                when (edge) {
+                    Edge.LEFT -> {
+                        val edgeX = rect.left
+                        val y = distance.startY
+                        val useStart = kotlin.math.abs(distance.startX - edgeX) <= kotlin.math.abs(distance.endX - edgeX)
+                        val yAnchor = if (useStart) distance.startY else distance.endY
+                        val half = minOf((rect.height() * lengthFactor), lenMax) / 2f
+                        canvas.drawLine(edgeX, yAnchor - half, edgeX, yAnchor + half, p)
+                    }
+                    Edge.RIGHT -> {
+                        val edgeX = rect.right
+                        val useStart = kotlin.math.abs(distance.startX - edgeX) <= kotlin.math.abs(distance.endX - edgeX)
+                        val yAnchor = if (useStart) distance.startY else distance.endY
+                        val half = minOf((rect.height() * lengthFactor), lenMax) / 2f
+                        canvas.drawLine(edgeX, yAnchor - half, edgeX, yAnchor + half, p)
+                    }
+                    Edge.TOP -> {
+                        val edgeY = rect.top
+                        val useStart = kotlin.math.abs(distance.startY - edgeY) <= kotlin.math.abs(distance.endY - edgeY)
+                        val xAnchor = if (useStart) distance.startX else distance.endX
+                        val half = minOf((rect.width() * lengthFactor), lenMax) / 2f
+                        canvas.drawLine(xAnchor - half, edgeY, xAnchor + half, edgeY, p)
+                    }
+                    Edge.BOTTOM -> {
+                        val edgeY = rect.bottom
+                        val useStart = kotlin.math.abs(distance.startY - edgeY) <= kotlin.math.abs(distance.endY - edgeY)
+                        val xAnchor = if (useStart) distance.startX else distance.endX
+                        val half = minOf((rect.width() * lengthFactor), lenMax) / 2f
+                        canvas.drawLine(xAnchor - half, edgeY, xAnchor + half, edgeY, p)
+                    }
+                }
+            }
         }
     }
 
@@ -496,6 +642,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val BG_COLOR_RED = "#60FFAAAA"
         private const val BG_COLOR_BLUE = "#60AAAAFF"
         private const val DIMENSION_TEXT_OFFSET = 3f
+        private const val MIN_GAP_FOR_EDGE_DP = 16f
 
         private val ELEMENT_COLORS = listOf(
             "#F44336".toColorInt(),
@@ -515,8 +662,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
             "#FF9800".toColorInt(),
             "#FF5722".toColorInt(),
             "#795548".toColorInt(),
-            "#9E9E9E".toColorInt(),
-            "#607D8B".toColorInt(),
         )
     }
 }
