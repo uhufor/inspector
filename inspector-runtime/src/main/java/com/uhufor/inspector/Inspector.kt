@@ -9,7 +9,6 @@ import androidx.annotation.MainThread
 import androidx.core.content.getSystemService
 import com.uhufor.inspector.config.Config
 import com.uhufor.inspector.config.ConfigProvider
-import com.uhufor.inspector.config.RelativeGuideStyle
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.ui.FloatingDetailsView

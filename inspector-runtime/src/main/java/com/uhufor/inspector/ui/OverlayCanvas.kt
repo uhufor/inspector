@@ -15,7 +15,7 @@ import androidx.core.graphics.toColorInt
 import androidx.core.graphics.withTranslation
 import com.uhufor.inspector.config.Config
 import com.uhufor.inspector.config.ConfigProvider
-import com.uhufor.inspector.config.RelativeGuideStyle
+import com.uhufor.inspector.RelativeGuideStyle
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.engine.MeasurementMode
 import com.uhufor.inspector.engine.SelectionState

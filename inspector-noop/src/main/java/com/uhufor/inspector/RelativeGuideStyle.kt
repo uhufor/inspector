@@ -1,4 +1,4 @@
-package com.uhufor.inspector.config
+package com.uhufor.inspector
 
 enum class RelativeGuideStyle {
     MINI,

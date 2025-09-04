@@ -1,7 +1,6 @@
 package com.uhufor.inspector
 
 import android.content.Context
-import com.uhufor.inspector.config.RelativeGuideStyle
 
 object Inspector {
     var isInspectionEnabled: Boolean = false
