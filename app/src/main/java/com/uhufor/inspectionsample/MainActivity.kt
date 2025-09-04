@@ -11,6 +11,7 @@ import com.uhufor.inspectionsample.bottomsheet.PersonListBottomSheetDialogFragme
 import com.uhufor.inspectionsample.contact.ContactActivity
 import com.uhufor.inspectionsample.dialog.PersonListDialogFragment
 import com.uhufor.inspector.Inspector
+import com.uhufor.inspector.RelativeGuideStyle
 
 class MainActivity : AppCompatActivity() {
 
@@ -68,6 +69,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupDetailsViewUiScale()
+        setupGuideStyleSelector()
     }
 
     private fun setupDetailsViewUiScale() {
@@ -95,6 +97,29 @@ class MainActivity : AppCompatActivity() {
                 override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
             }
         )
+    }
+
+    private fun setupGuideStyleSelector() {
+        val group = findViewById<android.widget.RadioGroup>(R.id.guideStyleGroup)
+        val mini = findViewById<android.widget.RadioButton>(R.id.guideMini)
+        val standard = findViewById<android.widget.RadioButton>(R.id.guideStandard)
+        val verbose = findViewById<android.widget.RadioButton>(R.id.guideVerbose)
+
+        when (Inspector.getRelativeGuideStyle()) {
+            RelativeGuideStyle.MINI -> group.check(mini.id)
+            RelativeGuideStyle.STANDARD -> group.check(standard.id)
+            RelativeGuideStyle.VERBOSE -> group.check(verbose.id)
+        }
+
+        group.setOnCheckedChangeListener { _, checkedId ->
+            val newStyle = when (checkedId) {
+                mini.id -> RelativeGuideStyle.MINI
+                standard.id -> RelativeGuideStyle.STANDARD
+                verbose.id -> RelativeGuideStyle.VERBOSE
+                else -> return@setOnCheckedChangeListener
+            }
+            Inspector.setRelativeGuideStyle(newStyle)
+        }
     }
 
     private fun disableInspectionIfNeeded(savedInstanceState: Bundle?) {
