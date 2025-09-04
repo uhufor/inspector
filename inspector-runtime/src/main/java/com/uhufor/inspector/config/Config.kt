@@ -1,5 +1,6 @@
 package com.uhufor.inspector.config
 
+import com.uhufor.inspector.RelativeGuideStyle
 import com.uhufor.inspector.TraverseType
 import com.uhufor.inspector.UnitMode
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,5 +37,13 @@ internal class Config {
         get() = _detailsViewUiScale.value
         set(value) {
             _detailsViewUiScale.value = value
+        }
+
+    private val _relativeGuideStyle = MutableStateFlow(RelativeGuideStyle.STANDARD)
+    val relativeGuideStyleFlow = _relativeGuideStyle.asStateFlow()
+    var relativeGuideStyle: RelativeGuideStyle
+        get() = _relativeGuideStyle.value
+        set(value) {
+            _relativeGuideStyle.value = value
         }
 }

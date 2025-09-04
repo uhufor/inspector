@@ -223,14 +223,16 @@ object Inspector {
         return config.traverseType
     }
 
-    fun enableDetailsView(enabled: Boolean) {
-        if (config.enableDetailsView == enabled) return
+    fun setRelativeGuideStyle(style: RelativeGuideStyle) {
+        if (config.relativeGuideStyle == style) return
 
-        config.enableDetailsView = enabled
+        config.relativeGuideStyle = style
+        overlayCanvas?.invalidate()
     }
 
-    val isDetailsViewEnabled: Boolean
-        get() = config.enableDetailsView
+    fun getRelativeGuideStyle(): RelativeGuideStyle {
+        return config.relativeGuideStyle
+    }
 
     fun setDetailsViewUiScale(newScale: Float) {
         val coercedScale = newScale.coerceIn(0.8f..1.2f)
@@ -244,6 +246,15 @@ object Inspector {
     fun getDetailsViewUiScale(): Float {
         return config.detailsViewUiScale
     }
+
+    fun enableDetailsView(enabled: Boolean) {
+        if (config.enableDetailsView == enabled) return
+
+        config.enableDetailsView = enabled
+    }
+
+    val isDetailsViewEnabled: Boolean
+        get() = config.enableDetailsView
 
     @MainThread
     fun showFloatingTrigger() {
