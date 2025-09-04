@@ -63,7 +63,9 @@ internal object RelativeMeasurement {
                         endX = overlapCenterX,
                         endY = max(primary.top, secondary.top),
                         value = topDistanceVal,
-                        type = DistanceType.VERTICAL
+                        type = DistanceType.VERTICAL,
+                        primaryEdge = Edge.TOP,
+                        secondaryEdge = Edge.TOP,
                     )
                 )
             }
@@ -77,7 +79,9 @@ internal object RelativeMeasurement {
                         endX = overlapCenterX,
                         endY = max(primary.bottom, secondary.bottom),
                         value = bottomDistanceVal,
-                        type = DistanceType.VERTICAL
+                        type = DistanceType.VERTICAL,
+                        primaryEdge = Edge.BOTTOM,
+                        secondaryEdge = Edge.BOTTOM,
                     )
                 )
             }
@@ -91,7 +95,9 @@ internal object RelativeMeasurement {
                         endX = max(primary.left, secondary.left),
                         endY = overlapCenterY,
                         value = leftDistanceVal,
-                        type = DistanceType.HORIZONTAL
+                        type = DistanceType.HORIZONTAL,
+                        primaryEdge = Edge.LEFT,
+                        secondaryEdge = Edge.LEFT,
                     )
                 )
             }
@@ -105,7 +111,9 @@ internal object RelativeMeasurement {
                         endX = max(primary.right, secondary.right),
                         endY = overlapCenterY,
                         value = rightDistanceVal,
-                        type = DistanceType.HORIZONTAL
+                        type = DistanceType.HORIZONTAL,
+                        primaryEdge = Edge.RIGHT,
+                        secondaryEdge = Edge.RIGHT,
                     )
                 )
             }
@@ -121,7 +129,9 @@ internal object RelativeMeasurement {
                             endX = centerX,
                             endY = secondary.top,
                             value = distance,
-                            type = DistanceType.VERTICAL
+                            type = DistanceType.VERTICAL,
+                            primaryEdge = Edge.BOTTOM,
+                            secondaryEdge = Edge.TOP,
                         )
                     )
                 }
@@ -135,7 +145,9 @@ internal object RelativeMeasurement {
                             endX = centerX,
                             endY = secondary.bottom,
                             value = distance,
-                            type = DistanceType.VERTICAL
+                            type = DistanceType.VERTICAL,
+                            primaryEdge = Edge.TOP,
+                            secondaryEdge = Edge.BOTTOM,
                         )
                     )
                 }
@@ -158,7 +170,9 @@ internal object RelativeMeasurement {
                         endX = endX,
                         endY = y,
                         value = leftDistance,
-                        type = DistanceType.HORIZONTAL
+                        type = DistanceType.HORIZONTAL,
+                        primaryEdge = Edge.LEFT,
+                        secondaryEdge = Edge.LEFT,
                     )
                 )
             }
@@ -180,7 +194,9 @@ internal object RelativeMeasurement {
                         endX = endX,
                         endY = y,
                         value = rightDistance,
-                        type = DistanceType.HORIZONTAL
+                        type = DistanceType.HORIZONTAL,
+                        primaryEdge = Edge.RIGHT,
+                        secondaryEdge = Edge.RIGHT,
                     )
                 )
             }
@@ -197,7 +213,9 @@ internal object RelativeMeasurement {
                             endX = secondary.left,
                             endY = centerY,
                             value = distance,
-                            type = DistanceType.HORIZONTAL
+                            type = DistanceType.HORIZONTAL,
+                            primaryEdge = Edge.RIGHT,
+                            secondaryEdge = Edge.LEFT,
                         )
                     )
                 }
@@ -211,7 +229,9 @@ internal object RelativeMeasurement {
                             endX = secondary.right,
                             endY = centerY,
                             value = distance,
-                            type = DistanceType.HORIZONTAL
+                            type = DistanceType.HORIZONTAL,
+                            primaryEdge = Edge.LEFT,
+                            secondaryEdge = Edge.RIGHT,
                         )
                     )
                 }
@@ -234,7 +254,9 @@ internal object RelativeMeasurement {
                         endX = x,
                         endY = endY,
                         value = topDistance,
-                        type = DistanceType.VERTICAL
+                        type = DistanceType.VERTICAL,
+                        primaryEdge = Edge.TOP,
+                        secondaryEdge = Edge.TOP,
                     )
                 )
             }
@@ -258,7 +280,9 @@ internal object RelativeMeasurement {
                         endX = x,
                         endY = endY,
                         value = bottomDistance,
-                        type = DistanceType.VERTICAL
+                        type = DistanceType.VERTICAL,
+                        primaryEdge = Edge.BOTTOM,
+                        secondaryEdge = Edge.BOTTOM,
                     )
                 )
             }
@@ -276,7 +300,9 @@ internal object RelativeMeasurement {
                         endX = hEndX,
                         endY = centerY,
                         value = dx,
-                        type = DistanceType.HORIZONTAL
+                        type = DistanceType.HORIZONTAL,
+                        primaryEdge = if (isRight) Edge.RIGHT else Edge.LEFT,
+                        secondaryEdge = if (isRight) Edge.LEFT else Edge.RIGHT,
                     )
                 )
             }
@@ -294,7 +320,9 @@ internal object RelativeMeasurement {
                         endX = centerX,
                         endY = vEndY,
                         value = dy,
-                        type = DistanceType.VERTICAL
+                        type = DistanceType.VERTICAL,
+                        primaryEdge = if (isBelow) Edge.BOTTOM else Edge.TOP,
+                        secondaryEdge = if (isBelow) Edge.TOP else Edge.BOTTOM,
                     )
                 )
             }
@@ -337,6 +365,13 @@ internal object RelativeMeasurement {
     }
 }
 
+enum class Edge {
+    LEFT,
+    TOP,
+    RIGHT,
+    BOTTOM,
+}
+
 data class Distance(
     val startX: Float,
     val startY: Float,
@@ -344,6 +379,8 @@ data class Distance(
     val endY: Float,
     val value: Float,
     val type: DistanceType,
+    val primaryEdge: Edge?,
+    val secondaryEdge: Edge?,
 )
 
 enum class DistanceType {
