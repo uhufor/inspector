@@ -8,15 +8,14 @@ object Inspector {
 
     private var unitMode: UnitMode = UnitMode.DP
     private var traverseType: TraverseType = TraverseType.HIERARCHICAL
-    private var showDetailsView: Boolean = false
-    private var detailsViewUiScale: Float = 1.0f
     private var relativeGuideStyle: RelativeGuideStyle = RelativeGuideStyle.STANDARD
+    private var detailsViewUiScale: Float = 1.0f
+    private var showDetailsView: Boolean = false
 
     fun install(context: Context) = Unit
     fun enableInspection() { isInspectionEnabled = true }
     fun disableInspection() { isInspectionEnabled = false }
     fun toggleInspection() { isInspectionEnabled = !isInspectionEnabled }
-
     fun refresh() = Unit
 
     fun setUnitMode(mode: UnitMode) { unitMode = mode }
@@ -25,14 +24,14 @@ object Inspector {
     fun setTraverseType(type: TraverseType) { traverseType = type }
     fun getTraverseType(): TraverseType = traverseType
 
-    fun enableDetailsView(enabled: Boolean) { showDetailsView = enabled }
-    val isDetailsViewEnabled: Boolean = showDetailsView
+    fun setRelativeGuideStyle(style: RelativeGuideStyle) { relativeGuideStyle = style }
+    fun getRelativeGuideStyle(): RelativeGuideStyle = relativeGuideStyle
 
     fun setDetailsViewUiScale(newScale: Float) { detailsViewUiScale = newScale }
     fun getDetailsViewUiScale(): Float = detailsViewUiScale
 
-    fun setRelativeGuideStyle(style: RelativeGuideStyle) { relativeGuideStyle = style }
-    fun getRelativeGuideStyle(): RelativeGuideStyle = relativeGuideStyle
+    fun enableDetailsView(enabled: Boolean) { showDetailsView = enabled }
+    val isDetailsViewEnabled: Boolean = showDetailsView
 
     fun showFloatingTrigger() = Unit
     fun hideFloatingTrigger() = Unit
