@@ -202,7 +202,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         drawElementBorder(
             canvas = canvas,
             bounds = selection.bounds,
-            useThickBorder = selection.properties.isClickable,
+            useThickBorder = true,
             borderColor = complementaryColor
         )
         drawElementSizeInfo(canvas, selection.bounds, elementBaseColor, complementaryColor)
