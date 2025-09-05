@@ -26,6 +26,7 @@ import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.util.SwipeGestureDetector
 import com.uhufor.inspector.util.UnitConverter
 import com.uhufor.inspector.util.dp
+import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -300,9 +301,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
         childBounds: RectF,
         parentBounds: RectF,
     ) {
-        val path = android.graphics.Path().apply {
-            addRect(parentBounds, android.graphics.Path.Direction.CW)
-            addRect(childBounds, android.graphics.Path.Direction.CCW)
+        val path = Path().apply {
+            addRect(parentBounds, Path.Direction.CW)
+            addRect(childBounds, Path.Direction.CCW)
         }
         paintBackground.withColor(BG_COLOR_DARK.toColorInt()) { paintColor ->
             canvas.drawPath(path, paintColor)
@@ -318,10 +319,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         if (leftDistance > 0) {
             val distanceText = UnitConverter.format(leftDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
-                canvas,
-                parentBounds.left, childBounds.top + childBounds.height() / 2,
-                childBounds.left, childBounds.top + childBounds.height() / 2,
-                distanceText
+                canvas = canvas,
+                startX = parentBounds.left, startY = childBounds.top + childBounds.height() / 2,
+                endX = childBounds.left, endY = childBounds.top + childBounds.height() / 2,
+                distanceText = distanceText
             )
         }
 
@@ -329,10 +330,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         if (rightDistance > 0) {
             val distanceText = UnitConverter.format(rightDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
-                canvas,
-                childBounds.right, childBounds.top + childBounds.height() / 2,
-                parentBounds.right, childBounds.top + childBounds.height() / 2,
-                distanceText
+                canvas = canvas,
+                startX = childBounds.right, startY = childBounds.top + childBounds.height() / 2,
+                endX = parentBounds.right, endY = childBounds.top + childBounds.height() / 2,
+                distanceText = distanceText
             )
         }
 
@@ -340,10 +341,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         if (topDistance > 0) {
             val distanceText = UnitConverter.format(topDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
-                canvas,
-                childBounds.left + childBounds.width() / 2, parentBounds.top,
-                childBounds.left + childBounds.width() / 2, childBounds.top,
-                distanceText
+                canvas = canvas,
+                startX = childBounds.left + childBounds.width() / 2, startY = parentBounds.top,
+                endX = childBounds.left + childBounds.width() / 2, endY = childBounds.top,
+                distanceText = distanceText
             )
         }
 
@@ -351,10 +352,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         if (bottomDistance > 0) {
             val distanceText = UnitConverter.format(bottomDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
-                canvas,
-                childBounds.left + childBounds.width() / 2, childBounds.bottom,
-                childBounds.left + childBounds.width() / 2, parentBounds.bottom,
-                distanceText
+                canvas = canvas,
+                startX = childBounds.left + childBounds.width() / 2, startY = childBounds.bottom,
+                endX = childBounds.left + childBounds.width() / 2, endY = parentBounds.bottom,
+                distanceText = distanceText
             )
         }
     }
@@ -485,9 +486,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
                 RelativeGuideStyle.MINI -> {
                     val gap =
                         if (distance.type == com.uhufor.inspector.engine.DistanceType.VERTICAL) {
-                            kotlin.math.abs(distance.endY - distance.startY)
+                            abs(distance.endY - distance.startY)
                         } else {
-                            kotlin.math.abs(distance.endX - distance.startX)
+                            abs(distance.endX - distance.startX)
                         }
                     val thresholdPx = MIN_GAP_FOR_EDGE_DP.dp()
                     val isNarrow = gap < thresholdPx
@@ -557,48 +558,38 @@ internal class OverlayCanvas @JvmOverloads constructor(
         color: Int,
         distance: Distance,
     ) {
-        val lenMax = EDGE_HIGHLIGHT_MAX_LEN_DP.dp()
-        val stroke = thickBorderWidth * STROKE_SCALE_DEFAULT
+        val stroke = thinBorderWidth * STROKE_SCALE_DEFAULT
+        val edgeLength = GUIDE_EDGE_LEN.dp()
 
         paintBorder.withBorderWidth(stroke) { paint ->
             paint.withColor(color) { p ->
                 when (edge) {
                     Edge.LEFT -> {
                         val edgeX = rect.left
-                        val useStart =
-                            kotlin.math.abs(distance.startX - edgeX) <= kotlin.math.abs(distance.endX - edgeX)
+                        val useStart = abs(distance.startX - edgeX) <= abs(distance.endX - edgeX)
                         val yAnchor = if (useStart) distance.startY else distance.endY
-                        val half =
-                            minOf((rect.height() * EDGE_HIGHLIGHT_LENGTH_FACTOR), lenMax) / 2f
-                        canvas.drawLine(edgeX, yAnchor - half, edgeX, yAnchor + half, p)
+                        canvas.drawLine(edgeX, yAnchor - edgeLength, edgeX, yAnchor + edgeLength, p)
                     }
 
                     Edge.RIGHT -> {
                         val edgeX = rect.right
-                        val useStart =
-                            kotlin.math.abs(distance.startX - edgeX) <= kotlin.math.abs(distance.endX - edgeX)
+                        val useStart = abs(distance.startX - edgeX) <= abs(distance.endX - edgeX)
                         val yAnchor = if (useStart) distance.startY else distance.endY
-                        val half =
-                            minOf((rect.height() * EDGE_HIGHLIGHT_LENGTH_FACTOR), lenMax) / 2f
-                        canvas.drawLine(edgeX, yAnchor - half, edgeX, yAnchor + half, p)
+                        canvas.drawLine(edgeX, yAnchor - edgeLength, edgeX, yAnchor + edgeLength, p)
                     }
 
                     Edge.TOP -> {
                         val edgeY = rect.top
-                        val useStart =
-                            kotlin.math.abs(distance.startY - edgeY) <= kotlin.math.abs(distance.endY - edgeY)
+                        val useStart = abs(distance.startY - edgeY) <= abs(distance.endY - edgeY)
                         val xAnchor = if (useStart) distance.startX else distance.endX
-                        val half = minOf((rect.width() * EDGE_HIGHLIGHT_LENGTH_FACTOR), lenMax) / 2f
-                        canvas.drawLine(xAnchor - half, edgeY, xAnchor + half, edgeY, p)
+                        canvas.drawLine(xAnchor - edgeLength, edgeY, xAnchor + edgeLength, edgeY, p)
                     }
 
                     Edge.BOTTOM -> {
                         val edgeY = rect.bottom
-                        val useStart =
-                            kotlin.math.abs(distance.startY - edgeY) <= kotlin.math.abs(distance.endY - edgeY)
+                        val useStart = abs(distance.startY - edgeY) <= abs(distance.endY - edgeY)
                         val xAnchor = if (useStart) distance.startX else distance.endX
-                        val half = minOf((rect.width() * EDGE_HIGHLIGHT_LENGTH_FACTOR), lenMax) / 2f
-                        canvas.drawLine(xAnchor - half, edgeY, xAnchor + half, edgeY, p)
+                        canvas.drawLine(xAnchor - edgeLength, edgeY, xAnchor + edgeLength, edgeY, p)
                     }
                 }
             }
@@ -702,9 +693,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val DIMENSION_TEXT_OFFSET = 3f
         private const val MIN_GAP_FOR_EDGE_DP = 16f
         private const val VERBOSE_GUIDE_ALPHA_FRACTION = 0.5f
-        private const val EDGE_HIGHLIGHT_MAX_LEN_DP = 24f
-        private const val EDGE_HIGHLIGHT_LENGTH_FACTOR = 0.20f
-        private const val STROKE_SCALE_DEFAULT = 1.0f
+        private const val GUIDE_EDGE_LEN = ARROW_SIZE
+        private const val STROKE_SCALE_DEFAULT = 1.2f
 
         private val ELEMENT_COLORS = listOf(
             "#F44336".toColorInt(),
