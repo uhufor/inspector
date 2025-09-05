@@ -475,7 +475,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
                     if (!isNarrow) {
                         if (primary != null && distance.primaryEdge != null) {
-                            drawEdgeHighlight(
+                            drawGuideEdge(
                                 canvas = canvas,
                                 rect = primary.bounds,
                                 edge = distance.primaryEdge,
@@ -484,7 +484,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
                             )
                         }
                         if (secondary != null && distance.secondaryEdge != null) {
-                            drawEdgeHighlight(
+                            drawGuideEdge(
                                 canvas = canvas,
                                 rect = secondary.bounds,
                                 edge = distance.secondaryEdge,
@@ -505,8 +505,12 @@ internal class OverlayCanvas @JvmOverloads constructor(
                 }
 
                 RelativeGuideStyle.FULL -> {
-                    if (primary != null && secondary != null && distance.primaryEdge != null && distance.secondaryEdge != null) {
-                        drawVerboseGuides(
+                    if (primary != null &&
+                        secondary != null &&
+                        distance.primaryEdge != null &&
+                        distance.secondaryEdge != null
+                    ) {
+                        drawGuideLines(
                             canvas = canvas,
                             primary = primary.bounds,
                             secondary = secondary.bounds,
@@ -527,7 +531,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
     }
 
-    private fun drawVerboseGuides(
+    private fun drawGuideLines(
         canvas: Canvas,
         primary: RectF,
         secondary: RectF,
@@ -576,7 +580,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         p.alpha = oldAlpha
     }
 
-    private fun drawEdgeHighlight(
+    private fun drawGuideEdge(
         canvas: Canvas,
         rect: RectF,
         edge: Edge,
