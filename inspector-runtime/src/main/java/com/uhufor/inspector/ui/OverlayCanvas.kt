@@ -6,6 +6,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.DisplayMetrics
@@ -19,6 +21,7 @@ import com.uhufor.inspector.RelativeGuideStyle
 import com.uhufor.inspector.config.Config
 import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.engine.Distance
+import com.uhufor.inspector.engine.DistanceType
 import com.uhufor.inspector.engine.Edge
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.engine.MeasurementMode
@@ -29,6 +32,8 @@ import com.uhufor.inspector.util.dp
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -116,7 +121,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
     }
 
     private val paintPorterDuffClear = Paint().apply {
-        xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR)
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     }
 
     private val elementColorMap = mutableMapOf<Int, Int>()
@@ -484,12 +489,11 @@ internal class OverlayCanvas @JvmOverloads constructor(
                 }
 
                 RelativeGuideStyle.EDGE -> {
-                    val gap =
-                        if (distance.type == com.uhufor.inspector.engine.DistanceType.VERTICAL) {
-                            abs(distance.endY - distance.startY)
-                        } else {
-                            abs(distance.endX - distance.startX)
-                        }
+                    val gap = if (distance.type == DistanceType.VERTICAL) {
+                        abs(distance.endY - distance.startY)
+                    } else {
+                        abs(distance.endX - distance.startX)
+                    }
                     val thresholdPx = MIN_GAP_FOR_EDGE_DP.dp()
                     val isNarrow = gap < thresholdPx
 
@@ -534,7 +538,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
                             canvas = canvas,
                             primary = primary.bounds,
                             secondary = secondary.bounds,
-                            distance = distance
+                            primaryColor = primaryColor,
+                            secondaryColor = secondaryColor,
+                            distance = distance,
                         )
                     }
 
@@ -600,49 +606,57 @@ internal class OverlayCanvas @JvmOverloads constructor(
         canvas: Canvas,
         primary: RectF,
         secondary: RectF,
+        primaryColor: Int,
+        secondaryColor: Int,
         distance: Distance,
     ) {
-        val p = paintDistanceLine
-        val oldAlpha = p.alpha
-        p.alpha = (VERBOSE_GUIDE_ALPHA_FRACTION * 255).toInt()
+        val stroke = thinBorderWidth * STROKE_SCALE_DEFAULT
 
-        when (distance.type) {
-            com.uhufor.inspector.engine.DistanceType.VERTICAL -> {
-                val y1 = when (distance.primaryEdge) {
-                    Edge.TOP -> primary.top
-                    Edge.BOTTOM -> primary.bottom
-                    else -> primary.bottom
+        paintDistanceLine.withBorderWidth(stroke) { paintBorder ->
+            when (distance.type) {
+                DistanceType.VERTICAL -> {
+                    val y1 = when (distance.primaryEdge) {
+                        Edge.TOP -> primary.top
+                        Edge.BOTTOM -> primary.bottom
+                        else -> primary.bottom
+                    }
+                    val y2 = when (distance.secondaryEdge) {
+                        Edge.TOP -> secondary.top
+                        Edge.BOTTOM -> secondary.bottom
+                        else -> secondary.top
+                    }
+                    val startX = min(primary.left, secondary.left)
+                    val endX = max(primary.right, secondary.right)
+                    paintBorder.withColor(primaryColor) { paint ->
+                        canvas.drawLine(startX, y1, endX, y1, paint)
+                    }
+                    paintBorder.withColor(secondaryColor) { paint ->
+                        canvas.drawLine(startX, y2, endX, y2, paint)
+                    }
                 }
-                val y2 = when (distance.secondaryEdge) {
-                    Edge.TOP -> secondary.top
-                    Edge.BOTTOM -> secondary.bottom
-                    else -> secondary.top
-                }
-                val startX = kotlin.math.min(primary.left, secondary.left)
-                val endX = kotlin.math.max(primary.right, secondary.right)
-                canvas.drawLine(startX, y1, endX, y1, p)
-                canvas.drawLine(startX, y2, endX, y2, p)
-            }
 
-            com.uhufor.inspector.engine.DistanceType.HORIZONTAL -> {
-                val x1 = when (distance.primaryEdge) {
-                    Edge.LEFT -> primary.left
-                    Edge.RIGHT -> primary.right
-                    else -> primary.right
+                DistanceType.HORIZONTAL -> {
+                    val x1 = when (distance.primaryEdge) {
+                        Edge.LEFT -> primary.left
+                        Edge.RIGHT -> primary.right
+                        else -> primary.right
+                    }
+                    val x2 = when (distance.secondaryEdge) {
+                        Edge.LEFT -> secondary.left
+                        Edge.RIGHT -> secondary.right
+                        else -> secondary.left
+                    }
+                    val startY = min(primary.top, secondary.top)
+                    val endY = max(primary.bottom, secondary.bottom)
+                    paintBorder.withColor(primaryColor) { paint ->
+                        canvas.drawLine(x1, startY, x1, endY, paint)
+                    }
+                    paintBorder.withColor(secondaryColor) { paint ->
+                        canvas.drawLine(x2, startY, x2, endY, paint)
+                    }
                 }
-                val x2 = when (distance.secondaryEdge) {
-                    Edge.LEFT -> secondary.left
-                    Edge.RIGHT -> secondary.right
-                    else -> secondary.left
-                }
-                val startY = kotlin.math.min(primary.top, secondary.top)
-                val endY = kotlin.math.max(primary.bottom, secondary.bottom)
-                canvas.drawLine(x1, startY, x1, endY, p)
-                canvas.drawLine(x2, startY, x2, endY, p)
             }
         }
-
-        p.alpha = oldAlpha
     }
 
     private fun getColorForElement(element: Any) =
@@ -692,7 +706,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val BG_COLOR_BLUE = "#60AAAAFF"
         private const val DIMENSION_TEXT_OFFSET = 3f
         private const val MIN_GAP_FOR_EDGE_DP = 16f
-        private const val VERBOSE_GUIDE_ALPHA_FRACTION = 0.5f
         private const val GUIDE_EDGE_LEN = ARROW_SIZE
         private const val STROKE_SCALE_DEFAULT = 1.2f
 
