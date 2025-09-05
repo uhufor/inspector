@@ -483,7 +483,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
                     )
                 }
 
-                RelativeGuideStyle.MINI -> {
+                RelativeGuideStyle.EDGE -> {
                     val gap =
                         if (distance.type == com.uhufor.inspector.engine.DistanceType.VERTICAL) {
                             abs(distance.endY - distance.startY)
