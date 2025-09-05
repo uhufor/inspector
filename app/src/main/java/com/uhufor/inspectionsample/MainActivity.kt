@@ -106,16 +106,16 @@ class MainActivity : AppCompatActivity() {
         val verbose = findViewById<android.widget.RadioButton>(R.id.guideVerbose)
 
         when (Inspector.getRelativeGuideStyle()) {
-            RelativeGuideStyle.MINI -> group.check(mini.id)
-            RelativeGuideStyle.STANDARD -> group.check(standard.id)
-            RelativeGuideStyle.VERBOSE -> group.check(verbose.id)
+            RelativeGuideStyle.NONE -> group.check(mini.id)
+            RelativeGuideStyle.MINI -> group.check(standard.id)
+            RelativeGuideStyle.FULL -> group.check(verbose.id)
         }
 
         group.setOnCheckedChangeListener { _, checkedId ->
             val newStyle = when (checkedId) {
-                mini.id -> RelativeGuideStyle.MINI
-                standard.id -> RelativeGuideStyle.STANDARD
-                verbose.id -> RelativeGuideStyle.VERBOSE
+                mini.id -> RelativeGuideStyle.NONE
+                standard.id -> RelativeGuideStyle.MINI
+                verbose.id -> RelativeGuideStyle.FULL
                 else -> return@setOnCheckedChangeListener
             }
             Inspector.setRelativeGuideStyle(newStyle)

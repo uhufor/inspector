@@ -8,7 +8,7 @@ object Inspector {
 
     private var unitMode: UnitMode = UnitMode.DP
     private var traverseType: TraverseType = TraverseType.HIERARCHICAL
-    private var relativeGuideStyle: RelativeGuideStyle = RelativeGuideStyle.STANDARD
+    private var relativeGuideStyle: RelativeGuideStyle = RelativeGuideStyle.FULL
     private var detailsViewUiScale: Float = 1.0f
     private var showDetailsView: Boolean = false
 

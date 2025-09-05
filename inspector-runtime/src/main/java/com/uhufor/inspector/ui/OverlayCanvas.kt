@@ -452,7 +452,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
             val text = UnitConverter.format(distance.value, dm, cfg.unitMode)
 
             when (style) {
-                RelativeGuideStyle.MINI -> {
+                RelativeGuideStyle.NONE -> {
                     drawDistanceLine(
                         canvas = canvas,
                         startX = distance.startX,
@@ -463,7 +463,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
                     )
                 }
 
-                RelativeGuideStyle.STANDARD -> {
+                RelativeGuideStyle.MINI -> {
                     val gap =
                         if (distance.type == com.uhufor.inspector.engine.DistanceType.VERTICAL) {
                             kotlin.math.abs(distance.endY - distance.startY)
@@ -504,7 +504,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
                     )
                 }
 
-                RelativeGuideStyle.VERBOSE -> {
+                RelativeGuideStyle.FULL -> {
                     if (primary != null && secondary != null && distance.primaryEdge != null && distance.secondaryEdge != null) {
                         drawVerboseGuides(
                             canvas = canvas,
