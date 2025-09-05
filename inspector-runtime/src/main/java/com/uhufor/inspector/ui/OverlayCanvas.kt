@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.DisplayMetrics
@@ -76,6 +77,12 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
     private val thinBorderWidth = 1.dp()
     private val thickBorderWidth = 2.dp()
+
+    private val arrowPath = Path()
+    private val paintArrow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        color = Color.WHITE
+    }
 
     private val paintBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -381,7 +388,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
         canvas.drawText(distanceText, textX, textY, paintDistanceText)
     }
 
-    // TODO: make it to true triangle arrow
     private fun drawArrow(
         canvas: Canvas,
         fromX: Float,
@@ -390,16 +396,28 @@ internal class OverlayCanvas @JvmOverloads constructor(
         toY: Float,
         paint: Paint,
     ) {
-        val angle = atan2((toY - fromY).toDouble(), (toX - fromX).toDouble())
-        val arrowSize = ARROW_SIZE.dp()
+        val directionAngle = atan2((toY - fromY).toDouble(), (toX - fromX).toDouble())
+        val arrowHeight = ARROW_SIZE.dp()
+        val baseWidth = ARROW_BASE_RATIO * arrowHeight
+        val dirX = cos(directionAngle).toFloat()
+        val dirY = sin(directionAngle).toFloat()
+        val perpendicularX = -dirY
+        val perpendicularY = dirX
+        val baseCenterX = fromX + dirX * arrowHeight
+        val baseCenterY = fromY + dirY * arrowHeight
+        val baseLeftX = baseCenterX + perpendicularX * (baseWidth / 2f)
+        val baseLeftY = baseCenterY + perpendicularY * (baseWidth / 2f)
+        val baseRightX = baseCenterX - perpendicularX * (baseWidth / 2f)
+        val baseRightY = baseCenterY - perpendicularY * (baseWidth / 2f)
 
-        val arrowX1 = fromX + arrowSize * cos(angle - ARROW_ANGLE).toFloat()
-        val arrowY1 = fromY + arrowSize * sin(angle - ARROW_ANGLE).toFloat()
-        val arrowX2 = fromX + arrowSize * cos(angle + ARROW_ANGLE).toFloat()
-        val arrowY2 = fromY + arrowSize * sin(angle + ARROW_ANGLE).toFloat()
+        arrowPath.reset()
+        arrowPath.moveTo(fromX, fromY)
+        arrowPath.lineTo(baseLeftX, baseLeftY)
+        arrowPath.lineTo(baseRightX, baseRightY)
+        arrowPath.close()
 
-        canvas.drawLine(fromX, fromY, arrowX1, arrowY1, paint)
-        canvas.drawLine(fromX, fromY, arrowX2, arrowY2, paint)
+        paintArrow.color = paint.color
+        canvas.drawPath(arrowPath, paintArrow)
     }
 
     private fun drawRelativeMeasurement(canvas: Canvas) {
@@ -675,8 +693,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val TEXT_PADDING_TOP = 7f
         private const val TEXT_PADDING_BOTTOM = 2f
         private const val TEXT_VERTICAL_OFFSET = DISTANCE_TEXT_SIZE
-        private const val ARROW_SIZE = 4f
-        private const val ARROW_ANGLE = Math.PI / 6
+        private const val ARROW_SIZE = 6f
+        private const val ARROW_BASE_RATIO = 0.8f
         private const val BG_COLOR_DEEP_DARK = "#AC000000"
         private const val BG_COLOR_DARK = "#50000000"
         private const val BG_COLOR_RED = "#60FFAAAA"
