@@ -381,6 +381,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         canvas.drawText(distanceText, textX, textY, paintDistanceText)
     }
 
+    // TODO: make it to true triangle arrow
     private fun drawArrow(
         canvas: Canvas,
         fromX: Float,
@@ -531,55 +532,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
     }
 
-    private fun drawGuideLines(
-        canvas: Canvas,
-        primary: RectF,
-        secondary: RectF,
-        distance: Distance,
-    ) {
-        val p = paintDistanceLine
-        val oldAlpha = p.alpha
-        p.alpha = (VERBOSE_GUIDE_ALPHA_FRACTION * 255).toInt()
-
-        when (distance.type) {
-            com.uhufor.inspector.engine.DistanceType.VERTICAL -> {
-                val y1 = when (distance.primaryEdge) {
-                    Edge.TOP -> primary.top
-                    Edge.BOTTOM -> primary.bottom
-                    else -> primary.bottom
-                }
-                val y2 = when (distance.secondaryEdge) {
-                    Edge.TOP -> secondary.top
-                    Edge.BOTTOM -> secondary.bottom
-                    else -> secondary.top
-                }
-                val startX = kotlin.math.min(primary.left, secondary.left)
-                val endX = kotlin.math.max(primary.right, secondary.right)
-                canvas.drawLine(startX, y1, endX, y1, p)
-                canvas.drawLine(startX, y2, endX, y2, p)
-            }
-
-            com.uhufor.inspector.engine.DistanceType.HORIZONTAL -> {
-                val x1 = when (distance.primaryEdge) {
-                    Edge.LEFT -> primary.left
-                    Edge.RIGHT -> primary.right
-                    else -> primary.right
-                }
-                val x2 = when (distance.secondaryEdge) {
-                    Edge.LEFT -> secondary.left
-                    Edge.RIGHT -> secondary.right
-                    else -> secondary.left
-                }
-                val startY = kotlin.math.min(primary.top, secondary.top)
-                val endY = kotlin.math.max(primary.bottom, secondary.bottom)
-                canvas.drawLine(x1, startY, x1, endY, p)
-                canvas.drawLine(x2, startY, x2, endY, p)
-            }
-        }
-
-        p.alpha = oldAlpha
-    }
-
     private fun drawGuideEdge(
         canvas: Canvas,
         rect: RectF,
@@ -633,6 +585,55 @@ internal class OverlayCanvas @JvmOverloads constructor(
                 }
             }
         }
+    }
+
+    private fun drawGuideLines(
+        canvas: Canvas,
+        primary: RectF,
+        secondary: RectF,
+        distance: Distance,
+    ) {
+        val p = paintDistanceLine
+        val oldAlpha = p.alpha
+        p.alpha = (VERBOSE_GUIDE_ALPHA_FRACTION * 255).toInt()
+
+        when (distance.type) {
+            com.uhufor.inspector.engine.DistanceType.VERTICAL -> {
+                val y1 = when (distance.primaryEdge) {
+                    Edge.TOP -> primary.top
+                    Edge.BOTTOM -> primary.bottom
+                    else -> primary.bottom
+                }
+                val y2 = when (distance.secondaryEdge) {
+                    Edge.TOP -> secondary.top
+                    Edge.BOTTOM -> secondary.bottom
+                    else -> secondary.top
+                }
+                val startX = kotlin.math.min(primary.left, secondary.left)
+                val endX = kotlin.math.max(primary.right, secondary.right)
+                canvas.drawLine(startX, y1, endX, y1, p)
+                canvas.drawLine(startX, y2, endX, y2, p)
+            }
+
+            com.uhufor.inspector.engine.DistanceType.HORIZONTAL -> {
+                val x1 = when (distance.primaryEdge) {
+                    Edge.LEFT -> primary.left
+                    Edge.RIGHT -> primary.right
+                    else -> primary.right
+                }
+                val x2 = when (distance.secondaryEdge) {
+                    Edge.LEFT -> secondary.left
+                    Edge.RIGHT -> secondary.right
+                    else -> secondary.left
+                }
+                val startY = kotlin.math.min(primary.top, secondary.top)
+                val endY = kotlin.math.max(primary.bottom, secondary.bottom)
+                canvas.drawLine(x1, startY, x1, endY, p)
+                canvas.drawLine(x2, startY, x2, endY, p)
+            }
+        }
+
+        p.alpha = oldAlpha
     }
 
     private fun getColorForElement(element: Any) =
