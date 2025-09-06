@@ -610,47 +610,159 @@ internal class OverlayCanvas @JvmOverloads constructor(
     ) {
         val stroke = thinBorderWidth * GUIDE_STROKE_WIDTH_SCALE
 
+        fun nearestFacesRange(
+            aStart: Float,
+            aEnd: Float,
+            bStart: Float,
+            bEnd: Float,
+            isPrimary: Boolean,
+        ): Pair<Float, Float> {
+            return if (isPrimary) {
+                when {
+                    bEnd <= aStart -> aStart to bEnd
+                    bStart >= aEnd -> aEnd to bStart
+                    else -> aStart to aEnd
+                }
+            } else {
+                when {
+                    aEnd <= bStart -> bStart to aEnd
+                    aStart >= bEnd -> bEnd to aStart
+                    else -> bStart to bEnd
+                }
+            }
+        }
+
+        fun computeRange(
+            aStart: Float,
+            aEnd: Float,
+            bStart: Float,
+            bEnd: Float,
+            anyAxisOverlap: Boolean,
+            isPrimary: Boolean,
+            primaryWithinSecondary: Boolean,
+            secondaryWithinPrimary: Boolean,
+        ): Pair<Float, Float> {
+            if (isPrimary && primaryWithinSecondary) return bStart to bEnd
+            if (!isPrimary && secondaryWithinPrimary) return aStart to aEnd
+
+            val fullStart = min(aStart, bStart)
+            val fullEnd = max(aEnd, bEnd)
+            val overlapStart = max(aStart, bStart)
+            val overlapEnd = min(aEnd, bEnd)
+            val hasAxisOverlap = overlapStart < overlapEnd
+
+            return if (anyAxisOverlap) {
+                if (hasAxisOverlap) overlapStart to overlapEnd
+                else nearestFacesRange(aStart, aEnd, bStart, bEnd, isPrimary)
+            } else {
+                if (isPrimary) nearestFacesRange(aStart, aEnd, bStart, bEnd, true)
+                else fullStart to fullEnd
+            }
+        }
+
         paintDistanceLine.withBorderWidth(stroke) { paintBorder ->
             when (distance.type) {
                 DistanceType.VERTICAL -> {
-                    val y1 = when (distance.primaryEdge) {
-                        Edge.TOP -> primary.top
-                        Edge.BOTTOM -> primary.bottom
-                        else -> primary.bottom
-                    }
-                    val y2 = when (distance.secondaryEdge) {
-                        Edge.TOP -> secondary.top
-                        Edge.BOTTOM -> secondary.bottom
-                        else -> secondary.top
-                    }
-                    val startX = min(primary.left, secondary.left)
-                    val endX = max(primary.right, secondary.right)
+                    val y1 = if (distance.primaryEdge == Edge.TOP) primary.top else primary.bottom
+                    val y2 =
+                        if (distance.secondaryEdge == Edge.TOP) secondary.top else secondary.bottom
+
+                    val hasHOverlap =
+                        max(primary.left, secondary.left) < min(primary.right, secondary.right)
+                    val hasVOverlap =
+                        !(secondary.bottom <= primary.top || secondary.top >= primary.bottom)
+                    val anyOverlap = hasHOverlap || hasVOverlap
+
+                    val primaryWithinSecondary =
+                        primary.left >= secondary.left &&
+                                primary.right <= secondary.right &&
+                                primary.top >= secondary.top &&
+                                primary.bottom <= secondary.bottom
+                    val secondaryWithinPrimary =
+                        secondary.left >= primary.left &&
+                                secondary.right <= primary.right &&
+                                secondary.top >= primary.top &&
+                                secondary.bottom <= primary.bottom
+
+                    val (pStartX, pEndX) = computeRange(
+                        aStart = primary.left,
+                        aEnd = primary.right,
+                        bStart = secondary.left,
+                        bEnd = secondary.right,
+                        anyAxisOverlap = anyOverlap,
+                        isPrimary = true,
+                        primaryWithinSecondary = primaryWithinSecondary,
+                        secondaryWithinPrimary = secondaryWithinPrimary,
+                    )
+
+                    val (sStartX, sEndX) = computeRange(
+                        aStart = primary.left,
+                        aEnd = primary.right,
+                        bStart = secondary.left,
+                        bEnd = secondary.right,
+                        anyAxisOverlap = anyOverlap,
+                        isPrimary = false,
+                        primaryWithinSecondary = primaryWithinSecondary,
+                        secondaryWithinPrimary = secondaryWithinPrimary,
+                    )
+
                     paintBorder.withColor(primaryColor) { paint ->
-                        canvas.drawLine(startX, y1, endX, y1, paint)
+                        canvas.drawLine(pStartX, y1, pEndX, y1, paint)
                     }
                     paintBorder.withColor(secondaryColor) { paint ->
-                        canvas.drawLine(startX, y2, endX, y2, paint)
+                        canvas.drawLine(sStartX, y2, sEndX, y2, paint)
                     }
                 }
 
                 DistanceType.HORIZONTAL -> {
-                    val x1 = when (distance.primaryEdge) {
-                        Edge.LEFT -> primary.left
-                        Edge.RIGHT -> primary.right
-                        else -> primary.right
-                    }
-                    val x2 = when (distance.secondaryEdge) {
-                        Edge.LEFT -> secondary.left
-                        Edge.RIGHT -> secondary.right
-                        else -> secondary.left
-                    }
-                    val startY = min(primary.top, secondary.top)
-                    val endY = max(primary.bottom, secondary.bottom)
+                    val x1 = if (distance.primaryEdge == Edge.LEFT) primary.left else primary.right
+                    val x2 =
+                        if (distance.secondaryEdge == Edge.LEFT) secondary.left else secondary.right
+
+                    val hasVOverlap =
+                        max(primary.top, secondary.top) < min(primary.bottom, secondary.bottom)
+                    val hasHOverlap =
+                        !(secondary.right <= primary.left || secondary.left >= primary.right)
+                    val anyOverlap = hasVOverlap || hasHOverlap
+
+                    val primaryWithinSecondary =
+                        primary.left >= secondary.left &&
+                                primary.right <= secondary.right &&
+                                primary.top >= secondary.top &&
+                                primary.bottom <= secondary.bottom
+                    val secondaryWithinPrimary =
+                        secondary.left >= primary.left &&
+                                secondary.right <= primary.right &&
+                                secondary.top >= primary.top &&
+                                secondary.bottom <= primary.bottom
+
+                    val (pStartY, pEndY) = computeRange(
+                        aStart = primary.top,
+                        aEnd = primary.bottom,
+                        bStart = secondary.top,
+                        bEnd = secondary.bottom,
+                        anyAxisOverlap = anyOverlap,
+                        isPrimary = true,
+                        primaryWithinSecondary = primaryWithinSecondary,
+                        secondaryWithinPrimary = secondaryWithinPrimary,
+                    )
+
+                    val (sStartY, sEndY) = computeRange(
+                        aStart = primary.top,
+                        aEnd = primary.bottom,
+                        bStart = secondary.top,
+                        bEnd = secondary.bottom,
+                        anyAxisOverlap = anyOverlap,
+                        isPrimary = false,
+                        primaryWithinSecondary = primaryWithinSecondary,
+                        secondaryWithinPrimary = secondaryWithinPrimary,
+                    )
+
                     paintBorder.withColor(primaryColor) { paint ->
-                        canvas.drawLine(x1, startY, x1, endY, paint)
+                        canvas.drawLine(x1, pStartY, x1, pEndY, paint)
                     }
                     paintBorder.withColor(secondaryColor) { paint ->
-                        canvas.drawLine(x2, startY, x2, endY, paint)
+                        canvas.drawLine(x2, sStartY, x2, sEndY, paint)
                     }
                 }
             }
