@@ -802,7 +802,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
     companion object {
         private const val TEXT_SIZE = 8f
         private const val DISTANCE_TEXT_SIZE = 7f
-        private const val DASHED_LINE_WIDTH = 1.2f
+        private const val DASHED_LINE_WIDTH = 1.4f
         private const val DASH_PATTERN_ON = 10f
         private const val DASH_PATTERN_OFF = 5f
         private const val DASH_PHASE = 0f
