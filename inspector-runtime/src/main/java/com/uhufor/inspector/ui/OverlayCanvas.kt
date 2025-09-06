@@ -34,6 +34,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 import kotlin.math.sin
 
 private fun Paint.withColor(color: Int, block: (Paint) -> Unit) {
@@ -211,13 +212,19 @@ internal class OverlayCanvas @JvmOverloads constructor(
         elementBaseColor: Int,
     ) {
         val complementaryColor = getComplementaryColor(elementBaseColor)
+        val labelTextColor = getLabelTextColor(complementaryColor)
         drawElementBorder(
             canvas = canvas,
             bounds = selection.bounds,
             useThickBorder = true,
             borderColor = complementaryColor
         )
-        drawElementSizeInfo(canvas, selection.bounds, elementBaseColor, complementaryColor)
+        drawElementSizeInfo(
+            canvas = canvas,
+            bounds = selection.bounds,
+            textColor = labelTextColor,
+            textBackgroundColor = complementaryColor
+        )
     }
 
     private fun drawElementBorder(
@@ -778,6 +785,20 @@ internal class OverlayCanvas @JvmOverloads constructor(
         255 - Color.green(color),
         255 - Color.blue(color)
     )
+
+    private fun getLabelTextColor(baseColor: Int): Int {
+        fun lin(c: Int): Double {
+            val s = c / 255.0
+            return if (s <= 0.03928) s / 12.92 else ((s + 0.055) / 1.055).pow(2.4)
+        }
+
+        val lBg = 0.2126 * lin(Color.red(baseColor)) +
+                0.7152 * lin(Color.green(baseColor)) +
+                0.0722 * lin(Color.blue(baseColor))
+        val contrastWhite = (1.0 + 0.05) / (lBg + 0.05)
+        val contrastBlack = (lBg + 0.05) / 0.05
+        return if (contrastWhite > contrastBlack) Color.WHITE else Color.BLACK
+    }
 
     private fun applyAlpha(color: Int, alpha: Float) = Color.argb(
         (Color.alpha(color) * alpha).toInt(),
