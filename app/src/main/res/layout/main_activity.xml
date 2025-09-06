@@ -87,8 +87,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_margin="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginVertical="8dp"
         android:layout_weight="1">
 
         <View
@@ -263,24 +263,24 @@
             android:orientation="horizontal">
 
             <RadioButton
-                android:id="@+id/guideMini"
+                android:id="@+id/guideNone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mini" />
+                android:text="None" />
 
             <RadioButton
-                android:id="@+id/guideStandard"
+                android:id="@+id/guideEdge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
-                android:text="Standard" />
+                android:text="Edge" />
 
             <RadioButton
-                android:id="@+id/guideVerbose"
+                android:id="@+id/guideFull"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
-                android:text="Verbose" />
+                android:text="Full" />
         </RadioGroup>
 
     </LinearLayout>

@@ -101,21 +101,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupGuideStyleSelector() {
         val group = findViewById<android.widget.RadioGroup>(R.id.guideStyleGroup)
-        val mini = findViewById<android.widget.RadioButton>(R.id.guideMini)
-        val standard = findViewById<android.widget.RadioButton>(R.id.guideStandard)
-        val verbose = findViewById<android.widget.RadioButton>(R.id.guideVerbose)
+        val none = findViewById<android.widget.RadioButton>(R.id.guideNone)
+        val edge = findViewById<android.widget.RadioButton>(R.id.guideEdge)
+        val full = findViewById<android.widget.RadioButton>(R.id.guideFull)
 
         when (Inspector.getRelativeGuideStyle()) {
-            RelativeGuideStyle.MINI -> group.check(mini.id)
-            RelativeGuideStyle.STANDARD -> group.check(standard.id)
-            RelativeGuideStyle.VERBOSE -> group.check(verbose.id)
+            RelativeGuideStyle.NONE -> group.check(none.id)
+            RelativeGuideStyle.EDGE -> group.check(edge.id)
+            RelativeGuideStyle.FULL -> group.check(full.id)
         }
 
         group.setOnCheckedChangeListener { _, checkedId ->
             val newStyle = when (checkedId) {
-                mini.id -> RelativeGuideStyle.MINI
-                standard.id -> RelativeGuideStyle.STANDARD
-                verbose.id -> RelativeGuideStyle.VERBOSE
+                none.id -> RelativeGuideStyle.NONE
+                edge.id -> RelativeGuideStyle.EDGE
+                full.id -> RelativeGuideStyle.FULL
                 else -> return@setOnCheckedChangeListener
             }
             Inspector.setRelativeGuideStyle(newStyle)

@@ -5,6 +5,9 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.DisplayMetrics
@@ -18,6 +21,7 @@ import com.uhufor.inspector.RelativeGuideStyle
 import com.uhufor.inspector.config.Config
 import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.engine.Distance
+import com.uhufor.inspector.engine.DistanceType
 import com.uhufor.inspector.engine.Edge
 import com.uhufor.inspector.engine.InspectorEngine
 import com.uhufor.inspector.engine.MeasurementMode
@@ -25,10 +29,13 @@ import com.uhufor.inspector.engine.SelectionState
 import com.uhufor.inspector.util.SwipeGestureDetector
 import com.uhufor.inspector.util.UnitConverter
 import com.uhufor.inspector.util.dp
+import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.pow
 import kotlin.math.sin
-import kotlin.random.Random
 
 private fun Paint.withColor(color: Int, block: (Paint) -> Unit) {
     val originalColor = this.color
@@ -77,6 +84,12 @@ internal class OverlayCanvas @JvmOverloads constructor(
     private val thinBorderWidth = 1.dp()
     private val thickBorderWidth = 2.dp()
 
+    private val arrowPath = Path()
+    private val paintArrow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        color = Color.WHITE
+    }
+
     private val paintBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         color = Color.CYAN
@@ -108,7 +121,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
     }
 
     private val paintPorterDuffClear = Paint().apply {
-        xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR)
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     }
 
     private val elementColorMap = mutableMapOf<Int, Int>()
@@ -199,13 +212,19 @@ internal class OverlayCanvas @JvmOverloads constructor(
         elementBaseColor: Int,
     ) {
         val complementaryColor = getComplementaryColor(elementBaseColor)
+        val labelTextColor = getLabelTextColor(complementaryColor)
         drawElementBorder(
             canvas = canvas,
             bounds = selection.bounds,
-            useThickBorder = selection.properties.isClickable,
+            useThickBorder = true,
             borderColor = complementaryColor
         )
-        drawElementSizeInfo(canvas, selection.bounds, elementBaseColor, complementaryColor)
+        drawElementSizeInfo(
+            canvas = canvas,
+            bounds = selection.bounds,
+            textColor = labelTextColor,
+            textBackgroundColor = complementaryColor
+        )
     }
 
     private fun drawElementBorder(
@@ -293,11 +312,11 @@ internal class OverlayCanvas @JvmOverloads constructor(
         childBounds: RectF,
         parentBounds: RectF,
     ) {
-        val path = android.graphics.Path().apply {
-            addRect(parentBounds, android.graphics.Path.Direction.CW)
-            addRect(childBounds, android.graphics.Path.Direction.CCW)
+        val path = Path().apply {
+            addRect(parentBounds, Path.Direction.CW)
+            addRect(childBounds, Path.Direction.CCW)
         }
-        paintBackground.withColor(BG_COLOR_DARK.toColorInt()) { paintColor ->
+        paintBackground.withColor(BG_COLOR_DARK) { paintColor ->
             canvas.drawPath(path, paintColor)
         }
     }
@@ -311,10 +330,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         if (leftDistance > 0) {
             val distanceText = UnitConverter.format(leftDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
-                canvas,
-                parentBounds.left, childBounds.top + childBounds.height() / 2,
-                childBounds.left, childBounds.top + childBounds.height() / 2,
-                distanceText
+                canvas = canvas,
+                startX = parentBounds.left, startY = childBounds.top + childBounds.height() / 2,
+                endX = childBounds.left, endY = childBounds.top + childBounds.height() / 2,
+                distanceText = distanceText
             )
         }
 
@@ -322,10 +341,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         if (rightDistance > 0) {
             val distanceText = UnitConverter.format(rightDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
-                canvas,
-                childBounds.right, childBounds.top + childBounds.height() / 2,
-                parentBounds.right, childBounds.top + childBounds.height() / 2,
-                distanceText
+                canvas = canvas,
+                startX = childBounds.right, startY = childBounds.top + childBounds.height() / 2,
+                endX = parentBounds.right, endY = childBounds.top + childBounds.height() / 2,
+                distanceText = distanceText
             )
         }
 
@@ -333,10 +352,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         if (topDistance > 0) {
             val distanceText = UnitConverter.format(topDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
-                canvas,
-                childBounds.left + childBounds.width() / 2, parentBounds.top,
-                childBounds.left + childBounds.width() / 2, childBounds.top,
-                distanceText
+                canvas = canvas,
+                startX = childBounds.left + childBounds.width() / 2, startY = parentBounds.top,
+                endX = childBounds.left + childBounds.width() / 2, endY = childBounds.top,
+                distanceText = distanceText
             )
         }
 
@@ -344,10 +363,10 @@ internal class OverlayCanvas @JvmOverloads constructor(
         if (bottomDistance > 0) {
             val distanceText = UnitConverter.format(bottomDistance, displayMetrics, cfg.unitMode)
             drawDistanceLine(
-                canvas,
-                childBounds.left + childBounds.width() / 2, childBounds.bottom,
-                childBounds.left + childBounds.width() / 2, parentBounds.bottom,
-                distanceText
+                canvas = canvas,
+                startX = childBounds.left + childBounds.width() / 2, startY = childBounds.bottom,
+                endX = childBounds.left + childBounds.width() / 2, endY = parentBounds.bottom,
+                distanceText = distanceText
             )
         }
     }
@@ -375,7 +394,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
             textY + TEXT_PADDING_BOTTOM.dp()
         )
 
-        paintBackground.withColor(BG_COLOR_DEEP_DARK.toColorInt()) { paintColor ->
+        paintBackground.withColor(BG_COLOR_DEEP_DARK) { paintColor ->
             canvas.drawRect(textBgRect, paintColor)
         }
         canvas.drawText(distanceText, textX, textY, paintDistanceText)
@@ -389,16 +408,28 @@ internal class OverlayCanvas @JvmOverloads constructor(
         toY: Float,
         paint: Paint,
     ) {
-        val angle = atan2((toY - fromY).toDouble(), (toX - fromX).toDouble())
-        val arrowSize = ARROW_SIZE.dp()
+        val directionAngle = atan2((toY - fromY).toDouble(), (toX - fromX).toDouble())
+        val arrowHeight = ARROW_SIZE.dp()
+        val baseWidth = ARROW_BASE_RATIO * arrowHeight
+        val dirX = cos(directionAngle).toFloat()
+        val dirY = sin(directionAngle).toFloat()
+        val perpendicularX = -dirY
+        val perpendicularY = dirX
+        val baseCenterX = fromX + dirX * arrowHeight
+        val baseCenterY = fromY + dirY * arrowHeight
+        val baseLeftX = baseCenterX + perpendicularX * (baseWidth / 2f)
+        val baseLeftY = baseCenterY + perpendicularY * (baseWidth / 2f)
+        val baseRightX = baseCenterX - perpendicularX * (baseWidth / 2f)
+        val baseRightY = baseCenterY - perpendicularY * (baseWidth / 2f)
 
-        val arrowX1 = fromX + arrowSize * cos(angle - ARROW_ANGLE).toFloat()
-        val arrowY1 = fromY + arrowSize * sin(angle - ARROW_ANGLE).toFloat()
-        val arrowX2 = fromX + arrowSize * cos(angle + ARROW_ANGLE).toFloat()
-        val arrowY2 = fromY + arrowSize * sin(angle + ARROW_ANGLE).toFloat()
+        arrowPath.reset()
+        arrowPath.moveTo(fromX, fromY)
+        arrowPath.lineTo(baseLeftX, baseLeftY)
+        arrowPath.lineTo(baseRightX, baseRightY)
+        arrowPath.close()
 
-        canvas.drawLine(fromX, fromY, arrowX1, arrowY1, paint)
-        canvas.drawLine(fromX, fromY, arrowX2, arrowY2, paint)
+        paintArrow.color = paint.color
+        canvas.drawPath(arrowPath, paintArrow)
     }
 
     private fun drawRelativeMeasurement(canvas: Canvas) {
@@ -410,26 +441,26 @@ internal class OverlayCanvas @JvmOverloads constructor(
         val secondary = currentEngine.secondarySelection
         if (secondary == null) {
             // have primary only
-            paintBackground.withColor(BG_COLOR_RED.toColorInt()) { paintColor ->
+            paintBackground.withColor(BG_COLOR_RED) { paintColor ->
                 canvas.drawRect(primary.bounds, paintColor)
             }
             drawElementInfo(canvas, primary, primaryElementColor)
         } else {
             // have primary and secondary both
-            paintBackground.withColor(BG_COLOR_DARK.toColorInt()) { paintColor ->
+            paintBackground.withColor(BG_COLOR_DARK) { paintColor ->
                 canvas.drawRect(RectF(0f, 0f, width.toFloat(), height.toFloat()), paintColor)
             }
 
             canvas.drawRect(primary.bounds, paintPorterDuffClear)
             canvas.drawRect(secondary.bounds, paintPorterDuffClear)
 
-            paintBackground.withColor(BG_COLOR_RED.toColorInt()) { paintColor ->
+            paintBackground.withColor(BG_COLOR_RED) { paintColor ->
                 canvas.drawRect(primary.bounds, paintColor)
             }
             drawElementInfo(canvas, primary, primaryElementColor)
 
             val secondaryElementColor = getColorForElement(secondary)
-            paintBackground.withColor(BG_COLOR_BLUE.toColorInt()) { paintColor ->
+            paintBackground.withColor(BG_COLOR_BLUE) { paintColor ->
                 canvas.drawRect(secondary.bounds, paintColor)
             }
             drawElementInfo(canvas, secondary, secondaryElementColor)
@@ -444,15 +475,13 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
         val primary = internalEngine?.primarySelection
         val secondary = internalEngine?.secondarySelection
-        val primaryColor = primary?.let { getColorForElement(it) } ?: BG_COLOR_RED.toColorInt()
-        val secondaryColor = secondary?.let { getColorForElement(it) } ?: BG_COLOR_BLUE.toColorInt()
         val style = cfg.relativeGuideStyle
 
         distances.forEach { distance ->
             val text = UnitConverter.format(distance.value, dm, cfg.unitMode)
 
             when (style) {
-                RelativeGuideStyle.MINI -> {
+                RelativeGuideStyle.NONE -> {
                     drawDistanceLine(
                         canvas = canvas,
                         startX = distance.startX,
@@ -463,32 +492,31 @@ internal class OverlayCanvas @JvmOverloads constructor(
                     )
                 }
 
-                RelativeGuideStyle.STANDARD -> {
-                    val gap =
-                        if (distance.type == com.uhufor.inspector.engine.DistanceType.VERTICAL) {
-                            kotlin.math.abs(distance.endY - distance.startY)
-                        } else {
-                            kotlin.math.abs(distance.endX - distance.startX)
-                        }
-                    val thresholdPx = MIN_GAP_FOR_EDGE_DP.dp()
+                RelativeGuideStyle.EDGE -> {
+                    val gap = if (distance.type == DistanceType.VERTICAL) {
+                        abs(distance.endY - distance.startY)
+                    } else {
+                        abs(distance.endX - distance.startX)
+                    }
+                    val thresholdPx = GUIDE_EDGE_MIN_GAP.dp()
                     val isNarrow = gap < thresholdPx
 
                     if (!isNarrow) {
                         if (primary != null && distance.primaryEdge != null) {
-                            drawEdgeHighlight(
+                            drawGuideEdge(
                                 canvas = canvas,
                                 rect = primary.bounds,
                                 edge = distance.primaryEdge,
-                                color = primaryColor,
+                                color = GUIDE_LINE_PRIMARY_COLOR,
                                 distance = distance,
                             )
                         }
                         if (secondary != null && distance.secondaryEdge != null) {
-                            drawEdgeHighlight(
+                            drawGuideEdge(
                                 canvas = canvas,
                                 rect = secondary.bounds,
                                 edge = distance.secondaryEdge,
-                                color = secondaryColor,
+                                color = GUIDE_LINE_SECONDARY_COLOR,
                                 distance = distance,
                             )
                         }
@@ -504,13 +532,19 @@ internal class OverlayCanvas @JvmOverloads constructor(
                     )
                 }
 
-                RelativeGuideStyle.VERBOSE -> {
-                    if (primary != null && secondary != null && distance.primaryEdge != null && distance.secondaryEdge != null) {
-                        drawVerboseGuides(
+                RelativeGuideStyle.FULL -> {
+                    if (primary != null &&
+                        secondary != null &&
+                        distance.primaryEdge != null &&
+                        distance.secondaryEdge != null
+                    ) {
+                        drawGuideLines(
                             canvas = canvas,
                             primary = primary.bounds,
                             secondary = secondary.bounds,
-                            distance = distance
+                            primaryColor = GUIDE_LINE_PRIMARY_COLOR,
+                            secondaryColor = GUIDE_LINE_SECONDARY_COLOR,
+                            distance = distance,
                         )
                     }
 
@@ -527,120 +561,244 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
     }
 
-    private fun drawVerboseGuides(
-        canvas: Canvas,
-        primary: RectF,
-        secondary: RectF,
-        distance: Distance,
-    ) {
-        val p = paintDistanceLine
-        val oldAlpha = p.alpha
-        p.alpha = (VERBOSE_GUIDE_ALPHA_FRACTION * 255).toInt()
-
-        when (distance.type) {
-            com.uhufor.inspector.engine.DistanceType.VERTICAL -> {
-                val y1 = when (distance.primaryEdge) {
-                    Edge.TOP -> primary.top
-                    Edge.BOTTOM -> primary.bottom
-                    else -> primary.bottom
-                }
-                val y2 = when (distance.secondaryEdge) {
-                    Edge.TOP -> secondary.top
-                    Edge.BOTTOM -> secondary.bottom
-                    else -> secondary.top
-                }
-                val startX = kotlin.math.min(primary.left, secondary.left)
-                val endX = kotlin.math.max(primary.right, secondary.right)
-                canvas.drawLine(startX, y1, endX, y1, p)
-                canvas.drawLine(startX, y2, endX, y2, p)
-            }
-
-            com.uhufor.inspector.engine.DistanceType.HORIZONTAL -> {
-                val x1 = when (distance.primaryEdge) {
-                    Edge.LEFT -> primary.left
-                    Edge.RIGHT -> primary.right
-                    else -> primary.right
-                }
-                val x2 = when (distance.secondaryEdge) {
-                    Edge.LEFT -> secondary.left
-                    Edge.RIGHT -> secondary.right
-                    else -> secondary.left
-                }
-                val startY = kotlin.math.min(primary.top, secondary.top)
-                val endY = kotlin.math.max(primary.bottom, secondary.bottom)
-                canvas.drawLine(x1, startY, x1, endY, p)
-                canvas.drawLine(x2, startY, x2, endY, p)
-            }
-        }
-
-        p.alpha = oldAlpha
-    }
-
-    private fun drawEdgeHighlight(
+    private fun drawGuideEdge(
         canvas: Canvas,
         rect: RectF,
         edge: Edge,
         color: Int,
         distance: Distance,
     ) {
-        val lenMax = EDGE_HIGHLIGHT_MAX_LEN_DP.dp()
-        val stroke = thickBorderWidth * STROKE_SCALE_DEFAULT
+        val edgeLength = GUIDE_EDGE_LEN.dp()
 
-        paintBorder.withBorderWidth(stroke) { paint ->
+        paintBorder.withBorderWidth(GUIDE_LINE_WIDTH.dp()) { paint ->
             paint.withColor(color) { p ->
                 when (edge) {
                     Edge.LEFT -> {
                         val edgeX = rect.left
-                        val useStart =
-                            kotlin.math.abs(distance.startX - edgeX) <= kotlin.math.abs(distance.endX - edgeX)
+                        val useStart = abs(distance.startX - edgeX) <= abs(distance.endX - edgeX)
                         val yAnchor = if (useStart) distance.startY else distance.endY
-                        val half =
-                            minOf((rect.height() * EDGE_HIGHLIGHT_LENGTH_FACTOR), lenMax) / 2f
-                        canvas.drawLine(edgeX, yAnchor - half, edgeX, yAnchor + half, p)
+                        canvas.drawLine(edgeX, yAnchor - edgeLength, edgeX, yAnchor + edgeLength, p)
                     }
 
                     Edge.RIGHT -> {
                         val edgeX = rect.right
-                        val useStart =
-                            kotlin.math.abs(distance.startX - edgeX) <= kotlin.math.abs(distance.endX - edgeX)
+                        val useStart = abs(distance.startX - edgeX) <= abs(distance.endX - edgeX)
                         val yAnchor = if (useStart) distance.startY else distance.endY
-                        val half =
-                            minOf((rect.height() * EDGE_HIGHLIGHT_LENGTH_FACTOR), lenMax) / 2f
-                        canvas.drawLine(edgeX, yAnchor - half, edgeX, yAnchor + half, p)
+                        canvas.drawLine(edgeX, yAnchor - edgeLength, edgeX, yAnchor + edgeLength, p)
                     }
 
                     Edge.TOP -> {
                         val edgeY = rect.top
-                        val useStart =
-                            kotlin.math.abs(distance.startY - edgeY) <= kotlin.math.abs(distance.endY - edgeY)
+                        val useStart = abs(distance.startY - edgeY) <= abs(distance.endY - edgeY)
                         val xAnchor = if (useStart) distance.startX else distance.endX
-                        val half = minOf((rect.width() * EDGE_HIGHLIGHT_LENGTH_FACTOR), lenMax) / 2f
-                        canvas.drawLine(xAnchor - half, edgeY, xAnchor + half, edgeY, p)
+                        canvas.drawLine(xAnchor - edgeLength, edgeY, xAnchor + edgeLength, edgeY, p)
                     }
 
                     Edge.BOTTOM -> {
                         val edgeY = rect.bottom
-                        val useStart =
-                            kotlin.math.abs(distance.startY - edgeY) <= kotlin.math.abs(distance.endY - edgeY)
+                        val useStart = abs(distance.startY - edgeY) <= abs(distance.endY - edgeY)
                         val xAnchor = if (useStart) distance.startX else distance.endX
-                        val half = minOf((rect.width() * EDGE_HIGHLIGHT_LENGTH_FACTOR), lenMax) / 2f
-                        canvas.drawLine(xAnchor - half, edgeY, xAnchor + half, edgeY, p)
+                        canvas.drawLine(xAnchor - edgeLength, edgeY, xAnchor + edgeLength, edgeY, p)
                     }
                 }
             }
         }
     }
 
-    private fun getColorForElement(element: Any) =
-        elementColorMap.getOrPut(element.hashCode()) {
-            ELEMENT_COLORS[Random.nextInt(ELEMENT_COLORS.size)]
+    @Suppress("SameParameterValue")
+    private fun drawGuideLines(
+        canvas: Canvas,
+        primary: RectF,
+        secondary: RectF,
+        primaryColor: Int,
+        secondaryColor: Int,
+        distance: Distance,
+    ) {
+        fun nearestFacesRange(
+            aStart: Float,
+            aEnd: Float,
+            bStart: Float,
+            bEnd: Float,
+            isPrimary: Boolean,
+        ): Pair<Float, Float> {
+            return if (isPrimary) {
+                when {
+                    bEnd <= aStart -> aStart to bEnd
+                    bStart >= aEnd -> aEnd to bStart
+                    else -> aStart to aEnd
+                }
+            } else {
+                when {
+                    aEnd <= bStart -> bStart to aEnd
+                    aStart >= bEnd -> bEnd to aStart
+                    else -> bStart to bEnd
+                }
+            }
         }
+
+        fun computeRange(
+            aStart: Float,
+            aEnd: Float,
+            bStart: Float,
+            bEnd: Float,
+            anyAxisOverlap: Boolean,
+            isPrimary: Boolean,
+            primaryWithinSecondary: Boolean,
+            secondaryWithinPrimary: Boolean,
+        ): Pair<Float, Float> {
+            if (isPrimary && primaryWithinSecondary) return bStart to bEnd
+            if (!isPrimary && secondaryWithinPrimary) return aStart to aEnd
+
+            val fullStart = min(aStart, bStart)
+            val fullEnd = max(aEnd, bEnd)
+            val overlapStart = max(aStart, bStart)
+            val overlapEnd = min(aEnd, bEnd)
+            val hasAxisOverlap = overlapStart < overlapEnd
+
+            return if (anyAxisOverlap) {
+                if (hasAxisOverlap) overlapStart to overlapEnd
+                else nearestFacesRange(aStart, aEnd, bStart, bEnd, isPrimary)
+            } else {
+                if (isPrimary) nearestFacesRange(aStart, aEnd, bStart, bEnd, true)
+                else fullStart to fullEnd
+            }
+        }
+
+        paintDistanceLine.withBorderWidth(GUIDE_LINE_WIDTH.dp()) { paintBorder ->
+            when (distance.type) {
+                DistanceType.VERTICAL -> {
+                    val y1 = if (distance.primaryEdge == Edge.TOP) primary.top else primary.bottom
+                    val y2 =
+                        if (distance.secondaryEdge == Edge.TOP) secondary.top else secondary.bottom
+
+                    val hasHOverlap =
+                        max(primary.left, secondary.left) < min(primary.right, secondary.right)
+                    val hasVOverlap =
+                        !(secondary.bottom <= primary.top || secondary.top >= primary.bottom)
+                    val anyOverlap = hasHOverlap || hasVOverlap
+
+                    val primaryWithinSecondary =
+                        primary.left >= secondary.left &&
+                                primary.right <= secondary.right &&
+                                primary.top >= secondary.top &&
+                                primary.bottom <= secondary.bottom
+                    val secondaryWithinPrimary =
+                        secondary.left >= primary.left &&
+                                secondary.right <= primary.right &&
+                                secondary.top >= primary.top &&
+                                secondary.bottom <= primary.bottom
+
+                    val (pStartX, pEndX) = computeRange(
+                        aStart = primary.left,
+                        aEnd = primary.right,
+                        bStart = secondary.left,
+                        bEnd = secondary.right,
+                        anyAxisOverlap = anyOverlap,
+                        isPrimary = true,
+                        primaryWithinSecondary = primaryWithinSecondary,
+                        secondaryWithinPrimary = secondaryWithinPrimary,
+                    )
+
+                    val (sStartX, sEndX) = computeRange(
+                        aStart = primary.left,
+                        aEnd = primary.right,
+                        bStart = secondary.left,
+                        bEnd = secondary.right,
+                        anyAxisOverlap = anyOverlap,
+                        isPrimary = false,
+                        primaryWithinSecondary = primaryWithinSecondary,
+                        secondaryWithinPrimary = secondaryWithinPrimary,
+                    )
+
+                    paintBorder.withColor(primaryColor) { paint ->
+                        canvas.drawLine(pStartX, y1, pEndX, y1, paint)
+                    }
+                    paintBorder.withColor(secondaryColor) { paint ->
+                        canvas.drawLine(sStartX, y2, sEndX, y2, paint)
+                    }
+                }
+
+                DistanceType.HORIZONTAL -> {
+                    val x1 = if (distance.primaryEdge == Edge.LEFT) primary.left else primary.right
+                    val x2 =
+                        if (distance.secondaryEdge == Edge.LEFT) secondary.left else secondary.right
+
+                    val hasVOverlap =
+                        max(primary.top, secondary.top) < min(primary.bottom, secondary.bottom)
+                    val hasHOverlap =
+                        !(secondary.right <= primary.left || secondary.left >= primary.right)
+                    val anyOverlap = hasVOverlap || hasHOverlap
+
+                    val primaryWithinSecondary =
+                        primary.left >= secondary.left &&
+                                primary.right <= secondary.right &&
+                                primary.top >= secondary.top &&
+                                primary.bottom <= secondary.bottom
+                    val secondaryWithinPrimary =
+                        secondary.left >= primary.left &&
+                                secondary.right <= primary.right &&
+                                secondary.top >= primary.top &&
+                                secondary.bottom <= primary.bottom
+
+                    val (pStartY, pEndY) = computeRange(
+                        aStart = primary.top,
+                        aEnd = primary.bottom,
+                        bStart = secondary.top,
+                        bEnd = secondary.bottom,
+                        anyAxisOverlap = anyOverlap,
+                        isPrimary = true,
+                        primaryWithinSecondary = primaryWithinSecondary,
+                        secondaryWithinPrimary = secondaryWithinPrimary,
+                    )
+
+                    val (sStartY, sEndY) = computeRange(
+                        aStart = primary.top,
+                        aEnd = primary.bottom,
+                        bStart = secondary.top,
+                        bEnd = secondary.bottom,
+                        anyAxisOverlap = anyOverlap,
+                        isPrimary = false,
+                        primaryWithinSecondary = primaryWithinSecondary,
+                        secondaryWithinPrimary = secondaryWithinPrimary,
+                    )
+
+                    paintBorder.withColor(primaryColor) { paint ->
+                        canvas.drawLine(x1, pStartY, x1, pEndY, paint)
+                    }
+                    paintBorder.withColor(secondaryColor) { paint ->
+                        canvas.drawLine(x2, sStartY, x2, sEndY, paint)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getColorForElement(element: Any): Int {
+        val key = element.hashCode()
+        return elementColorMap.getOrPut(key) {
+            ELEMENT_COLORS[abs(key) % ELEMENT_COLORS.size]
+        }
+    }
 
     private fun getComplementaryColor(color: Int) = Color.rgb(
         255 - Color.red(color),
         255 - Color.green(color),
         255 - Color.blue(color)
     )
+
+    private fun getLabelTextColor(baseColor: Int): Int {
+        fun lin(c: Int): Double {
+            val s = c / 255.0
+            return if (s <= 0.03928) s / 12.92 else ((s + 0.055) / 1.055).pow(2.4)
+        }
+
+        val lBg = 0.2126 * lin(Color.red(baseColor)) +
+                0.7152 * lin(Color.green(baseColor)) +
+                0.0722 * lin(Color.blue(baseColor))
+        val contrastWhite = (1.0 + 0.05) / (lBg + 0.05)
+        val contrastBlack = (lBg + 0.05) / 0.05
+        return if (contrastWhite > contrastBlack) Color.WHITE else Color.BLACK
+    }
 
     private fun applyAlpha(color: Int, alpha: Float) = Color.argb(
         (Color.alpha(color) * alpha).toInt(),
@@ -662,7 +820,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
     companion object {
         private const val TEXT_SIZE = 8f
         private const val DISTANCE_TEXT_SIZE = 7f
-        private const val DASHED_LINE_WIDTH = 1.2f
+        private const val DASHED_LINE_WIDTH = 1.4f
         private const val DASH_PATTERN_ON = 10f
         private const val DASH_PATTERN_OFF = 5f
         private const val DASH_PHASE = 0f
@@ -670,18 +828,20 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val TEXT_PADDING_TOP = 7f
         private const val TEXT_PADDING_BOTTOM = 2f
         private const val TEXT_VERTICAL_OFFSET = DISTANCE_TEXT_SIZE
-        private const val ARROW_SIZE = 4f
-        private const val ARROW_ANGLE = Math.PI / 6
-        private const val BG_COLOR_DEEP_DARK = "#AC000000"
-        private const val BG_COLOR_DARK = "#50000000"
-        private const val BG_COLOR_RED = "#60FFAAAA"
-        private const val BG_COLOR_BLUE = "#60AAAAFF"
+        private const val ARROW_SIZE = 6f
+        private const val ARROW_BASE_RATIO = 0.8f
         private const val DIMENSION_TEXT_OFFSET = 3f
-        private const val MIN_GAP_FOR_EDGE_DP = 16f
-        private const val VERBOSE_GUIDE_ALPHA_FRACTION = 0.5f
-        private const val EDGE_HIGHLIGHT_MAX_LEN_DP = 24f
-        private const val EDGE_HIGHLIGHT_LENGTH_FACTOR = 0.20f
-        private const val STROKE_SCALE_DEFAULT = 1.0f
+        private const val GUIDE_LINE_WIDTH = 1.2f
+        private const val GUIDE_EDGE_LEN = ARROW_SIZE
+        private const val GUIDE_EDGE_MIN_GAP = 16f
+
+        private val BG_COLOR_DEEP_DARK = "#AC000000".toColorInt()
+        private val BG_COLOR_DARK = "#50000000".toColorInt()
+        private val BG_COLOR_RED = "#60FFAAAA".toColorInt()
+        private val BG_COLOR_BLUE = "#60AAAAFF".toColorInt()
+
+        private val GUIDE_LINE_PRIMARY_COLOR = "#FFFF4081".toColorInt()
+        private val GUIDE_LINE_SECONDARY_COLOR = "#FF2979FF".toColorInt()
 
         private val ELEMENT_COLORS = listOf(
             "#F44336".toColorInt(),
