@@ -35,7 +35,6 @@ import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
-import kotlin.random.Random
 
 private fun Paint.withColor(color: Int, block: (Paint) -> Unit) {
     val originalColor = this.color
@@ -659,10 +658,12 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
     }
 
-    private fun getColorForElement(element: Any) =
-        elementColorMap.getOrPut(element.hashCode()) {
-            ELEMENT_COLORS[Random.nextInt(ELEMENT_COLORS.size)]
+    private fun getColorForElement(element: Any): Int {
+        val key = element.hashCode()
+        return elementColorMap.getOrPut(key) {
+            ELEMENT_COLORS[abs(key) % ELEMENT_COLORS.size]
         }
+    }
 
     private fun getComplementaryColor(color: Int) = Color.rgb(
         255 - Color.red(color),
