@@ -309,7 +309,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
             addRect(parentBounds, Path.Direction.CW)
             addRect(childBounds, Path.Direction.CCW)
         }
-        paintBackground.withColor(BG_COLOR_DARK.toColorInt()) { paintColor ->
+        paintBackground.withColor(BG_COLOR_DARK) { paintColor ->
             canvas.drawPath(path, paintColor)
         }
     }
@@ -387,7 +387,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
             textY + TEXT_PADDING_BOTTOM.dp()
         )
 
-        paintBackground.withColor(BG_COLOR_DEEP_DARK.toColorInt()) { paintColor ->
+        paintBackground.withColor(BG_COLOR_DEEP_DARK) { paintColor ->
             canvas.drawRect(textBgRect, paintColor)
         }
         canvas.drawText(distanceText, textX, textY, paintDistanceText)
@@ -434,26 +434,26 @@ internal class OverlayCanvas @JvmOverloads constructor(
         val secondary = currentEngine.secondarySelection
         if (secondary == null) {
             // have primary only
-            paintBackground.withColor(BG_COLOR_RED.toColorInt()) { paintColor ->
+            paintBackground.withColor(BG_COLOR_RED) { paintColor ->
                 canvas.drawRect(primary.bounds, paintColor)
             }
             drawElementInfo(canvas, primary, primaryElementColor)
         } else {
             // have primary and secondary both
-            paintBackground.withColor(BG_COLOR_DARK.toColorInt()) { paintColor ->
+            paintBackground.withColor(BG_COLOR_DARK) { paintColor ->
                 canvas.drawRect(RectF(0f, 0f, width.toFloat(), height.toFloat()), paintColor)
             }
 
             canvas.drawRect(primary.bounds, paintPorterDuffClear)
             canvas.drawRect(secondary.bounds, paintPorterDuffClear)
 
-            paintBackground.withColor(BG_COLOR_RED.toColorInt()) { paintColor ->
+            paintBackground.withColor(BG_COLOR_RED) { paintColor ->
                 canvas.drawRect(primary.bounds, paintColor)
             }
             drawElementInfo(canvas, primary, primaryElementColor)
 
             val secondaryElementColor = getColorForElement(secondary)
-            paintBackground.withColor(BG_COLOR_BLUE.toColorInt()) { paintColor ->
+            paintBackground.withColor(BG_COLOR_BLUE) { paintColor ->
                 canvas.drawRect(secondary.bounds, paintColor)
             }
             drawElementInfo(canvas, secondary, secondaryElementColor)
@@ -491,7 +491,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
                     } else {
                         abs(distance.endX - distance.startX)
                     }
-                    val thresholdPx = MIN_GAP_FOR_EDGE_DP.dp()
+                    val thresholdPx = GUIDE_EDGE_MIN_GAP.dp()
                     val isNarrow = gap < thresholdPx
 
                     if (!isNarrow) {
@@ -561,7 +561,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         color: Int,
         distance: Distance,
     ) {
-        val stroke = thinBorderWidth * STROKE_SCALE_DEFAULT
+        val stroke = thinBorderWidth * GUIDE_STROKE_WIDTH_SCALE
         val edgeLength = GUIDE_EDGE_LEN.dp()
 
         paintBorder.withBorderWidth(stroke) { paint ->
@@ -599,6 +599,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         }
     }
 
+    @Suppress("SameParameterValue")
     private fun drawGuideLines(
         canvas: Canvas,
         primary: RectF,
@@ -607,7 +608,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
         secondaryColor: Int,
         distance: Distance,
     ) {
-        val stroke = thinBorderWidth * STROKE_SCALE_DEFAULT
+        val stroke = thinBorderWidth * GUIDE_STROKE_WIDTH_SCALE
 
         paintDistanceLine.withBorderWidth(stroke) { paintBorder ->
             when (distance.type) {
@@ -699,14 +700,15 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val TEXT_VERTICAL_OFFSET = DISTANCE_TEXT_SIZE
         private const val ARROW_SIZE = 6f
         private const val ARROW_BASE_RATIO = 0.8f
-        private const val BG_COLOR_DEEP_DARK = "#AC000000"
-        private const val BG_COLOR_DARK = "#50000000"
-        private const val BG_COLOR_RED = "#60FFAAAA"
-        private const val BG_COLOR_BLUE = "#60AAAAFF"
         private const val DIMENSION_TEXT_OFFSET = 3f
-        private const val MIN_GAP_FOR_EDGE_DP = 16f
         private const val GUIDE_EDGE_LEN = ARROW_SIZE
-        private const val STROKE_SCALE_DEFAULT = 1.2f
+        private const val GUIDE_STROKE_WIDTH_SCALE = 1.2f
+        private const val GUIDE_EDGE_MIN_GAP = 16f
+
+        private val BG_COLOR_DEEP_DARK = "#AC000000".toColorInt()
+        private val BG_COLOR_DARK = "#50000000".toColorInt()
+        private val BG_COLOR_RED = "#60FFAAAA".toColorInt()
+        private val BG_COLOR_BLUE = "#60AAAAFF".toColorInt()
 
         private val GUIDE_LINE_PRIMARY_COLOR = "#FF4081".toColorInt()
         private val GUIDE_LINE_SECONDARY_COLOR = "#2979FF".toColorInt()
