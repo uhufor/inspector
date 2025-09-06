@@ -561,10 +561,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
         color: Int,
         distance: Distance,
     ) {
-        val stroke = thinBorderWidth * GUIDE_STROKE_WIDTH_SCALE
         val edgeLength = GUIDE_EDGE_LEN.dp()
 
-        paintBorder.withBorderWidth(stroke) { paint ->
+        paintBorder.withBorderWidth(GUIDE_LINE_WIDTH.dp()) { paint ->
             paint.withColor(color) { p ->
                 when (edge) {
                     Edge.LEFT -> {
@@ -608,8 +607,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
         secondaryColor: Int,
         distance: Distance,
     ) {
-        val stroke = thinBorderWidth * GUIDE_STROKE_WIDTH_SCALE
-
         fun nearestFacesRange(
             aStart: Float,
             aEnd: Float,
@@ -660,7 +657,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
             }
         }
 
-        paintDistanceLine.withBorderWidth(stroke) { paintBorder ->
+        paintDistanceLine.withBorderWidth(GUIDE_LINE_WIDTH.dp()) { paintBorder ->
             when (distance.type) {
                 DistanceType.VERTICAL -> {
                     val y1 = if (distance.primaryEdge == Edge.TOP) primary.top else primary.bottom
@@ -813,8 +810,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val ARROW_SIZE = 6f
         private const val ARROW_BASE_RATIO = 0.8f
         private const val DIMENSION_TEXT_OFFSET = 3f
+        private const val GUIDE_LINE_WIDTH = 1.2f
         private const val GUIDE_EDGE_LEN = ARROW_SIZE
-        private const val GUIDE_STROKE_WIDTH_SCALE = 1.2f
         private const val GUIDE_EDGE_MIN_GAP = 16f
 
         private val BG_COLOR_DEEP_DARK = "#AC000000".toColorInt()
@@ -822,8 +819,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private val BG_COLOR_RED = "#60FFAAAA".toColorInt()
         private val BG_COLOR_BLUE = "#60AAAAFF".toColorInt()
 
-        private val GUIDE_LINE_PRIMARY_COLOR = "#FF4081".toColorInt()
-        private val GUIDE_LINE_SECONDARY_COLOR = "#2979FF".toColorInt()
+        private val GUIDE_LINE_PRIMARY_COLOR = "#FFFF4081".toColorInt()
+        private val GUIDE_LINE_SECONDARY_COLOR = "#FF2979FF".toColorInt()
 
         private val ELEMENT_COLORS = listOf(
             "#F44336".toColorInt(),
