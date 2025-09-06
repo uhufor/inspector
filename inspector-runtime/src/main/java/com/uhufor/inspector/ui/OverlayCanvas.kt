@@ -468,8 +468,6 @@ internal class OverlayCanvas @JvmOverloads constructor(
 
         val primary = internalEngine?.primarySelection
         val secondary = internalEngine?.secondarySelection
-        val primaryColor = primary?.let { getColorForElement(it) } ?: BG_COLOR_RED.toColorInt()
-        val secondaryColor = secondary?.let { getColorForElement(it) } ?: BG_COLOR_BLUE.toColorInt()
         val style = cfg.relativeGuideStyle
 
         distances.forEach { distance ->
@@ -502,7 +500,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
                                 canvas = canvas,
                                 rect = primary.bounds,
                                 edge = distance.primaryEdge,
-                                color = primaryColor,
+                                color = GUIDE_LINE_PRIMARY_COLOR,
                                 distance = distance,
                             )
                         }
@@ -511,7 +509,7 @@ internal class OverlayCanvas @JvmOverloads constructor(
                                 canvas = canvas,
                                 rect = secondary.bounds,
                                 edge = distance.secondaryEdge,
-                                color = secondaryColor,
+                                color = GUIDE_LINE_SECONDARY_COLOR,
                                 distance = distance,
                             )
                         }
@@ -537,8 +535,8 @@ internal class OverlayCanvas @JvmOverloads constructor(
                             canvas = canvas,
                             primary = primary.bounds,
                             secondary = secondary.bounds,
-                            primaryColor = primaryColor,
-                            secondaryColor = secondaryColor,
+                            primaryColor = GUIDE_LINE_PRIMARY_COLOR,
+                            secondaryColor = GUIDE_LINE_SECONDARY_COLOR,
                             distance = distance,
                         )
                     }
@@ -709,6 +707,9 @@ internal class OverlayCanvas @JvmOverloads constructor(
         private const val MIN_GAP_FOR_EDGE_DP = 16f
         private const val GUIDE_EDGE_LEN = ARROW_SIZE
         private const val STROKE_SCALE_DEFAULT = 1.2f
+
+        private val GUIDE_LINE_PRIMARY_COLOR = "#FF4081".toColorInt()
+        private val GUIDE_LINE_SECONDARY_COLOR = "#2979FF".toColorInt()
 
         private val ELEMENT_COLORS = listOf(
             "#F44336".toColorInt(),
