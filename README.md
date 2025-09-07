@@ -97,9 +97,9 @@ The default is the **Hierarchy** mode, which allows intuitive navigation through
 
 The other type is **DFS (Depth-First Search)** mode, which navigates the view tree using pre-order traversal. For instance, swiping to the right does not move to a sibling node but instead first traverses the child nodes of the current node, and then continues to the next sibling.
 
-|           Hierachy (Default)            |                   DFS                   |
-| :-------------------------------------: | :-------------------------------------: |
-| <img src="./art/art_4.png" width="420"> | <img src="./art/art_5.png" width="420"> |
+|           Hierachy (Default)            |                   DFS                   |                Demo (DFS)                 |
+| :-------------------------------------: | :-------------------------------------: |:-----------------------------------------:|
+| <img src="./art/art_4.png" width="420"> | <img src="./art/art_5.png" width="420"> | <img src="./art/art_m_0.gif" width="420"> |
 
 The diagram illustrates how the tree navigation changes according to the swipe gesture direction. For example, In DFS mode, moving from Top → B can be done using either the GD or GR swipe gestures. **GD** is a shorthand for Gesture Down.
 
@@ -118,6 +118,10 @@ In Relative inspection mode, you can control how guide lines are rendered via a 
   - If there is overlap on any axis, both guides are clamped to the overlapping projection or nearest faces.
   - If one element is fully contained within the other, the inner element’s guide lines extend to the outer element’s faces.
 
+|                   Edge                    |                   FULL                    |
+| :---------------------------------------: | :---------------------------------------: |
+| <img src="./art/art_m_1.gif" width="420"> | <img src="./art/art_m_2.gif" width="420"> |
+
 ### Details and Editing
 
 A floating panel shows detailed information for the selected element and provides limited editing capabilities.
@@ -129,6 +133,10 @@ A floating panel shows detailed information for the selected element and provide
   - Layout-related properties such as margin and padding
 - **Others**
   - The floating panel supports UI scale adjustment.
+
+|                  Details                  |                  Editing                  |
+|:-----------------------------------------:|:-----------------------------------------:|
+| <img src="./art/art_m_3.gif" width="420"> | <img src="./art/art_m_4.gif" width="420"> |
 
 ### Settings / Toggle APIs
 
