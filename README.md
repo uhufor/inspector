@@ -118,9 +118,9 @@ In Relative inspection mode, you can control how guide lines are rendered via a 
   - If there is overlap on any axis, both guides are clamped to the overlapping projection or nearest faces.
   - If one element is fully contained within the other, the inner element’s guide lines extend to the outer element’s faces.
 
-|                   Edge                    |                   FULL                    |
-| :---------------------------------------: | :---------------------------------------: |
-| <img src="./art/art_m_1.gif" width="270"> | <img src="./art/art_m_2.gif" width="270"> |
+|                   None                    |                   Edge                    |                   FULL                    |
+| :---------------------------------------: | :---------------------------------------: | :---------------------------------------: |
+| <img src="./art/art_m_1.gif" width="270"> | <img src="./art/art_m_2.gif" width="270"> | <img src="./art/art_m_3.gif" width="270"> |
 
 ### Details and Editing
 
@@ -134,9 +134,9 @@ A floating panel shows detailed information for the selected element and provide
 - **Others**
   - The floating panel supports UI scale adjustment.
 
-|                  Details                  |                  Editing                  |
-|:-----------------------------------------:|:-----------------------------------------:|
-| <img src="./art/art_m_3.gif" width="270"> | <img src="./art/art_m_4.gif" width="270"> |
+|                  Details                  |                  Editing                  |                 UI Scale                  |
+| :---------------------------------------: | :---------------------------------------: | :---------------------------------------: |
+| <img src="./art/art_m_4.gif" width="270"> | <img src="./art/art_m_5.gif" width="270"> | <img src="./art/art_m_6.gif" width="270"> |
 
 ### Settings / Toggle APIs
 
