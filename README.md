@@ -10,7 +10,7 @@ or code inclusion in release builds.
 
 | Screenshot 1                            | Screenshot 2                            | Screenshot 3                            | Screenshot 4                            |
 | --------------------------------------- | :-------------------------------------- | :-------------------------------------- | :-------------------------------------- |
-| <img src="./art/art_0.png" width="300"> | <img src="./art/art_1.png" width="300"> | <img src="./art/art_2.png" width="300"> | <img src="./art/art_3.png" width="300"> |
+| <img src="./art/art_0.png" width="180"> | <img src="./art/art_1.png" width="180"> | <img src="./art/art_2.png" width="180"> | <img src="./art/art_3.png" width="180"> |
 
 ---
 
@@ -99,7 +99,7 @@ The other type is **DFS (Depth-First Search)** mode, which navigates the view tr
 
 |           Hierachy (Default)            |                   DFS                   |                Demo (DFS)                 |
 | :-------------------------------------: | :-------------------------------------: |:-----------------------------------------:|
-| <img src="./art/art_4.png" width="420"> | <img src="./art/art_5.png" width="420"> | <img src="./art/art_m_0.gif" width="420"> |
+| <img src="./art/art_4.png" width="270"> | <img src="./art/art_5.png" width="270"> | <img src="./art/art_m_0.gif" width="270"> |
 
 The diagram illustrates how the tree navigation changes according to the swipe gesture direction. For example, In DFS mode, moving from Top → B can be done using either the GD or GR swipe gestures. **GD** is a shorthand for Gesture Down.
 
@@ -120,7 +120,7 @@ In Relative inspection mode, you can control how guide lines are rendered via a 
 
 |                   Edge                    |                   FULL                    |
 | :---------------------------------------: | :---------------------------------------: |
-| <img src="./art/art_m_1.gif" width="420"> | <img src="./art/art_m_2.gif" width="420"> |
+| <img src="./art/art_m_1.gif" width="270"> | <img src="./art/art_m_2.gif" width="270"> |
 
 ### Details and Editing
 
@@ -136,7 +136,7 @@ A floating panel shows detailed information for the selected element and provide
 
 |                  Details                  |                  Editing                  |
 |:-----------------------------------------:|:-----------------------------------------:|
-| <img src="./art/art_m_3.gif" width="420"> | <img src="./art/art_m_4.gif" width="420"> |
+| <img src="./art/art_m_3.gif" width="270"> | <img src="./art/art_m_4.gif" width="270"> |
 
 ### Settings / Toggle APIs
 

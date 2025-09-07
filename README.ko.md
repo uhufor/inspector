@@ -9,7 +9,7 @@
 
 | 스크린샷 1                              | 스크린샷 2                              | 스크린샷 3                              | 스크린샷 4                              |
 | --------------------------------------- | :-------------------------------------- | :-------------------------------------- | :-------------------------------------- |
-| <img src="./art/art_0.png" width="300"> | <img src="./art/art_1.png" width="300"> | <img src="./art/art_2.png" width="300"> | <img src="./art/art_3.png" width="300"> |
+| <img src="./art/art_0.png" width="180"> | <img src="./art/art_1.png" width="180"> | <img src="./art/art_2.png" width="180"> | <img src="./art/art_3.png" width="180"> |
 
 ---
 
@@ -95,7 +95,7 @@ fun Profile(profile: Profile, modifier: Modifier) {
 
 |           Hierachy (Default)            |                   DFS                   |                데모 (DFS)                 |
 | :-------------------------------------: | :-------------------------------------: | :---------------------------------------: |
-| <img src="./art/art_4.png" width="420"> | <img src="./art/art_5.png" width="420"> | <img src="./art/art_m_0.gif" width="420"> |
+| <img src="./art/art_4.png" width="270"> | <img src="./art/art_5.png" width="270"> | <img src="./art/art_m_0.gif" width="270"> |
 
 그림에서는 스와이프 제스처 방향에 따라 트리 이동이 어떻게 이루어지는지 보여줍니다. 예를 들어, DFS 모드에서는 Top → B로의 이동이 GD, GR 두 가지 스와이프 제스처로 가능합니다. **GD**은 Gesture Down의 줄임 표현입니다.
 
@@ -116,7 +116,7 @@ fun Profile(profile: Profile, modifier: Modifier) {
 
 |                   Edge                    |                   FULL                    |
 | :---------------------------------------: | :---------------------------------------: |
-| <img src="./art/art_m_1.gif" width="420"> | <img src="./art/art_m_2.gif" width="420"> |
+| <img src="./art/art_m_1.gif" width="270"> | <img src="./art/art_m_2.gif" width="270"> |
 
 ### 상세 보기(Details) 및 편집 기능
 
@@ -132,7 +132,7 @@ fun Profile(profile: Profile, modifier: Modifier) {
 
 |                   상세 보기                   |          margin / padding 수정 모드           |
 |:-----------------------------------------:|:-----------------------------------------:|
-| <img src="./art/art_m_3.gif" width="420"> | <img src="./art/art_m_4.gif" width="420"> |
+| <img src="./art/art_m_3.gif" width="270"> | <img src="./art/art_m_4.gif" width="270"> |
 
 ### 설정/토글 API
 
