@@ -50,7 +50,6 @@ fun Profile(profile: Profile, modifier: Modifier) {
     modifier = Modifier
       .clearAndSetSemantics {} // or .semantics {}
       .size(100.dp)
-      ..
   ) {
       Image(
         painter = painterResource(id = R.drawable.ic_profile_placeholder),
@@ -61,7 +60,6 @@ fun Profile(profile: Profile, modifier: Modifier) {
           .fillMaxSize(),
         contentScale = ContentScale.Crop
       )
-      ..
   }
 }
 ```
@@ -104,6 +102,59 @@ The other type is **DFS (Depth-First Search)** mode, which navigates the view tr
 | <img src="./art/art_4.png" width="420"> | <img src="./art/art_5.png" width="420"> |
 
 The diagram illustrates how the tree navigation changes according to the swipe gesture direction. For example, In DFS mode, moving from Top → B can be done using either the GD or GR swipe gestures. **GD** is a shorthand for Gesture Down.
+
+### Relative Guide Styles (NONE/EDGE/FULL)
+
+In Relative inspection mode, you can control how guide lines are rendered via a style.
+
+- **NONE**
+  - Only distance lines, arrows, and labels are shown.
+- **EDGE**
+  - Short edge guides are drawn on the nearest faces of the two elements, along with distance lines and labels.
+  - If the gap is too narrow, edge guides may be omitted.
+- **FULL**
+  - Linear guide lines visualize the relationship between the two elements.
+  - When the elements are completely separated, the primary guide extends only to the nearest face of the secondary, while the secondary spans the full outer extent.
+  - If there is overlap on any axis, both guides are clamped to the overlapping projection or nearest faces.
+  - If one element is fully contained within the other, the inner element’s guide lines extend to the outer element’s faces.
+
+### Details and Editing
+
+A floating panel shows detailed information for the selected element and provides limited editing capabilities.
+
+- **Scope**
+  - Editing is currently available for the **XML-based View system** only.
+  - Editing for Jetpack Compose elements is not supported.
+- **Examples**
+  - Layout-related properties such as margin and padding
+- **Others**
+  - The floating panel supports UI scale adjustment.
+
+### Settings / Toggle APIs
+
+You can control behavior at runtime via the following APIs.
+
+- **Relative Guide Style**
+  ```kotlin
+  Inspector.setRelativeGuideStyle(RelativeGuideStyle.EDGE)
+  val style = Inspector.getRelativeGuideStyle()
+  ```
+- **Traverse Type**
+  ```kotlin
+  Inspector.setTraverseType(TraverseType.HIERARCHY)
+  Inspector.setTraverseType(TraverseType.DFS)
+  ```
+- **Unit Mode**
+  ```kotlin
+  Inspector.setUnitMode(UnitMode.DP)
+  Inspector.setUnitMode(UnitMode.PX)
+  ```
+- **Details Panel**
+  ```kotlin
+  Inspector.enableDetailsView()
+  Inspector.disableDetailsView()
+  Inspector.setDetailsViewUiScale(1.0f)
+  ```
 
 ---
 
@@ -159,4 +210,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-```

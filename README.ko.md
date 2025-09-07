@@ -49,18 +49,15 @@ fun Profile(profile: Profile, modifier: Modifier) {
     modifier = Modifier
       .clearAndSetSemantics {} // 또는 .semantics {}
       .size(100.dp)
-      ..
   ) {
       Image(
         painter = painterResource(id = R.drawable.ic_profile_placeholder),
         contentDescription = "profile holder", // 옵션 1
         modifier = Modifier
-          // 또는 .clearAndSetSemantics {}      // 옵션 2
-          // 또는 .semantics {}                 // 옵션 3
+          // 또는 .semantics {}                 // 옵션 2
           .fillMaxSize(),
         contentScale = ContentScale.Crop
       )
-      ..
   }
 }
 ```
@@ -81,7 +78,7 @@ fun Profile(profile: Profile, modifier: Modifier) {
 </manifest>
 ```
 
-앱 설치 후에 이 권한을 UI 요소 검사 수행 전에 앱 권한으로 부여해야 합니다. 
+앱 설치 후에 이 권한을 UI 요소 검사 수행 전에 앱 권한으로 부여해야 합니다.
 (설정 > 애플리케이션 > 당신의 앱 > 다른 앱 위에 표시)
 
 ---
@@ -101,6 +98,62 @@ fun Profile(profile: Profile, modifier: Modifier) {
 | <img src="./art/art_4.png" width="420"> | <img src="./art/art_5.png" width="420"> |
 
 그림에서는 스와이프 제스처 방향에 따라 트리 이동이 어떻게 이루어지는지 보여줍니다. 예를 들어, DFS 모드에서는 Top → B로의 이동이 GD, GR 두 가지 스와이프 제스처로 가능합니다. **GD**은 Gesture Down의 줄임 표현입니다.
+
+### 상대 가이드 스타일(NONE/EDGE/FULL)
+
+상대 검사 모드에서 가이드라인의 표현 방식을 스타일로 제어할 수 있습니다.
+
+- **NONE**
+    - 거리선, 화살표, 라벨만 표시합니다.
+- **EDGE**
+    - 두 요소의 가장 가까운 면에 짧은 엣지 가이드만 표시하고, 거리선과 라벨도 함께 표시합니다.
+    - 요소 간 간격이 너무 좁으면 엣지 가이드는 생략됩니다.
+- **FULL**
+    - 두 요소의 상대 관계를 선형으로 보여주는 가이드라인을 표시합니다.
+    - 두 요소가 완전히 분리된 경우에는 primary는 상대 면까지만, secondary는 전체 외곽까지 표시합니다.
+    - 축 중 하나라도 겹치면 양쪽 모두 겹치는 투영 또는 인접 면까지만 표시합니다.
+    - 한 요소가 다른 요소 내부에 완전히 포함된 경우, 내부 요소의 가이드라인은 바깥 요소의 면까지 연장됩니다.
+
+### 상세 보기(Details) 및 편집 기능
+
+선택된 요소의 상세 정보를 플로팅 패널로 확인할 수 있으며, 일부 속성 편집 기능을 제공합니다.
+
+- **지원 범위**
+    - 편집 기능은 현재 **XML 기반 View 시스템**에 한해 제공됩니다.
+    - Jetpack Compose 요소의 속성 편집은 지원하지 않습니다.
+- **가능한 편집 항목 예시**
+    - margin, padding 등 뷰 레이아웃 관련 속성
+- **기타**
+    - 플로팅 패널의 UI 스케일 조정이 가능합니다.
+
+### 설정/토글 API
+
+다음 API를 통해 런타임에서 동작을 제어할 수 있습니다.
+
+- **상대 가이드 스타일**
+  ```kotlin
+  Inspector.setRelativeGuideStyle(RelativeGuideStyle.EDGE)
+  val style = Inspector.getRelativeGuideStyle()
+  ```
+
+- **트리 탐색 방식**
+  ```kotlin
+  Inspector.setTraverseType(TraverseType.HIERARCHY)
+  Inspector.setTraverseType(TraverseType.DFS)
+  ```
+
+- **단위 표시 방식**
+  ```kotlin
+  Inspector.setUnitMode(UnitMode.DP)
+  Inspector.setUnitMode(UnitMode.PX)
+  ```
+
+- **상세 보기 패널*
+  ```kotlin
+  Inspector.enableDetailsView()
+  Inspector.disableDetailsView()
+  Inspector.setDetailsViewUiScale(1.0f)
+  ```
 
 ---
 
