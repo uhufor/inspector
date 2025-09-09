@@ -138,11 +138,12 @@ internal class InspectorEngine(
         from: SelectionState,
     ): SelectionState? = when (direction) {
         SwipeGestureDetector.GestureDirection.UP -> {
-            findParentOf(from)
+            if (from.parentBounds == null) null
+            dfsElements.find { it.bounds == from.parentBounds }
         }
 
         SwipeGestureDetector.GestureDirection.DOWN -> {
-            findChildrenOf(from).firstOrNull()
+            dfsElements.firstOrNull { it.parentBounds == from.bounds }
         }
 
         SwipeGestureDetector.GestureDirection.LEFT -> {
@@ -165,7 +166,30 @@ internal class InspectorEngine(
     }
 
     private fun findElementAt(rootView: View, x: Int, y: Int): SelectionState? {
-        return ComposeHitTester.hitTest(rootView, x, y) ?: ViewHitTester.hitTest(rootView, x, y)
+        val composeHit = ComposeHitTester.hitTest(rootView, x, y)
+        val viewHit = ViewHitTester.hitTest(rootView, x, y)
+
+        return when {
+            composeHit == null -> viewHit
+            viewHit == null -> composeHit
+            else -> {
+                val composeBounds = composeHit.bounds
+                val viewBounds = viewHit.bounds
+
+                val composeContainsView = composeBounds.contains(viewBounds)
+                val viewContainsCompose = viewBounds.contains(composeBounds)
+                if (composeContainsView && !viewContainsCompose) return viewHit
+                if (viewContainsCompose && !composeContainsView) return composeHit
+
+                val composeArea = composeBounds.width() * composeBounds.height()
+                val viewArea = viewBounds.width() * viewBounds.height()
+
+                when {
+                    viewArea <= composeArea -> viewHit
+                    else -> composeHit
+                }
+            }
+        }
     }
 
     fun scanAllElements() {
