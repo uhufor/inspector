@@ -3,7 +3,9 @@
     <string name="main_title">Android UI Inspection Sample</string>
     <string name="btn_xml_ui">XML UI</string>
     <string name="btn_compose_ui">Compose UI</string>
-    <string name="btn_xml_and_compose_ui">XML and Compose UI</string>
+    <string name="btn_mixed_a">Mixed A</string>
+    <string name="btn_mixed_b">Mixed B</string>
+    <string name="btn_mixed_c">Mixed C</string>
     <string name="ui_scale_initial">UI Scale: 1.00</string>
     <string name="history_title">Work Experience</string>
     <string name="exp1_title">Senior Software Engineer - Tech Solutions Inc.</string>
