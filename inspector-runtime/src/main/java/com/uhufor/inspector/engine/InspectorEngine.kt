@@ -397,6 +397,8 @@ internal class InspectorEngine(
         }
 
         return resultList
+            .filter { it.parentBounds != null }
+            .distinctBy { it.bounds }
     }
 
     private fun traverseAndSort(currentNode: Node, resultList: MutableList<SelectionState>) {
