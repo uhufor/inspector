@@ -24,7 +24,7 @@
         <androidx.compose.ui.platform.ComposeView
             android:id="@+id/bottom_input_compose"
             android:layout_width="match_parent"
-            android:layout_height="100dp" />
+            android:layout_height="wrap_content" />
 
     </FrameLayout>
 
