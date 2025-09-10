@@ -161,7 +161,7 @@ private class ChatAdapter : ListAdapter<ViewChatItem, RecyclerView.ViewHolder>(D
         private val icon: ImageView = itemView.findViewById(R.id.icon)
         private val text: TextView = itemView.findViewById(R.id.text)
         fun bind(item: ViewChatItem) {
-            icon.setImageResource(R.drawable.ic_launcher_foreground)
+            icon.setImageResource(R.drawable.ic_heart)
             text.text = item.title
         }
     }
@@ -170,7 +170,7 @@ private class ChatAdapter : ListAdapter<ViewChatItem, RecyclerView.ViewHolder>(D
         private val icon: ImageView = itemView.findViewById(R.id.icon)
         private val text: TextView = itemView.findViewById(R.id.text)
         fun bind(item: ViewChatItem) {
-            icon.setImageResource(R.drawable.ic_launcher_foreground)
+            icon.setImageResource(com.uhufor.inspector.R.drawable.ic_compose)
             text.text = item.title
         }
     }
