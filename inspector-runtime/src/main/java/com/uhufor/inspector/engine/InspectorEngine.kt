@@ -2,6 +2,7 @@ package com.uhufor.inspector.engine
 
 import android.app.Activity
 import android.graphics.PointF
+import android.graphics.RectF
 import android.os.Build
 import android.view.View
 import android.view.WindowInsets
@@ -9,6 +10,7 @@ import com.uhufor.inspector.TraverseType
 import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.util.SwipeGestureDetector
 import com.uhufor.inspector.util.WindowManagerUtils
+import kotlin.math.sqrt
 
 internal class InspectorEngine(
     private val configProvider: ConfigProvider,
@@ -403,10 +405,27 @@ internal class InspectorEngine(
 
     private fun traverseAndSort(currentNode: Node, resultList: MutableList<SelectionState>) {
         resultList.add(currentNode.state)
-        currentNode.children.sortWith(NodeBoundsComparator)
+        val parentBounds = currentNode.state.bounds
+
+        currentNode.children.sortWith(
+            compareBy {
+                // use tricky way:
+                //  - Top position has 90% weight
+                //  - Distance from the parent's origin has 10% weight
+                it.state.bounds.top * 0.9f +
+                        distance(parent = parentBounds, child = it.state.bounds) * 0.1f
+            }
+        )
+
         for (child in currentNode.children) {
             traverseAndSort(child, resultList)
         }
+    }
+
+    private fun distance(parent: RectF, child: RectF): Float {
+        val dx = child.left - parent.left
+        val dy = child.top - parent.top
+        return sqrt(dx * dx + dy * dy)
     }
 
     private fun rebindSelections() {
