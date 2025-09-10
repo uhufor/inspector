@@ -331,7 +331,80 @@ internal class InspectorEngine(
         for (root in roots) {
             dfsVisit(root)
         }
-        return orderedList
+        return sortStatesByBoundsContainment(orderedList)
+    }
+
+    // Experimental
+    private data class Node(
+        val state: SelectionState,
+        val children: MutableList<Node> = mutableListOf(),
+    )
+
+    private object NodeBoundsComparator : Comparator<Node> {
+        override fun compare(n1: Node, n2: Node): Int {
+            val r1 = n1.state.bounds
+            val r2 = n2.state.bounds
+            val topCompare = r1.top.compareTo(r2.top)
+            return if (topCompare != 0) topCompare else r1.left.compareTo(r2.left)
+        }
+    }
+
+    private fun sortStatesByBoundsContainment(states: List<SelectionState>): List<SelectionState> {
+        if (states.isEmpty()) {
+            return emptyList()
+        }
+
+        val nodes = states.map { Node(it) }
+        val parentMap = mutableMapOf<Node, Node?>()
+
+        for (nodeA in nodes) {
+            var directParent: Node? = null
+            var minArea = Double.MAX_VALUE
+
+            for (nodeB in nodes) {
+                if (nodeA == nodeB) continue
+
+                val boundsA = nodeA.state.bounds
+                val boundsB = nodeB.state.bounds
+
+                val areaA = boundsA.width() * boundsA.height()
+                val areaB = boundsB.width() * boundsB.height()
+
+                if (boundsB.contains(boundsA) && areaB > areaA) {
+                    val currentArea = areaB.toDouble()
+                    if (directParent == null || currentArea < minArea) {
+                        minArea = currentArea
+                        directParent = nodeB
+                    }
+                }
+            }
+            parentMap[nodeA] = directParent
+        }
+
+        val roots = mutableListOf<Node>()
+        parentMap.forEach { (child, parent) ->
+            if (parent != null) {
+                parent.children.add(child)
+            } else {
+                roots.add(child)
+            }
+        }
+
+        val resultList = mutableListOf<SelectionState>()
+        roots.sortWith(NodeBoundsComparator)
+        roots.forEach { root ->
+            traverseAndSort(root, resultList)
+        }
+
+        return resultList
+    }
+
+    private fun traverseAndSort(currentNode: Node, resultList: MutableList<SelectionState>) {
+        resultList.add(currentNode.state)
+        currentNode.children.sortWith(NodeBoundsComparator)
+        for (child in currentNode.children) {
+            traverseAndSort(child, resultList)
+        }
     }
 
     private fun rebindSelections() {
