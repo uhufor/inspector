@@ -31,6 +31,16 @@
             android:name=".contact.ContactActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".mixed.MixedViewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.InspectionSample" />
+
+        <activity
+            android:name=".mixed.MixedComposeActivity"
+            android:exported="false"
+            android:theme="@style/Theme.InspectionSample" />
+
     </application>
 
 </manifest>

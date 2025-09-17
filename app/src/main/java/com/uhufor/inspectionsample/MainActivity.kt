@@ -10,6 +10,8 @@ import androidx.core.view.WindowInsetsCompat
 import com.uhufor.inspectionsample.bottomsheet.PersonListBottomSheetDialogFragment
 import com.uhufor.inspectionsample.contact.ContactActivity
 import com.uhufor.inspectionsample.dialog.PersonListDialogFragment
+import com.uhufor.inspectionsample.mixed.MixedComposeActivity
+import com.uhufor.inspectionsample.mixed.MixedViewActivity
 import com.uhufor.inspector.Inspector
 import com.uhufor.inspector.RelativeGuideStyle
 
@@ -50,13 +52,23 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         }
-        findViewById<View>(R.id.showCombinedUi).setOnClickListener {
+        findViewById<View>(R.id.showMixedA).setOnClickListener {
             startActivity(
                 ContactActivity.newIntent(
                     context = this,
                     showProfileCompose = false,
                     showHistoryCompose = true
                 )
+            )
+        }
+        findViewById<View>(R.id.showMixedB).setOnClickListener {
+            startActivity(
+                MixedViewActivity.newIntent(this)
+            )
+        }
+        findViewById<View>(R.id.showMixedC).setOnClickListener {
+            startActivity(
+                MixedComposeActivity.newIntent(this)
             )
         }
         findViewById<View>(R.id.showBottomSheetUi).setOnClickListener {
