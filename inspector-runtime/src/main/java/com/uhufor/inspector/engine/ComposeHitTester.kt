@@ -16,7 +16,7 @@ import androidx.compose.ui.semantics.getOrNull
 
 internal object ComposeHitTester {
     private const val INVALID_AREA = Int.MAX_VALUE
-    private const val MIN_ELEMENT_SIZE = 1
+    private const val MIN_ELEMENT_SIZE = 0
 
     @SuppressLint("UseKtx")
     fun hitTest(root: View, x: Int, y: Int): SelectionState? {
@@ -36,9 +36,7 @@ internal object ComposeHitTester {
                     .getAllSemanticsNodes(mergingEnabled = false)
                     .forEach { node: SemanticsNode ->
                         val bounds = node.boundsInWindow
-                        if (bounds.width > MIN_ELEMENT_SIZE &&
-                            bounds.height > MIN_ELEMENT_SIZE
-                        ) {
+                        if (bounds.width > MIN_ELEMENT_SIZE && bounds.height > MIN_ELEMENT_SIZE) {
                             val hitPosition = Offset(x.toFloat(), y.toFloat())
                             if (bounds.contains(hitPosition)) {
                                 val area = (bounds.width * bounds.height).toInt()

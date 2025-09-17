@@ -20,8 +20,6 @@ import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
 
 internal object ViewHitTester {
-    private const val MIN_VIEW_SIZE = 1
-    private const val MIN_ALPHA = 0.01f
 
     fun hitTest(root: View, x: Int, y: Int): SelectionState? {
         val hits = mutableListOf<View>()
@@ -73,11 +71,7 @@ internal object ViewHitTester {
     }
 
     private fun collectAllViews(view: View, elements: MutableList<SelectionState>) {
-        if (!view.isShown ||
-            view.width <= MIN_VIEW_SIZE ||
-            view.height <= MIN_VIEW_SIZE ||
-            view.alpha < MIN_ALPHA
-        ) {
+        if (!view.isShown || view.width == 0 || view.height == 0 || view.alpha == 0f) {
             return
         }
 
