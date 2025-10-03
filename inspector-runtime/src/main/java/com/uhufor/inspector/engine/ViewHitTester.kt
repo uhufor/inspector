@@ -271,6 +271,15 @@ internal object ViewMutator {
         v.invalidate()
     }
 
+    fun setTextById(id: Int, text: CharSequence) {
+        val v = UiNodeViewRegistry.get(id) ?: return
+        if (v is TextView) {
+            v.text = text
+            v.requestLayout()
+            v.invalidate()
+        }
+    }
+
     fun runAfterNextLayout(id: Int, action: () -> Unit) {
         val v = UiNodeViewRegistry.get(id) ?: return
         val vto = v.viewTreeObserver
