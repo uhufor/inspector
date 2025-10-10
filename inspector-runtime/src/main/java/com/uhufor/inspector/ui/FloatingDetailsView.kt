@@ -130,6 +130,16 @@ internal class FloatingDetailsView(
                             ViewMutator.setMarginById(selectionState.id, ml, mt, mr, mb)
                             ViewMutator.setPaddingById(selectionState.id, pl, pt, pr, pb)
                             ViewMutator.runAfterNextLayout(selectionState.id) { onRefresh?.invoke() }
+                        },
+                        onApplyText = { text, size, color ->
+                            ViewMutator.setTextById(selectionState.id, text)
+                            if (size != null) {
+                                ViewMutator.setTextSizeSpById(selectionState.id, size.toFloat())
+                            }
+                            if (color != null) {
+                                ViewMutator.setTextColorById(selectionState.id, color)
+                            }
+                            ViewMutator.runAfterNextLayout(selectionState.id) { onRefresh?.invoke() }
                         }
                     )
                 }

@@ -2,6 +2,7 @@ package com.uhufor.inspector.ui
 
 import android.graphics.RectF
 import android.util.Size
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,10 +36,13 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import com.uhufor.inspector.R
 import com.uhufor.inspector.UnitMode
 import com.uhufor.inspector.engine.SelectionState
@@ -50,9 +54,11 @@ import com.uhufor.inspector.ui.components.EditFieldRow
 import com.uhufor.inspector.ui.components.InfoRow
 import com.uhufor.inspector.ui.components.MarginPaddingBox
 import com.uhufor.inspector.ui.components.MeasurementMetricBox
+import com.uhufor.inspector.ui.components.Row1EditField
 import com.uhufor.inspector.ui.components.SectionHeader
 import com.uhufor.inspector.ui.components.SectionTitle
 import com.uhufor.inspector.ui.components.SmallButton
+import com.uhufor.inspector.ui.components.SmallTextField
 import com.uhufor.inspector.ui.compose.dvdp
 import com.uhufor.inspector.ui.compose.dvsp
 import kotlin.math.roundToInt
@@ -67,6 +73,7 @@ internal fun ElementDetails(
     onEditModeChange: (Boolean) -> Unit,
     onRequestFocusable: (Boolean) -> Unit,
     onApplyMarginPadding: (Int, Int, Int, Int, Int, Int, Int, Int) -> Unit,
+    onApplyText: (text: String, size: Int?, color: Int?) -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -75,59 +82,166 @@ internal fun ElementDetails(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(4.dp)
     ) {
+        var editMode by remember { mutableStateOf<EditMode>(EditMode.None) }
+
+        fun onEnterEditMode(mode: EditMode) {
+            editMode = mode
+            onRequestFocusable(true)
+            onEditModeChange(true)
+        }
+
+        fun onExitEditMode() {
+            editMode = EditMode.None
+            onRequestFocusable(false)
+            onEditModeChange(false)
+        }
+
+        if (!isEditMode) {
+            editMode = EditMode.None
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(4.dvdp)
                 .verticalScroll(state = rememberScrollState())
         ) {
-            if (!isEditMode) {
-                SectionHeader(
-                    title = stringResource(R.string.inspector_title_details),
-                    rightContent = {
-                        if (selectionState.properties.type == UiNodeType.COMPOSE) {
-                            Image(
-                                painterResource(R.drawable.ic_compose),
-                                contentDescription = null,
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.size(10.dvdp),
-                            )
-                        }
-                    }
-                )
-                InfoRow(
-                    stringResource(R.string.inspector_label_id),
-                    selectionState.properties.id
-                )
+            when (editMode) {
+                is EditMode.None -> {
+                    ElementInfoContent(
+                        selectionState = selectionState,
+                        unitMode = unitMode,
+                        onEditMarginPadding = { onEnterEditMode(EditMode.MarginPadding) },
+                        onEditText = { onEnterEditMode(EditMode.Text) }
+                    )
+                }
 
-                Measurement(selectionState, unitMode)
-                MarginPadding(
-                    selectionState,
-                    unitMode,
-                    onEditRequest = {
-                        onRequestFocusable(true)
-                        onEditModeChange(true)
-                    }
-                )
-                Actions(selectionState)
-                Styles(selectionState)
-            } else {
-                EditMarginPadding(
-                    initialMargin = selectionState.properties.margin,
-                    initialPadding = selectionState.properties.padding,
-                    unitMode = unitMode,
-                    onCancel = {
-                        onRequestFocusable(false)
-                        onEditModeChange(false)
-                    },
-                    onApply = { ml, mt, mr, mb, pl, pt, pr, pb ->
-                        onApplyMarginPadding(ml, mt, mr, mb, pl, pt, pr, pb)
-                        onRequestFocusable(false)
-                        onEditModeChange(false)
-                    }
+                is EditMode.MarginPadding -> {
+                    MarginPaddingEditor(
+                        selectionState = selectionState,
+                        unitMode = unitMode,
+                        onApply = { ml, mt, mr, mb, pl, pt, pr, pb ->
+                            onApplyMarginPadding(ml, mt, mr, mb, pl, pt, pr, pb)
+                            onExitEditMode()
+                        },
+                        onCancel = ::onExitEditMode
+                    )
+                }
+
+                is EditMode.Text -> {
+                    TextEditor(
+                        selectionState = selectionState,
+                        onApply = { text, textSize, textColor ->
+                            onApplyText(text, textSize, textColor)
+                            onExitEditMode()
+                        },
+                        onCancel = ::onExitEditMode
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ElementInfoContent(
+    selectionState: SelectionState,
+    unitMode: UnitMode,
+    onEditMarginPadding: () -> Unit,
+    onEditText: () -> Unit,
+) {
+    SectionHeader(
+        title = stringResource(R.string.inspector_title_details),
+        rightContent = {
+            if (selectionState.properties.type == UiNodeType.COMPOSE) {
+                Image(
+                    painterResource(R.drawable.ic_compose),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(10.dvdp),
                 )
             }
         }
+    )
+    InfoRow(
+        stringResource(R.string.inspector_label_id),
+        selectionState.properties.id
+    )
+
+    Measurement(selectionState, unitMode)
+    MarginPadding(
+        selectionState,
+        unitMode,
+        onEditRequest = onEditMarginPadding
+    )
+    TextContent(
+        selectionState = selectionState,
+        onEditRequest = onEditText
+    )
+    Actions(selectionState)
+    Styles(selectionState)
+}
+
+@Composable
+private fun MarginPaddingEditor(
+    selectionState: SelectionState,
+    unitMode: UnitMode,
+    onApply: (Int, Int, Int, Int, Int, Int, Int, Int) -> Unit,
+    onCancel: () -> Unit,
+) {
+    EditMarginPadding(
+        initialMargin = selectionState.properties.margin,
+        initialPadding = selectionState.properties.padding,
+        unitMode = unitMode,
+        onCancel = onCancel,
+        onApply = onApply
+    )
+}
+
+@Composable
+private fun TextEditor(
+    selectionState: SelectionState,
+    onApply: (text: String, size: Int?, color: Int?) -> Unit,
+    onCancel: () -> Unit,
+) {
+    val textStyle = selectionState.properties.styles
+        .filterIsInstance<UiNodeStyleProperties.TextStyle>()
+        .firstOrNull()
+
+    if (textStyle != null) {
+        val initialTextSize = textStyle.textSize?.toTextSizeInSp()
+        val initialTextColor = textStyle.textColor?.toHexTextColor()
+
+        var textState by remember(textStyle.text) { mutableStateOf(textStyle.text) }
+        var textSizeState by remember(initialTextSize) {
+            mutableStateOf(initialTextSize?.toString())
+        }
+        var textColorState by remember(initialTextColor) {
+            mutableStateOf(initialTextColor)
+        }
+
+        EditTextContent(
+            text = textState,
+            onTextChange = { textState = it },
+            textSize = textSizeState.orEmpty(),
+            onTextSizeChange = { textSizeState = it },
+            textColor = textColorState.orEmpty(),
+            onTextColorChange = { textColorState = it },
+            onApply = {
+                val text = textState.trim()
+                val textSize = textSizeState
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.toFloat()
+                    ?.roundToInt()
+                val textColor = runCatching { textColorState?.toColorInt() }
+                    .getOrNull()
+
+                onApply(text, textSize, textColor)
+            },
+            onCancel = onCancel,
+        )
+    } else {
+        onCancel()
     }
 }
 
@@ -286,13 +400,14 @@ private fun Actions(selectionState: SelectionState) {
 
 @Composable
 private fun Styles(selectionState: SelectionState) {
-    if (selectionState.properties.styles.isNotEmpty()) {
-        val (density, fontScale) = LocalDensity.current.run {
-            density to fontScale
-        }
+    val styles = selectionState.properties.styles.filterNot {
+        it is UiNodeStyleProperties.TextStyle
+    }
+
+    if (styles.isNotEmpty()) {
         Spacer(modifier = Modifier.height(8.dvdp))
         SectionTitle(stringResource(R.string.inspector_title_styles))
-        selectionState.properties.styles.forEach { style ->
+        styles.forEach { style ->
             when (style) {
                 is UiNodeStyleProperties.ColorStyle -> {
                     style.backgroundType?.let { backgroundType ->
@@ -309,39 +424,81 @@ private fun Styles(selectionState: SelectionState) {
                     }
                 }
 
-                is UiNodeStyleProperties.TextStyle -> {
-                    InfoRow(
-                        stringResource(R.string.inspector_style_text),
-                        style.text
-                    )
-                    style.textColor?.let { textColor ->
-                        InfoRow(
-                            stringResource(R.string.inspector_style_text_color),
-                            "#${textColor.toHexString()}"
-                        )
-                    }
-                    style.textSize?.let { textSize ->
-                        val sizeInDp = textSize / density
-                        val sizeInSp = sizeInDp / fontScale
-                        InfoRow(
-                            stringResource(R.string.inspector_style_text_size),
-                            "${sizeInSp.roundToInt()}sp, ${sizeInDp.roundToInt()}dp, ${textSize.roundToInt()}px"
-                        )
-                    }
-                    if (style.isBold || style.isItalic) {
-                        val bold = stringResource(R.string.inspector_style_bold)
-                        val italic = stringResource(R.string.inspector_style_italic)
-                        val typefaceStyles = buildList {
-                            if (style.isBold) add(bold)
-                            if (style.isItalic) add(italic)
-                        }
-                        InfoRow(
-                            stringResource(R.string.inspector_style_text_style),
-                            typefaceStyles.joinToString(", ")
+                else -> Unit
+            }
+        }
+    }
+}
+
+@Composable
+private fun TextContent(
+    selectionState: SelectionState,
+    onEditRequest: () -> Unit,
+) {
+    val style = selectionState.properties.styles
+        .filterIsInstance<UiNodeStyleProperties.TextStyle>()
+        .firstOrNull()
+        ?: return
+    val isEditable = selectionState.properties.type == UiNodeType.VIEW
+    val (density, fontScale) = LocalDensity.current.run {
+        density to fontScale
+    }
+
+    Spacer(modifier = Modifier.height(8.dvdp))
+    Column(modifier = Modifier.fillMaxWidth()) {
+        SectionHeader(
+            title = stringResource(R.string.inspector_style_text),
+            rightContent = {
+                if (isEditable) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .background(
+                                color = colorResource(R.color.inspector_button_bg),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .clickable(onClick = onEditRequest)
+                            .padding(horizontal = 10.dvdp, vertical = 2.dvdp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.inspector_action_edit),
+                            fontSize = 8.dvsp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
+        )
+        Spacer(modifier = Modifier.height(2.dvdp))
+        InfoRow(
+            stringResource(R.string.inspector_style_text),
+            style.text
+        )
+        style.textColor?.let { textColor ->
+            InfoRow(
+                stringResource(R.string.inspector_style_text_color),
+                "#${textColor.toHexString()}"
+            )
+        }
+        style.textSize?.let { textSize ->
+            val sizeInDp = textSize / density
+            val sizeInSp = sizeInDp / fontScale
+            InfoRow(
+                stringResource(R.string.inspector_style_text_size),
+                "${sizeInSp.roundToInt()}sp, ${sizeInDp.roundToInt()}dp, ${textSize.roundToInt()}px"
+            )
+        }
+        if (style.isBold || style.isItalic) {
+            val bold = stringResource(R.string.inspector_style_bold)
+            val italic = stringResource(R.string.inspector_style_italic)
+            val typefaceStyles = buildList {
+                if (style.isBold) add(bold)
+                if (style.isItalic) add(italic)
+            }
+            InfoRow(
+                stringResource(R.string.inspector_style_text_style),
+                typefaceStyles.joinToString(", ")
+            )
         }
     }
 }
@@ -516,9 +673,93 @@ private fun EditMarginPadding(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun EditTextContent(
+    text: String,
+    onTextChange: (String) -> Unit,
+    textSize: String,
+    onTextSizeChange: (String) -> Unit,
+    textColor: String,
+    onTextColorChange: (String) -> Unit,
+    onApply: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(4.dvdp)
+    ) {
+        SectionTitle(stringResource(R.string.inspector_title_edit_text))
+        Spacer(modifier = Modifier.height(8.dvdp))
+
+        Text(
+            text = stringResource(R.string.inspector_style_text),
+            fontSize = 8.dvsp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Start,
+        )
+        Spacer(modifier = Modifier.height(2.dvdp))
+        SmallTextField(
+            value = text,
+            onValueChange = onTextChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(62.dvdp),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.None)
+        )
+        Spacer(modifier = Modifier.height(6.dvdp))
+
+        Row1EditField(
+            label = stringResource(R.string.inspector_style_size_sp),
+            value = textSize,
+            onValueChange = onTextSizeChange,
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = NumberKeyboardOptions,
+            labelWeight = 0.7f,
+        )
+        Spacer(modifier = Modifier.height(6.dvdp))
+
+        Row1EditField(
+            label = stringResource(R.string.inspector_style_color_argb),
+            value = textColor,
+            onValueChange = { onTextColorChange(it.take(9)) },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+            labelWeight = 0.7f,
+        )
+        Spacer(modifier = Modifier.height(4.dvdp))
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            SmallButton(
+                text = stringResource(R.string.inspector_btn_cancel),
+                onClick = onCancel,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dvdp)
+            )
+            Spacer(modifier = Modifier.width(4.dvdp))
+            SmallButton(
+                text = stringResource(R.string.inspector_btn_apply),
+                onClick = onApply,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dvdp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun Float.toTextSizeInSp(): Int =
+    with(LocalDensity.current) {
+        (this@toTextSizeInSp / density) / fontScale
+    }.roundToInt()
+
+private fun Int.toHexTextColor(): String = "#${toHexString()}"
+
 private fun Int.toHexString(): String =
     Integer.toHexString(this).uppercase().padStart(8, '0')
-
 
 private fun formatSizeString(
     size: Size,
@@ -584,6 +825,7 @@ internal fun ElementDetailPreview() {
         onEditModeChange = { isEditMode = it },
         onRequestFocusable = {},
         onApplyMarginPadding = { _, _, _, _, _, _, _, _ -> },
+        onApplyText = { _, _, _ -> },
     )
 }
 

@@ -8,6 +8,7 @@
     <string name="inspector_title_actions">Actions</string>
     <string name="inspector_title_styles">Styles</string>
     <string name="inspector_title_edit_margin_padding">Edit Margin/Padding</string>
+    <string name="inspector_title_edit_text">Edit Text</string>
     <string name="inspector_column_margin">Margin</string>
     <string name="inspector_column_padding">Padding</string>
     <string name="inspector_side_left">Left</string>
@@ -24,5 +25,7 @@
     <string name="inspector_style_text_style">Text Style</string>
     <string name="inspector_style_bold">Bold</string>
     <string name="inspector_style_italic">Italic</string>
+    <string name="inspector_style_color_argb">Color (ARGB)</string>
+    <string name="inspector_style_size_sp">Size (SP)</string>
     <string name="inspector_value_true">true</string>
 </resources>

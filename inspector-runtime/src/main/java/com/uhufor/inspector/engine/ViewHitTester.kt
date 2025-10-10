@@ -271,6 +271,32 @@ internal object ViewMutator {
         v.invalidate()
     }
 
+    fun setTextById(id: Int, text: CharSequence) {
+        val v = UiNodeViewRegistry.get(id) ?: return
+        if (v is TextView) {
+            v.text = text
+            v.requestLayout()
+            v.invalidate()
+        }
+    }
+
+    fun setTextSizeSpById(id: Int, size: Float) {
+        val v = UiNodeViewRegistry.get(id) ?: return
+        if (v is TextView) {
+            v.textSize = size
+            v.requestLayout()
+            v.invalidate()
+        }
+    }
+
+    fun setTextColorById(id: Int, color: Int) {
+        val v = UiNodeViewRegistry.get(id) ?: return
+        if (v is TextView) {
+            v.setTextColor(color)
+            v.invalidate()
+        }
+    }
+
     fun runAfterNextLayout(id: Int, action: () -> Unit) {
         val v = UiNodeViewRegistry.get(id) ?: return
         val vto = v.viewTreeObserver
