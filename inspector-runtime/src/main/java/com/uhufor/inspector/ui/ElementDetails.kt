@@ -114,97 +114,142 @@ internal fun ElementDetails(
         ) {
             when (editMode) {
                 is EditMode.None -> {
-                    SectionHeader(
-                        title = stringResource(R.string.inspector_title_details),
-                        rightContent = {
-                            if (selectionState.properties.type == UiNodeType.COMPOSE) {
-                                Image(
-                                    painterResource(R.drawable.ic_compose),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.size(10.dvdp),
-                                )
-                            }
-                        }
-                    )
-                    InfoRow(
-                        stringResource(R.string.inspector_label_id),
-                        selectionState.properties.id
-                    )
-
-                    Measurement(selectionState, unitMode)
-                    MarginPadding(
-                        selectionState,
-                        unitMode,
-                        onEditRequest = { onEnterEditMode(EditMode.MarginPadding) }
-                    )
-                    TextContent(
+                    ElementInfoContent(
                         selectionState = selectionState,
-                        onEditRequest = { onEnterEditMode(EditMode.Text) }
+                        unitMode = unitMode,
+                        onEditMarginPadding = { onEnterEditMode(EditMode.MarginPadding) },
+                        onEditText = { onEnterEditMode(EditMode.Text) }
                     )
-                    Actions(selectionState)
-                    Styles(selectionState)
                 }
 
                 is EditMode.MarginPadding -> {
-                    EditMarginPadding(
-                        initialMargin = selectionState.properties.margin,
-                        initialPadding = selectionState.properties.padding,
+                    MarginPaddingEditor(
+                        selectionState = selectionState,
                         unitMode = unitMode,
-                        onCancel = ::onExitEditMode,
                         onApply = { ml, mt, mr, mb, pl, pt, pr, pb ->
                             onApplyMarginPadding(ml, mt, mr, mb, pl, pt, pr, pb)
                             onExitEditMode()
-                        }
+                        },
+                        onCancel = ::onExitEditMode
                     )
                 }
 
                 is EditMode.Text -> {
-                    val textStyle = selectionState.properties.styles
-                        .filterIsInstance<UiNodeStyleProperties.TextStyle>()
-                        .firstOrNull()
-
-                    if (textStyle != null) {
-                        val initialTextSize = textStyle.textSize
-                            ?.let { with(LocalDensity.current) { (it / density) / fontScale } }
-                            ?.roundToInt()
-                        val initialTextColor = textStyle.textColor?.let { "#${it.toHexString()}" }
-
-                        var textState by remember(textStyle.text) { mutableStateOf(textStyle.text) }
-                        var textSizeState by remember(initialTextSize) {
-                            mutableStateOf(initialTextSize?.toString())
-                        }
-                        var textColorState by remember(initialTextColor) {
-                            mutableStateOf(initialTextColor)
-                        }
-
-                        EditTextContent(
-                            text = textState,
-                            onTextChange = { textState = it },
-                            textSize = textSizeState.orEmpty(),
-                            onTextSizeChange = { textSizeState = it },
-                            textColor = textColorState.orEmpty(),
-                            onTextColorChange = { textColorState = it },
-                            onApply = {
-                                val text = textState.trim()
-                                val textSize = textSizeState
-                                    ?.takeIf { it.isNotEmpty() }
-                                    ?.toFloat()
-                                    ?.roundToInt()
-                                val textColor = runCatching { textColorState?.toColorInt() }
-                                    .getOrNull()
-
-                                onApplyText(text, textSize, textColor)
-                                onExitEditMode()
-                            },
-                            onCancel = ::onExitEditMode,
-                        )
-                    } else {
-                        onExitEditMode()
-                    }
+                    TextEditor(
+                        selectionState = selectionState,
+                        onApply = { text, textSize, textColor ->
+                            onApplyText(text, textSize, textColor)
+                            onExitEditMode()
+                        },
+                        onCancel = ::onExitEditMode
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ElementInfoContent(
+    selectionState: SelectionState,
+    unitMode: UnitMode,
+    onEditMarginPadding: () -> Unit,
+    onEditText: () -> Unit,
+) {
+    SectionHeader(
+        title = stringResource(R.string.inspector_title_details),
+        rightContent = {
+            if (selectionState.properties.type == UiNodeType.COMPOSE) {
+                Image(
+                    painterResource(R.drawable.ic_compose),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(10.dvdp),
+                )
+            }
+        }
+    )
+    InfoRow(
+        stringResource(R.string.inspector_label_id),
+        selectionState.properties.id
+    )
+
+    Measurement(selectionState, unitMode)
+    MarginPadding(
+        selectionState,
+        unitMode,
+        onEditRequest = onEditMarginPadding
+    )
+    TextContent(
+        selectionState = selectionState,
+        onEditRequest = onEditText
+    )
+    Actions(selectionState)
+    Styles(selectionState)
+}
+
+@Composable
+private fun MarginPaddingEditor(
+    selectionState: SelectionState,
+    unitMode: UnitMode,
+    onApply: (Int, Int, Int, Int, Int, Int, Int, Int) -> Unit,
+    onCancel: () -> Unit,
+) {
+    EditMarginPadding(
+        initialMargin = selectionState.properties.margin,
+        initialPadding = selectionState.properties.padding,
+        unitMode = unitMode,
+        onCancel = onCancel,
+        onApply = onApply
+    )
+}
+
+@Composable
+private fun TextEditor(
+    selectionState: SelectionState,
+    onApply: (text: String, size: Int?, color: Int?) -> Unit,
+    onCancel: () -> Unit,
+) {
+    val textStyle = selectionState.properties.styles
+        .filterIsInstance<UiNodeStyleProperties.TextStyle>()
+        .firstOrNull()
+
+    if (textStyle != null) {
+        val initialTextSize = textStyle.textSize
+            ?.let { with(LocalDensity.current) { (it / density) / fontScale } }
+            ?.roundToInt()
+        val initialTextColor = textStyle.textColor?.let { "#${it.toHexString()}" }
+
+        var textState by remember(textStyle.text) { mutableStateOf(textStyle.text) }
+        var textSizeState by remember(initialTextSize) {
+            mutableStateOf(initialTextSize?.toString())
+        }
+        var textColorState by remember(initialTextColor) {
+            mutableStateOf(initialTextColor)
+        }
+
+        EditTextContent(
+            text = textState,
+            onTextChange = { textState = it },
+            textSize = textSizeState.orEmpty(),
+            onTextSizeChange = { textSizeState = it },
+            textColor = textColorState.orEmpty(),
+            onTextColorChange = { textColorState = it },
+            onApply = {
+                val text = textState.trim()
+                val textSize = textSizeState
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.toFloat()
+                    ?.roundToInt()
+                val textColor = runCatching { textColorState?.toColorInt() }
+                    .getOrNull()
+
+                onApply(text, textSize, textColor)
+            },
+            onCancel = onCancel,
+        )
+    } else {
+        onCancel()
     }
 }
 
