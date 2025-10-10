@@ -9,15 +9,12 @@ import android.os.Build
 import android.util.Size
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.widget.Checkable
 import android.widget.TextView
 import androidx.core.view.marginBottom
 import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import androidx.core.view.marginTop
-import java.lang.ref.WeakReference
-import java.util.concurrent.ConcurrentHashMap
 
 internal object ViewHitTester {
 
@@ -235,80 +232,5 @@ internal object ViewHitTester {
             paddingRight.toFloat(),
             paddingBottom.toFloat()
         )
-    }
-}
-
-internal object UiNodeViewRegistry {
-    private val views = ConcurrentHashMap<Int, WeakReference<View>>()
-
-    fun register(view: View) {
-        views[view.hashCode()] = WeakReference(view)
-    }
-
-    fun get(id: Int): View? = views[id]?.get()
-
-    fun clear() {
-        views.clear()
-    }
-}
-
-internal object ViewMutator {
-    fun setMarginById(id: Int, left: Int, top: Int, right: Int, bottom: Int) {
-        val v = UiNodeViewRegistry.get(id) ?: return
-        val lp = v.layoutParams
-        if (lp is ViewGroup.MarginLayoutParams) {
-            lp.setMargins(left, top, right, bottom)
-            v.layoutParams = lp
-            v.requestLayout()
-            v.invalidate()
-        }
-    }
-
-    fun setPaddingById(id: Int, left: Int, top: Int, right: Int, bottom: Int) {
-        val v = UiNodeViewRegistry.get(id) ?: return
-        v.setPadding(left, top, right, bottom)
-        v.requestLayout()
-        v.invalidate()
-    }
-
-    fun setTextById(id: Int, text: CharSequence) {
-        val v = UiNodeViewRegistry.get(id) ?: return
-        if (v is TextView) {
-            v.text = text
-            v.requestLayout()
-            v.invalidate()
-        }
-    }
-
-    fun setTextSizeSpById(id: Int, size: Float) {
-        val v = UiNodeViewRegistry.get(id) ?: return
-        if (v is TextView) {
-            v.textSize = size
-            v.requestLayout()
-            v.invalidate()
-        }
-    }
-
-    fun setTextColorById(id: Int, color: Int) {
-        val v = UiNodeViewRegistry.get(id) ?: return
-        if (v is TextView) {
-            v.setTextColor(color)
-            v.invalidate()
-        }
-    }
-
-    fun runAfterNextLayout(id: Int, action: () -> Unit) {
-        val v = UiNodeViewRegistry.get(id) ?: return
-        val vto = v.viewTreeObserver
-        val listener = object : ViewTreeObserver.OnPreDrawListener {
-            override fun onPreDraw(): Boolean {
-                if (v.viewTreeObserver.isAlive) {
-                    v.viewTreeObserver.removeOnPreDrawListener(this)
-                }
-                action()
-                return true
-            }
-        }
-        vto.addOnPreDrawListener(listener)
     }
 }
