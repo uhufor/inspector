@@ -65,12 +65,6 @@ import kotlin.math.roundToInt
 
 private val NumberKeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
 
-private sealed class EditMode {
-    object None : EditMode()
-    object MarginPadding : EditMode()
-    object Text : EditMode()
-}
-
 @Composable
 internal fun ElementDetails(
     selectionState: SelectionState,
@@ -215,10 +209,8 @@ private fun TextEditor(
         .firstOrNull()
 
     if (textStyle != null) {
-        val initialTextSize = textStyle.textSize
-            ?.let { with(LocalDensity.current) { (it / density) / fontScale } }
-            ?.roundToInt()
-        val initialTextColor = textStyle.textColor?.let { "#${it.toHexString()}" }
+        val initialTextSize = textStyle.textSize?.toTextSizeInSp()
+        val initialTextColor = textStyle.textColor?.toHexTextColor()
 
         var textState by remember(textStyle.text) { mutableStateOf(textStyle.text) }
         var textSizeState by remember(initialTextSize) {
@@ -757,6 +749,14 @@ private fun EditTextContent(
         }
     }
 }
+
+@Composable
+private fun Float.toTextSizeInSp(): Int =
+    with(LocalDensity.current) {
+        (this@toTextSizeInSp / density) / fontScale
+    }.roundToInt()
+
+private fun Int.toHexTextColor(): String = "#${toHexString()}"
 
 private fun Int.toHexString(): String =
     Integer.toHexString(this).uppercase().padStart(8, '0')
