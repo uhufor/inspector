@@ -140,10 +140,36 @@ internal fun ElementDetails(
                         .firstOrNull()
 
                     if (textStyle != null) {
+                        val initialTextSize = textStyle.textSize
+                            ?.let { with(LocalDensity.current) { (it / density) / fontScale } }
+                            ?.roundToInt()
+                        val initialTextColor = textStyle.textColor?.let { "#${it.toHexString()}" }
+
+                        var textState by remember(textStyle.text) { mutableStateOf(textStyle.text) }
+                        var textSizeState by remember(initialTextSize) {
+                            mutableStateOf(initialTextSize?.toString())
+                        }
+                        var textColorState by remember(initialTextColor) {
+                            mutableStateOf(initialTextColor)
+                        }
+
                         EditTextContent(
-                            textStyle = textStyle,
-                            onApply = { text, size, color ->
-                                onApplyText(text, size, color)
+                            text = textState,
+                            onTextChange = { textState = it },
+                            textSize = textSizeState.orEmpty(),
+                            onTextSizeChange = { textSizeState = it },
+                            textColor = textColorState.orEmpty(),
+                            onTextColorChange = { textColorState = it },
+                            onApply = {
+                                val text = textState.trim()
+                                val textSize = textSizeState
+                                    ?.takeIf { it.isNotEmpty() }
+                                    ?.toFloat()
+                                    ?.roundToInt()
+                                val textColor = runCatching { textColorState?.toColorInt() }
+                                    .getOrNull()
+
+                                onApplyText(text, textSize, textColor)
                                 exitEditMode()
                             },
                             onCancel = ::exitEditMode,
@@ -599,21 +625,15 @@ private fun EditMarginPadding(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun EditTextContent(
-    textStyle: UiNodeStyleProperties.TextStyle,
-    onApply: (String, Int?, Int?) -> Unit,
+    text: String,
+    onTextChange: (String) -> Unit,
+    textSize: String,
+    onTextSizeChange: (String) -> Unit,
+    textColor: String,
+    onTextColorChange: (String) -> Unit,
+    onApply: () -> Unit,
     onCancel: () -> Unit,
 ) {
-    val density = LocalDensity.current.density
-    val fontScale = LocalDensity.current.fontScale
-    val initialTextSize = textStyle.textSize
-        ?.let { (it / density) / fontScale }
-        ?.roundToInt()
-    val initialTextColor = textStyle.textColor?.let { "#${it.toHexString()}" }
-
-    var textState by remember(textStyle.text) { mutableStateOf(textStyle.text) }
-    var textSizeState by remember(initialTextSize) { mutableStateOf(initialTextSize?.toString()) }
-    var textColorState by remember(initialTextColor) { mutableStateOf(initialTextColor) }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -630,8 +650,8 @@ private fun EditTextContent(
         )
         Spacer(modifier = Modifier.height(2.dvdp))
         SmallTextField(
-            value = textState,
-            onValueChange = { textState = it },
+            value = text,
+            onValueChange = onTextChange,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(62.dvdp),
@@ -641,8 +661,8 @@ private fun EditTextContent(
 
         Row1EditField(
             label = stringResource(R.string.inspector_style_size_sp),
-            value = textSizeState.orEmpty(),
-            onValueChange = { textSizeState = it },
+            value = textSize,
+            onValueChange = onTextSizeChange,
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = NumberKeyboardOptions,
             labelWeight = 0.7f,
@@ -651,8 +671,8 @@ private fun EditTextContent(
 
         Row1EditField(
             label = stringResource(R.string.inspector_style_color_argb),
-            value = textColorState.orEmpty(),
-            onValueChange = { textColorState = it.take(9) },
+            value = textColor,
+            onValueChange = { onTextColorChange(it.take(9)) },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
             labelWeight = 0.7f,
@@ -670,13 +690,7 @@ private fun EditTextContent(
             Spacer(modifier = Modifier.width(4.dvdp))
             SmallButton(
                 text = stringResource(R.string.inspector_btn_apply),
-                onClick = {
-                    val text = textState.trim()
-                    val textSize =
-                        textSizeState?.takeIf { it.isNotEmpty() }?.toFloat()?.roundToInt()
-                    val textColor = runCatching { textColorState?.toColorInt() }.getOrNull()
-                    onApply(text, textSize, textColor)
-                },
+                onClick = onApply,
                 modifier = Modifier
                     .weight(1f)
                     .padding(4.dvdp)
