@@ -65,6 +65,12 @@ import kotlin.math.roundToInt
 
 private val NumberKeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
 
+private sealed class EditMode {
+    object None : EditMode()
+    object MarginPadding : EditMode()
+    object Text : EditMode()
+}
+
 @Composable
 internal fun ElementDetails(
     selectionState: SelectionState,
@@ -82,7 +88,23 @@ internal fun ElementDetails(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(4.dp)
     ) {
-        var isTextEditing by remember { mutableStateOf(false) }
+        var editMode by remember { mutableStateOf<EditMode>(EditMode.None) }
+
+        fun onEnterEditMode(mode: EditMode) {
+            editMode = mode
+            onRequestFocusable(true)
+            onEditModeChange(true)
+        }
+
+        fun onExitEditMode() {
+            editMode = EditMode.None
+            onRequestFocusable(false)
+            onEditModeChange(false)
+        }
+
+        if (!isEditMode) {
+            editMode = EditMode.None
+        }
 
         Column(
             modifier = Modifier
@@ -90,51 +112,54 @@ internal fun ElementDetails(
                 .padding(4.dvdp)
                 .verticalScroll(state = rememberScrollState())
         ) {
-            if (!isEditMode) {
-                SectionHeader(
-                    title = stringResource(R.string.inspector_title_details),
-                    rightContent = {
-                        if (selectionState.properties.type == UiNodeType.COMPOSE) {
-                            Image(
-                                painterResource(R.drawable.ic_compose),
-                                contentDescription = null,
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.size(10.dvdp),
-                            )
+            when (editMode) {
+                is EditMode.None -> {
+                    SectionHeader(
+                        title = stringResource(R.string.inspector_title_details),
+                        rightContent = {
+                            if (selectionState.properties.type == UiNodeType.COMPOSE) {
+                                Image(
+                                    painterResource(R.drawable.ic_compose),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.size(10.dvdp),
+                                )
+                            }
                         }
-                    }
-                )
-                InfoRow(
-                    stringResource(R.string.inspector_label_id),
-                    selectionState.properties.id
-                )
+                    )
+                    InfoRow(
+                        stringResource(R.string.inspector_label_id),
+                        selectionState.properties.id
+                    )
 
-                Measurement(selectionState, unitMode)
-                MarginPadding(
-                    selectionState,
-                    unitMode,
-                    onEditRequest = {
-                        isTextEditing = false
-                        onRequestFocusable(true)
-                        onEditModeChange(true)
-                    }
-                )
-                TextContent(
-                    selectionState = selectionState,
-                    onEditRequest = {
-                        isTextEditing = true
-                        onRequestFocusable(true)
-                        onEditModeChange(true)
-                    }
-                )
-                Actions(selectionState)
-                Styles(selectionState)
-            } else {
-                fun exitEditMode() {
-                    onRequestFocusable(false)
-                    onEditModeChange(false)
+                    Measurement(selectionState, unitMode)
+                    MarginPadding(
+                        selectionState,
+                        unitMode,
+                        onEditRequest = { onEnterEditMode(EditMode.MarginPadding) }
+                    )
+                    TextContent(
+                        selectionState = selectionState,
+                        onEditRequest = { onEnterEditMode(EditMode.Text) }
+                    )
+                    Actions(selectionState)
+                    Styles(selectionState)
                 }
-                if (isTextEditing) {
+
+                is EditMode.MarginPadding -> {
+                    EditMarginPadding(
+                        initialMargin = selectionState.properties.margin,
+                        initialPadding = selectionState.properties.padding,
+                        unitMode = unitMode,
+                        onCancel = ::onExitEditMode,
+                        onApply = { ml, mt, mr, mb, pl, pt, pr, pb ->
+                            onApplyMarginPadding(ml, mt, mr, mb, pl, pt, pr, pb)
+                            onExitEditMode()
+                        }
+                    )
+                }
+
+                is EditMode.Text -> {
                     val textStyle = selectionState.properties.styles
                         .filterIsInstance<UiNodeStyleProperties.TextStyle>()
                         .firstOrNull()
@@ -170,24 +195,13 @@ internal fun ElementDetails(
                                     .getOrNull()
 
                                 onApplyText(text, textSize, textColor)
-                                exitEditMode()
+                                onExitEditMode()
                             },
-                            onCancel = ::exitEditMode,
+                            onCancel = ::onExitEditMode,
                         )
                     } else {
-                        exitEditMode()
+                        onExitEditMode()
                     }
-                } else {
-                    EditMarginPadding(
-                        initialMargin = selectionState.properties.margin,
-                        initialPadding = selectionState.properties.padding,
-                        unitMode = unitMode,
-                        onCancel = ::exitEditMode,
-                        onApply = { ml, mt, mr, mb, pl, pt, pr, pb ->
-                            onApplyMarginPadding(ml, mt, mr, mb, pl, pt, pr, pb)
-                            exitEditMode()
-                        }
-                    )
                 }
             }
         }
