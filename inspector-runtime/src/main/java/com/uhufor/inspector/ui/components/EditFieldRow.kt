@@ -14,6 +14,37 @@ import com.uhufor.inspector.ui.compose.dvdp
 import com.uhufor.inspector.ui.compose.dvsp
 
 @Composable
+internal fun Row1EditField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    labelWeight: Float = 0.6f,
+    fieldWeight: Float = 1.0f,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            fontSize = 8.dvsp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Start,
+            modifier = Modifier.weight(labelWeight)
+        )
+        SmallTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.weight(fieldWeight, fill = true),
+            keyboardOptions = keyboardOptions,
+        )
+    }
+}
+
+// TODO: make more common function as Row2EditField and remove margin/padding naming
+@Composable
 internal fun EditFieldRow(
     label: String,
     marginValue: String,

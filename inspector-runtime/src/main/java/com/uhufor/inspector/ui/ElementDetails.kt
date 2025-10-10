@@ -6,7 +6,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -55,6 +54,7 @@ import com.uhufor.inspector.ui.components.EditFieldRow
 import com.uhufor.inspector.ui.components.InfoRow
 import com.uhufor.inspector.ui.components.MarginPaddingBox
 import com.uhufor.inspector.ui.components.MeasurementMetricBox
+import com.uhufor.inspector.ui.components.Row1EditField
 import com.uhufor.inspector.ui.components.SectionHeader
 import com.uhufor.inspector.ui.components.SectionTitle
 import com.uhufor.inspector.ui.components.SmallButton
@@ -140,21 +140,11 @@ internal fun ElementDetails(
                         .firstOrNull()
 
                     if (textStyle != null) {
-                        val density = LocalDensity.current.density
-                        val fontScale = LocalDensity.current.fontScale
-                        val initSp = textStyle.textSize
-                            ?.let { (it / density) / fontScale }
-                            ?.roundToInt()
-                        val initColorHex = textStyle.textColor?.let { "#${it.toHexString()}" }
-
                         EditTextContent(
-                            initialText = textStyle.text,
-                            initialTextSize = initSp,
-                            initialTextColor = initColorHex,
+                            textStyle = textStyle,
                             onApply = { text, size, color ->
                                 onApplyText(text, size, color)
-                                onRequestFocusable(false)
-                                onEditModeChange(false)
+                                exitEditMode()
                             },
                             onCancel = ::exitEditMode,
                         )
@@ -609,20 +599,19 @@ private fun EditMarginPadding(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun EditTextContent(
-    initialText: String,
-    initialTextSize: Int?,
-    initialTextColor: String?,
+    textStyle: UiNodeStyleProperties.TextStyle,
     onApply: (String, Int?, Int?) -> Unit,
     onCancel: () -> Unit,
 ) {
-    var textState by remember(initialText) { mutableStateOf(initialText) }
-    var textSizeState by remember(initialTextSize) {
-        mutableStateOf(
-            initialTextSize?.run {
-                (if (this % 1F == 0F) this.toInt() else this).toString()
-            }
-        )
-    }
+    val density = LocalDensity.current.density
+    val fontScale = LocalDensity.current.fontScale
+    val initialTextSize = textStyle.textSize
+        ?.let { (it / density) / fontScale }
+        ?.roundToInt()
+    val initialTextColor = textStyle.textColor?.let { "#${it.toHexString()}" }
+
+    var textState by remember(textStyle.text) { mutableStateOf(textStyle.text) }
+    var textSizeState by remember(initialTextSize) { mutableStateOf(initialTextSize?.toString()) }
     var textColorState by remember(initialTextColor) { mutableStateOf(initialTextColor) }
 
     Column(
@@ -650,45 +639,24 @@ private fun EditTextContent(
         )
         Spacer(modifier = Modifier.height(6.dvdp))
 
-        Row(
+        Row1EditField(
+            label = stringResource(R.string.inspector_style_size_sp),
+            value = textSizeState.orEmpty(),
+            onValueChange = { textSizeState = it },
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = stringResource(R.string.inspector_style_size_sp),
-                fontSize = 8.dvsp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Start,
-                modifier = Modifier.fillMaxWidth(0.4f)
-            )
-            SmallTextField(
-                value = textSizeState.orEmpty(),
-                onValueChange = { textSizeState = it },
-                modifier = Modifier.weight(1f, fill = true),
-                keyboardOptions = NumberKeyboardOptions,
-            )
-        }
+            keyboardOptions = NumberKeyboardOptions,
+            labelWeight = 0.7f,
+        )
         Spacer(modifier = Modifier.height(6.dvdp))
 
-        Row(
+        Row1EditField(
+            label = stringResource(R.string.inspector_style_color_argb),
+            value = textColorState.orEmpty(),
+            onValueChange = { textColorState = it.take(9) },
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.inspector_style_color_argb),
-                fontSize = 8.dvsp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Start,
-                modifier = Modifier.fillMaxWidth(0.4f)
-            )
-            SmallTextField(
-                value = textColorState.orEmpty(),
-                onValueChange = { textColorState = it.take(9) },
-                modifier = Modifier.weight(1f, fill = true),
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
-            )
-        }
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+            labelWeight = 0.7f,
+        )
         Spacer(modifier = Modifier.height(4.dvdp))
 
         Row(modifier = Modifier.fillMaxWidth()) {
