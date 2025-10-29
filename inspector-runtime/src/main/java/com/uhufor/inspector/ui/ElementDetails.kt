@@ -1,6 +1,7 @@
 package com.uhufor.inspector.ui
 
 import android.graphics.RectF
+import android.icu.text.DecimalFormat
 import android.util.Size
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -73,7 +74,7 @@ internal fun ElementDetails(
     onEditModeChange: (Boolean) -> Unit,
     onRequestFocusable: (Boolean) -> Unit,
     onApplyMarginPadding: (Int, Int, Int, Int, Int, Int, Int, Int) -> Unit,
-    onApplyText: (text: String, size: Int?, color: Int?) -> Unit,
+    onApplyText: (text: String, size: Float?, color: Int?) -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -201,7 +202,7 @@ private fun MarginPaddingEditor(
 @Composable
 private fun TextEditor(
     selectionState: SelectionState,
-    onApply: (text: String, size: Int?, color: Int?) -> Unit,
+    onApply: (text: String, size: Float?, color: Int?) -> Unit,
     onCancel: () -> Unit,
 ) {
     val textStyle = selectionState.properties.styles
@@ -209,12 +210,12 @@ private fun TextEditor(
         .firstOrNull()
 
     if (textStyle != null) {
-        val initialTextSize = textStyle.textSize?.toTextSizeInSp()
+        val initialTextSize = textStyle.textSize?.toSizeInSp()
         val initialTextColor = textStyle.textColor?.toHexTextColor()
 
         var textState by remember(textStyle.text) { mutableStateOf(textStyle.text) }
         var textSizeState by remember(initialTextSize) {
-            mutableStateOf(initialTextSize?.toString())
+            mutableStateOf(initialTextSize?.toDisplayString())
         }
         var textColorState by remember(initialTextColor) {
             mutableStateOf(initialTextColor)
@@ -232,7 +233,6 @@ private fun TextEditor(
                 val textSize = textSizeState
                     ?.takeIf { it.isNotEmpty() }
                     ?.toFloat()
-                    ?.roundToInt()
                 val textColor = runCatching { textColorState?.toColorInt() }
                     .getOrNull()
 
@@ -481,11 +481,12 @@ private fun TextContent(
             )
         }
         style.textSize?.let { textSize ->
-            val sizeInDp = textSize / density
-            val sizeInSp = sizeInDp / fontScale
+            val sizeInPx = textSize.toDisplayString()
+            val sizeInDp = textSize.toSizeInDp().toDisplayString()
+            val sizeInSp = textSize.toSizeInSp().toDisplayString()
             InfoRow(
                 stringResource(R.string.inspector_style_text_size),
-                "${sizeInSp.roundToInt()}sp, ${sizeInDp.roundToInt()}dp, ${textSize.roundToInt()}px"
+                "${sizeInSp}sp, ${sizeInDp}dp, ${sizeInPx}px"
             )
         }
         if (style.isBold || style.isItalic) {
@@ -750,11 +751,23 @@ private fun EditTextContent(
     }
 }
 
+private const val SP_ROUND_FACTOR = 100f
+
 @Composable
-private fun Float.toTextSizeInSp(): Int =
+private fun Float.toSizeInDp(): Float =
     with(LocalDensity.current) {
-        (this@toTextSizeInSp / density) / fontScale
-    }.roundToInt()
+        (this@toSizeInDp / density) * SP_ROUND_FACTOR
+    }.roundToInt() / SP_ROUND_FACTOR
+
+@Composable
+private fun Float.toSizeInSp(): Float =
+    with(LocalDensity.current) {
+        ((this@toSizeInSp / density) / fontScale) * SP_ROUND_FACTOR
+    }.roundToInt() / SP_ROUND_FACTOR
+
+fun Float.toDisplayString(): String {
+    return DecimalFormat("#.#").format(this)
+}
 
 private fun Int.toHexTextColor(): String = "#${toHexString()}"
 

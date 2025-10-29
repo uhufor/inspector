@@ -134,7 +134,7 @@ internal class FloatingDetailsView(
                         onApplyText = { text, size, color ->
                             ViewMutator.setTextById(selectionState.id, text)
                             if (size != null) {
-                                ViewMutator.setTextSizeSpById(selectionState.id, size.toFloat())
+                                ViewMutator.setTextSizeSpById(selectionState.id, size)
                             }
                             if (color != null) {
                                 ViewMutator.setTextColorById(selectionState.id, color)
