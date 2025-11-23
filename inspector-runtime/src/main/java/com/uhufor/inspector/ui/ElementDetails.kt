@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
+import androidx.core.util.TypedValueCompat
 import com.uhufor.inspector.R
 import com.uhufor.inspector.UnitMode
 import com.uhufor.inspector.engine.SelectionState
@@ -751,19 +753,19 @@ private fun EditTextContent(
     }
 }
 
-private const val SP_ROUND_FACTOR = 100f
-
 @Composable
 private fun Float.toSizeInDp(): Float =
-    with(LocalDensity.current) {
-        (this@toSizeInDp / density) * SP_ROUND_FACTOR
-    }.roundToInt() / SP_ROUND_FACTOR
+    TypedValueCompat.pxToDp(
+        this,
+        LocalContext.current.resources.displayMetrics
+    )
 
 @Composable
 private fun Float.toSizeInSp(): Float =
-    with(LocalDensity.current) {
-        ((this@toSizeInSp / density) / fontScale) * SP_ROUND_FACTOR
-    }.roundToInt() / SP_ROUND_FACTOR
+    TypedValueCompat.pxToSp(
+        this,
+        LocalContext.current.resources.displayMetrics
+    )
 
 fun Float.toDisplayString(): String {
     return DecimalFormat("#.#").format(this)
