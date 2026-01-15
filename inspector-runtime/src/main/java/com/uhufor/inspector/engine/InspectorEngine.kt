@@ -2,6 +2,7 @@ package com.uhufor.inspector.engine
 
 import android.app.Activity
 import android.graphics.PointF
+import android.graphics.RectF
 import android.os.Build
 import android.view.View
 import android.view.WindowInsets
@@ -9,6 +10,8 @@ import com.uhufor.inspector.TraverseType
 import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.util.SwipeGestureDetector
 import com.uhufor.inspector.util.WindowManagerUtils
+import kotlin.math.max
+import kotlin.math.min
 
 internal class InspectorEngine(
     private val configProvider: ConfigProvider,
@@ -207,14 +210,13 @@ internal class InspectorEngine(
         }
         offsetOnScreen.set(location[0].toFloat(), location[1].toFloat())
 
-        dfsElements.clear()
-        val elements = mutableListOf<SelectionState>()
-
-        elements.addAll(ComposeHitTester.scanAllElements(rootView))
-        elements.addAll(ViewHitTester.scanAllElements(rootView))
-
-        allElements = elements
+        allElements = buildList {
+            addAll(ComposeHitTester.scanAllElements(rootView))
+            addAll(ViewHitTester.scanAllElements(rootView))
+        }
         rebindSelections()
+
+        dfsElements.clear()
         dfsElements.addAll(buildDfsOrderedList())
         notifyOnChangeSelectionState()
         invalidate()
