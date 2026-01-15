@@ -34,7 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.ViewCompat
@@ -175,6 +175,7 @@ private fun ChatRow(item: ComposeChatItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clearAndSetSemantics {}
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = if (item.leftAligned) Arrangement.Start else Arrangement.End
@@ -182,7 +183,7 @@ private fun ChatRow(item: ComposeChatItem) {
         if (item.leftAligned) {
             Image(
                 imageVector = item.icon,
-                contentDescription = null,
+                contentDescription = "Left Start",
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -192,7 +193,7 @@ private fun ChatRow(item: ComposeChatItem) {
             Spacer(modifier = Modifier.width(8.dp))
             Image(
                 imageVector = item.icon,
-                contentDescription = null,
+                contentDescription = "Right Start",
                 modifier = Modifier.size(24.dp)
             )
         }
