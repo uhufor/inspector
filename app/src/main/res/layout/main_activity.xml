@@ -59,6 +59,12 @@
             android:foreground="?attr/selectableItemBackground"
             android:text="@string/btn_mixed_a" />
 
+        <View
+            android:layout_width="4dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center"
+            android:background="@color/yellow_20a" />
+
         <Button
             android:id="@+id/showMixedB"
             android:layout_width="0dp"
@@ -66,6 +72,12 @@
             android:layout_weight="1"
             android:foreground="?attr/selectableItemBackground"
             android:text="@string/btn_mixed_b" />
+
+        <View
+            android:layout_width="4dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center"
+            android:background="@color/yellow_20a" />
 
         <Button
             android:id="@+id/showMixedC"
@@ -90,6 +102,12 @@
             android:layout_weight="1"
             android:foreground="?attr/selectableItemBackground"
             android:text="BottomSheet" />
+
+        <View
+            android:layout_width="8dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center"
+            android:background="@color/yellow_20a" />
 
         <Button
             android:id="@+id/showDialogUi"

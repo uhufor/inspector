@@ -2,6 +2,7 @@ package com.uhufor.inspector.engine
 
 import android.app.Activity
 import android.graphics.PointF
+import android.graphics.RectF
 import android.os.Build
 import android.view.View
 import android.view.WindowInsets
@@ -9,6 +10,8 @@ import com.uhufor.inspector.TraverseType
 import com.uhufor.inspector.config.ConfigProvider
 import com.uhufor.inspector.util.SwipeGestureDetector
 import com.uhufor.inspector.util.WindowManagerUtils
+import kotlin.math.max
+import kotlin.math.min
 
 internal class InspectorEngine(
     private val configProvider: ConfigProvider,
@@ -207,14 +210,13 @@ internal class InspectorEngine(
         }
         offsetOnScreen.set(location[0].toFloat(), location[1].toFloat())
 
-        dfsElements.clear()
-        val elements = mutableListOf<SelectionState>()
-
-        elements.addAll(ComposeHitTester.scanAllElements(rootView))
-        elements.addAll(ViewHitTester.scanAllElements(rootView))
-
-        allElements = elements
+        allElements = buildList {
+            addAll(ComposeHitTester.scanAllElements(rootView))
+            addAll(ViewHitTester.scanAllElements(rootView))
+        }
         rebindSelections()
+
+        dfsElements.clear()
         dfsElements.addAll(buildDfsOrderedList())
         notifyOnChangeSelectionState()
         invalidate()
@@ -265,8 +267,50 @@ internal class InspectorEngine(
         }
     }
 
-    private fun List<SelectionState>.sortForHierarchy(): List<SelectionState> {
-        return this.sortedWith(compareBy({ it.bounds.top }, { it.bounds.left }))
+    private fun List<SelectionState>.sortSpatiallyWithOverlap(
+        overlapThreshold: Float = 0.3f,
+    ): List<SelectionState> {
+        if (size <= 1) return this
+
+        fun SelectionState.centerX(): Float =
+            (bounds.left + bounds.right) / 2
+
+        fun RectF.verticalOverlapRatio(other: RectF): Float {
+            val overlap = min(this.bottom, other.bottom) - max(this.top, other.top)
+            if (overlap <= 0) return 0f
+            return overlap / min(this.height(), other.height())
+        }
+
+        val sortedByTop = sortedBy { it.bounds.top }
+
+        val rows = mutableListOf<MutableList<SelectionState>>()
+        var currentRow = mutableListOf<SelectionState>()
+
+        for (item in sortedByTop) {
+            if (currentRow.isEmpty()) {
+                currentRow.add(item)
+                continue
+            }
+
+            val isSameRow = currentRow.any { rowItem ->
+                rowItem.bounds.verticalOverlapRatio(item.bounds) >= overlapThreshold
+            }
+
+            if (isSameRow) {
+                currentRow.add(item)
+            } else {
+                currentRow.sortBy { it.centerX() }
+                rows.add(currentRow)
+                currentRow = mutableListOf(item)
+            }
+        }
+
+        if (currentRow.isNotEmpty()) {
+            currentRow.sortBy { it.centerX() }
+            rows.add(currentRow)
+        }
+
+        return rows.flatten()
     }
 
     private fun findParentOf(element: SelectionState?): SelectionState? {
@@ -285,7 +329,7 @@ internal class InspectorEngine(
                 it.parentBounds == it.bounds
             }
             .toList()
-            .sortForHierarchy()
+            .sortSpatiallyWithOverlap()
     }
 
     private fun findSiblingsOf(element: SelectionState?): List<SelectionState> {
@@ -313,7 +357,7 @@ internal class InspectorEngine(
 
         val orderedList = mutableListOf<SelectionState>()
         val visitedGlobal = mutableSetOf<Int>()
-        val roots = allElements.filter { findParentOf(it) == null }.sortForHierarchy()
+        val roots = allElements.filter { findParentOf(it) == null }.sortSpatiallyWithOverlap()
 
         fun dfsVisit(currentElement: SelectionState) {
             if (currentElement.id in visitedGlobal) {
