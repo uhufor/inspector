@@ -28,7 +28,7 @@ internal object ComposeHitTester {
 
         composeViews
             .mapNotNull { composeView ->
-                if (composeView.childCount == 0) return null
+                if (composeView.childCount == 0) return@mapNotNull null
                 (composeView.getChildAt(0) as? RootForTest)?.semanticsOwner
             }
             .forEach { owner ->
@@ -101,6 +101,8 @@ internal object ComposeHitTester {
     }
 
     private fun collectComposeViews(view: View, out: MutableList<AbstractComposeView>) {
+        if (view.visibility != View.VISIBLE || view.alpha == 0f) return
+
         if (view is AbstractComposeView) {
             out.add(view)
         }
