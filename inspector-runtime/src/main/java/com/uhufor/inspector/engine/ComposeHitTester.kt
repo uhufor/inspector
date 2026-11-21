@@ -101,6 +101,8 @@ internal object ComposeHitTester {
     }
 
     private fun collectComposeViews(view: View, out: MutableList<AbstractComposeView>) {
+        if (view.visibility != View.VISIBLE || view.alpha == 0f) return
+
         if (view is AbstractComposeView) {
             out.add(view)
         }
