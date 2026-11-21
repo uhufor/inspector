@@ -20,6 +20,7 @@ internal object ComposeHitTester {
 
     @SuppressLint("UseKtx")
     fun hitTest(root: View, x: Int, y: Int): SelectionState? {
+        val hitPosition = getWindowRelativePosition(root, x, y)
         val composeViews = mutableListOf<AbstractComposeView>()
         collectComposeViews(root, composeViews)
 
@@ -37,7 +38,6 @@ internal object ComposeHitTester {
                     .forEach { node: SemanticsNode ->
                         val bounds = node.boundsInWindow
                         if (bounds.width > MIN_ELEMENT_SIZE && bounds.height > MIN_ELEMENT_SIZE) {
-                            val hitPosition = Offset(x.toFloat(), y.toFloat())
                             if (bounds.contains(hitPosition)) {
                                 val area = (bounds.width * bounds.height).toInt()
                                 if (area < smallestArea) {
@@ -62,6 +62,23 @@ internal object ComposeHitTester {
             }
 
         return matched
+    }
+
+    private fun getWindowRelativePosition(
+        root: View,
+        x: Int,
+        y: Int,
+    ): Offset {
+        val locationOnScreen = IntArray(2)
+        val locationInWindow = IntArray(2)
+        root.getLocationOnScreen(locationOnScreen)
+        root.getLocationInWindow(locationInWindow)
+
+        val hitPosition = Offset(
+            (x - locationOnScreen[0] + locationInWindow[0]).toFloat(),
+            (y - locationOnScreen[1] + locationInWindow[1]).toFloat(),
+        )
+        return hitPosition
     }
 
     @SuppressLint("UseKtx")
