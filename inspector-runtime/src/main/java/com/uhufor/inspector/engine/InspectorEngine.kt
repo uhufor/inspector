@@ -379,14 +379,19 @@ internal class InspectorEngine(
     }
 
     private fun rebindSelections() {
-        selection?.let { current ->
-            allElements.find { it.id == current.id }?.let { selection = it }
+        selection = selection?.let { current ->
+            allElements.find { it.id == current.id }
         }
-        primarySelection?.let { current ->
-            allElements.find { it.id == current.id }?.let { primarySelection = it }
+        primarySelection = primarySelection?.let { current ->
+            allElements.find { it.id == current.id }
         }
-        secondarySelection?.let { current ->
-            allElements.find { it.id == current.id }?.let { secondarySelection = it }
+        secondarySelection = secondarySelection?.let { current ->
+            allElements.find { it.id == current.id }
+        }
+
+        if (measurementMode == MeasurementMode.Relative && primarySelection == null) {
+            secondarySelection = null
+            measurementMode = MeasurementMode.Normal
         }
     }
 }
